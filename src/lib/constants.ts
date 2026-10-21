@@ -1,0 +1,42 @@
+import { MenuItem, Shift } from '@/types';
+
+export const TIMEZONE = 'Asia/Jakarta';
+
+export function formatRupiah(amount: number): string {
+  return 'Rp' + Number(amount || 0).toLocaleString('id-ID');
+}
+
+export function formatDateTimeWIB(timestamp: number | Date): string {
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: TIMEZONE,
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(timestamp));
+}
+
+export function formatTimeWIB(timestamp: number | Date): string {
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(timestamp));
+}
+
+export const INITIAL_SHIFTS: Shift[] = [
+  { id: 's1', name: 'Aa Iis', phone: '6281234500001' },
+  { id: 's2', name: 'Penjaga Malam', phone: '6281234500002' },
+];
+
+export const INITIAL_MENU: MenuItem[] = [
+  { id: 'm1', name: 'Indomie Goreng', description: 'Mi goreng favorit, sayuran segar, dan bawang renyah.', price: 10000, category: 'Mi', kind: 'noodle', available: true, egg: true, popular: true },
+  { id: 'm2', name: 'Indomie Soto', description: 'Kuah hangat rasa soto. Teman enak di segala waktu.', price: 10000, category: 'Mi', kind: 'soup', available: true, egg: true, popular: true },
+  { id: 'm3', name: 'Mi Goreng Double', description: 'Porsi dua bungkus untuk lapar yang lebih serius.', price: 17000, category: 'Mi', kind: 'noodle', available: true, egg: true, popular: false },
+  { id: 'm4', name: 'Nasi Telur Warmindo', description: 'Nasi hangat, telur ceplok, sambal, dan timun.', price: 14000, category: 'Nasi', kind: 'rice', available: true, egg: false, popular: true },
+  { id: 'm5', name: 'Nasi Goreng Kampung', description: 'Nasi goreng gurih dengan telur dan kerupuk.', price: 18000, category: 'Nasi', kind: 'rice', available: true, egg: false, popular: false },
+  { id: 'm6', name: 'Roti Bakar Cokelat', description: 'Roti panggang, cokelat lumer, dan susu manis.', price: 12000, category: 'Camilan', kind: 'toast', available: true, egg: false, popular: false },
+  { id: 'm7', name: 'Teh Manis', description: 'Seduhan teh yang pas manisnya. Pilih panas atau dingin.', price: 4000, category: 'Minuman', kind: 'tea', available: true, temperatures: ['Panas', 'Dingin'], coldExtra: 1000, popular: true },
+  { id: 'm8', name: 'Kopi Susu', description: 'Kopi dan susu, teman ngobrol sampai larut.', price: 6000, category: 'Minuman', kind: 'coffee', available: true, temperatures: ['Panas', 'Dingin'], coldExtra: 1000, popular: false },
+  { id: 'm9', name: 'Jeruk Segar', description: 'Segar dan ringan, cocok untuk menemani makan.', price: 7000, category: 'Minuman', kind: 'orange', available: false, temperatures: ['Dingin'], coldExtra: 0, popular: false },
+];
