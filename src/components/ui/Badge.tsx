@@ -1,0 +1,45 @@
+import React from 'react';
+
+export interface BadgeProps {
+  children: React.ReactNode;
+  variant?: 'success' | 'warning' | 'danger' | 'neutral' | 'info';
+  className?: string;
+  dot?: boolean;
+}
+
+export function Badge({
+  children,
+  variant = 'neutral',
+  className = '',
+  dot = false,
+}: BadgeProps) {
+  const variantStyles = {
+    success: 'bg-[#e2edd8] text-[#1c4d25] border-[#c5dcba]',
+    warning: 'bg-[#fef1dc] text-[#7a4b08] border-[#f4d5a7]',
+    danger: 'bg-[#fde7e4] text-[#91251c] border-[#f7c5be]',
+    neutral: 'bg-soft-green text-ink border-border-line',
+    info: 'bg-[#e7f0fa] text-[#1a4a75] border-[#c6def4]',
+  };
+
+  const dotStyles = {
+    success: 'bg-[#297838]',
+    warning: 'bg-[#a36307]',
+    danger: 'bg-[#b64035]',
+    neutral: 'bg-[#526058]',
+    info: 'bg-[#1e619d]',
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${variantStyles[variant]} ${className}`}
+    >
+      {dot ? (
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${dotStyles[variant]}`}
+          aria-hidden="true"
+        />
+      ) : null}
+      {children}
+    </span>
+  );
+}

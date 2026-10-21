@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf8f2;
+  --foreground: #1b332b;
+  --paper: #faf8f2;
+  --ink: #1b332b;
+  --brand-green: #173f33;
+  --brand-green-hover: #215444;
+  --brand-orange: #c04c18;
+  --brand-orange-hover: #a33e11;
+  --soft-green: #eef2e8;
+  --border-line: #dbe2d6;
+  --text-muted: #526058;
+  --danger-red: #b64035;
+  --warning-amber: #8c5a14;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-hover: var(--brand-green-hover);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-orange-hover: var(--brand-orange-hover);
+  --color-soft-green: var(--soft-green);
+  --color-border-line: var(--border-line);
+  --color-text-muted: var(--text-muted);
+  --color-danger-red: var(--danger-red);
+  --color-warning-amber: var(--warning-amber);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Aksesibilitas: Indikator fokus yang jelas dan kontras */
+:focus-visible {
+  outline: 3px solid #e8a147;
+  outline-offset: 2px;
+}
+
+/* Safe area padding untuk tombol navigasi bawah melayang di perangkat mobile */
+.safe-bottom-clearance {
+  padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 90px);
+}
