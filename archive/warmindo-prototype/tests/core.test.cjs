@@ -1,0 +1,11 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const PV = require('../core.js');
+function setup(){const s=PV.createSeed();s.cart.push({id:'c1',menuId:'m1',qty:2,egg:true,temp:'',note:'Tidak pedas'});return s;}
+const form={name:'Raka',phone:'081234567890',mode:'asap',note:''};
+test('harga opsi telur dihitung, nomor WA dinormalisasi, dan snapshot tetap',()=>{const s=setup();assert.equal(PV.total(s),28000);const o=PV.makeOrder(s,form);assert.equal(o.phone,'6281234567890');s.menu[0].price=99000;assert.equal(o.total,28000);assert.equal(o.items[0].unit,14000);});
+test('checkout ditolak saat tutup, item habis, penerima tidak ada, atau nomor tidak valid',()=>{for(const mutate of [s=>s.settings.open=false,s=>s.menu[0].available=false,s=>s.settings.recipient='missing']){const s=setup();mutate(s);assert.throws(()=>PV.makeOrder(s,form));}assert.throws(()=>PV.makeOrder(setup(),{...form,phone:'123'}));});
+test('waktu terjadwal harus cukup untuk persiapan dan tidak lebih dari satu jam',()=>{const now=Date.now();assert.throws(()=>PV.makeOrder(setup(),{...form,mode:'scheduled',pickup:now+5*60000},now));assert.throws(()=>PV.makeOrder(setup(),{...form,mode:'scheduled',pickup:now+61*60000},now));const o=PV.makeOrder(setup(),{...form,mode:'scheduled',pickup:now+30*60000},now);assert.equal(o.pickup,now+30*60000);});
+test('pembayaran berulang tidak menggandakan notifikasi dan status lunas tidak turun',()=>{const s=setup(),o=PV.makeOrder(s,form);PV.pay(s,o,'PAID');PV.pay(s,o,'PAID');PV.pay(s,o,'FAILED');assert.equal(o.attempts,1);assert.equal(o.payment,'PAID');assert.equal(s.cart.length,0);});
+test('WA gagal tidak menghilangkan order lunas, penerima mengikuti sif saat bayar',()=>{const s=setup(),o=PV.makeOrder(s,form);s.settings.waConnected=false;s.settings.recipient='s2';PV.pay(s,o,'PAID');assert.equal(o.notification,'FAILED');assert.equal(o.payment,'PAID');assert.equal(o.recipient,'s2');assert.equal(s.orders.length,1);});
+test('pembayaran gagal mempertahankan keranjang untuk pemulihan',()=>{const s=setup(),o=PV.makeOrder(s,form);PV.pay(s,o,'EXPIRED');assert.equal(s.cart.length,1);assert.equal(o.attempts,0);PV.pay(s,o,'PAID');assert.equal(o.payment,'PAID');});
