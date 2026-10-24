@@ -8,7 +8,11 @@ import { formatRupiah, formatDateTimeWIB, formatTimeWIB } from '@/lib/constants'
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { getOrders, saveOrders, getStoreSettings } from '@/lib/store';
+import { FoodlyHeader } from '@/components/customer/FoodlyHeader';
+import { FoodlyFooter } from '@/components/customer/FoodlyFooter';
+import { CartDrawer } from '@/components/customer/CartDrawer';
 import { PaymentModal } from '@/components/customer/PaymentModal';
+import { useCart } from '@/context/CartContext';
 import {
   Copy,
   ArrowLeft,
@@ -17,11 +21,15 @@ import {
   XCircle,
   RotateCcw,
   History,
+  Check,
 } from 'lucide-react';
 
 function OrderTrackingContent() {
   const params = useParams();
   const token = params.token as string;
+
+  const { isStoreOpen, estimateMinutes, totalItems } = useCart();
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState<boolean>(false);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
@@ -36,7 +44,7 @@ function OrderTrackingContent() {
         setOrder(found);
       }
     } catch (e) {
-      console.warn('Gagal memuat order', e);
+      console.warn('Gagal memuat pesanan', e);
     } finally {
       setIsLoading(false);
     }
@@ -98,45 +106,8 @@ function OrderTrackingContent() {
     loadCurrentOrder();
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-paper flex items-center justify-center p-4">
-        <div className="text-center space-y-2">
-          <div className="w-8 h-8 border-3 border-brand-green border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-text-muted">Memuat data pesanan...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-paper flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white p-6 rounded-2xl border border-border-line text-center space-y-4">
-          <AlertCircle className="w-12 h-12 text-danger-red mx-auto" />
-          <h1 className="text-xl font-bold text-ink">Pesanan Tidak Ditemukan</h1>
-          <p className="text-sm text-text-muted">
-            Tautan pesanan ini tidak valid atau belum tercatat pada browser ini.
-          </p>
-          <div className="pt-2 flex flex-col gap-2">
-            <Link href="/history">
-              <Button variant="outline" fullWidth>
-                Buka Riwayat Pesanan
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="primary" fullWidth>
-                Kembali ke Menu
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const fulfillmentLabels: Record<Order['fulfillment'], string> = {
-    NEW: 'Pesanan Diterima Dapur',
+    NEW: 'Diterima Dapur',
     PREPARING: 'Sedang Dimasak',
     READY: 'Siap Diambil di Warung',
     COMPLETED: 'Selesai Diambil',
@@ -150,16 +121,94 @@ function OrderTrackingContent() {
     EXPIRED: { text: 'Kedaluwarsa', variant: 'danger' },
   };
 
+  if (isLoading) {
+    return (
+      <div className="bg-[#f5f2ed] min-h-screen flex flex-col">
+        <FoodlyHeader
+          isOpen={isStoreOpen}
+          estimateMinutes={estimateMinutes}
+          totalCartItems={totalItems}
+          onOpenCart={() => setIsCartDrawerOpen(true)}
+        />
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center space-y-3">
+            <div className="w-8 h-8 border-3 border-[#f5c943] border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-xs text-[#918c84]">Memuat data pesanan...</p>
+          </div>
+        </main>
+        <FoodlyFooter />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="bg-[#f5f2ed] min-h-screen flex flex-col">
+        <FoodlyHeader
+          isOpen={isStoreOpen}
+          estimateMinutes={estimateMinutes}
+          totalCartItems={totalItems}
+          onOpenCart={() => setIsCartDrawerOpen(true)}
+        />
+        <main className="max-w-md mx-auto w-full px-4 sm:px-6 py-12 flex-1 flex items-center justify-center">
+          <div className="w-full bg-white p-8 sm:p-10 rounded-[16px] border border-[#e9e5df] text-center space-y-4 shadow-card">
+            <div className="w-16 h-16 rounded-full bg-[#fde7e4] border border-[#f7c5be] flex items-center justify-center mx-auto text-[#91251c]">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold font-editorial text-[#242321]">
+              Pesanan Tidak Ditemukan
+            </h1>
+            <p className="text-xs sm:text-sm text-[#68645e] leading-relaxed">
+              Tautan pesanan ini tidak valid atau belum tersimpan pada browser perangkat ini.
+            </p>
+            <div className="pt-2 flex flex-col gap-2.5">
+              <Link href="/history" className="block">
+                <Button variant="outline" fullWidth size="md" className="rounded-full">
+                  Buka Riwayat Pesanan
+                </Button>
+              </Link>
+              <Link href="/" className="block">
+                <Button variant="gold" fullWidth size="md" className="rounded-full font-bold">
+                  Kembali ke Menu
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </main>
+        <FoodlyFooter />
+      </div>
+    );
+  }
+
   const isUnpaid = order.payment === 'PENDING' || order.payment === 'FAILED' || order.payment === 'EXPIRED';
 
   return (
-    <div className="min-h-screen bg-paper py-6 sm:py-10 px-4 sm:px-6">
-      <div className="max-w-xl mx-auto space-y-6">
-        {/* Navigasi Cepat */}
-        <div className="flex items-center justify-between">
+    <div className="bg-[#f5f2ed] min-h-screen flex flex-col">
+      <FoodlyHeader
+        isOpen={isStoreOpen}
+        estimateMinutes={estimateMinutes}
+        totalCartItems={totalItems}
+        onOpenCart={() => setIsCartDrawerOpen(true)}
+      />
+
+      <main className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 flex-1 space-y-6">
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          className="text-[10px] text-[#918c84] uppercase tracking-wide font-medium flex items-center gap-1.5"
+        >
+          <Link href="/" className="hover:text-[#242321] transition-colors">
+            Beranda
+          </Link>
+          <span>/</span>
+          <span className="text-[#242321] font-semibold">Bukti Pesanan</span>
+        </nav>
+
+        {/* Navigasi Cepat Antar Halaman */}
+        <div className="flex items-center justify-between gap-3">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-ink transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#68645e] hover:text-[#242321] transition-colors min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Menu</span>
@@ -167,56 +216,55 @@ function OrderTrackingContent() {
 
           <Link
             href="/history"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-green hover:underline transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#242321] hover:underline underline-offset-4 transition-colors min-h-[44px]"
           >
-            <History className="w-4 h-4" />
+            <History className="w-4 h-4 text-[#77736d]" />
             <span>Riwayat Pesanan</span>
           </Link>
         </div>
 
         {/* Banner Status Pembayaran Belum Lunas */}
         {isUnpaid && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
+          <div className="p-5 bg-[#fef8e8] border border-[#f5c943]/40 rounded-2xl space-y-3.5 shadow-xs animate-fade-in">
             <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <Clock className="w-5 h-5 text-[#242321] shrink-0 mt-0.5" />
               <div className="text-xs space-y-1">
-                <p className="font-bold text-amber-900">
+                <p className="font-bold text-[#242321] text-sm">
                   {order.payment === 'PENDING'
                     ? 'Pesanan Belum Dilunasi'
                     : order.payment === 'FAILED'
                     ? 'Pembayaran Gagal Diproses'
                     : 'Waktu Pembayaran Telah Kedaluwarsa'}
                 </p>
-                <p className="text-amber-800 leading-relaxed">
-                  Dapur hanya menyiapkan pesanan setelah pembayaran terverifikasi lunas.
+                <p className="text-[#68645e] leading-relaxed">
+                  Dapur hanya mulai menyiapkan pesanan setelah pembayaran terverifikasi lunas.
                 </p>
               </div>
             </div>
 
-            <Button
-              variant="primary"
-              size="sm"
-              fullWidth
+            <button
+              type="button"
               onClick={() => setIsPaymentModalOpen(true)}
+              className="w-full min-h-[44px] bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold rounded-full py-2.5 px-4 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm cursor-pointer shadow-xs active:scale-95"
             >
-              <RotateCcw className="w-4 h-4 mr-1.5" />
-              {order.payment === 'PENDING' ? 'Lanjutkan Pembayaran' : 'Coba Bayar Ulang'}
-            </Button>
+              <RotateCcw className="w-4 h-4" />
+              <span>{order.payment === 'PENDING' ? 'Lanjutkan Pembayaran' : 'Coba Bayar Ulang'}</span>
+            </button>
           </div>
         )}
 
         {/* Banner Pesanan Dibatalkan */}
         {order.fulfillment === 'CANCELLED' && (
-          <div className="p-4 bg-danger-red/10 border border-danger-red/30 rounded-2xl space-y-2">
+          <div className="p-5 bg-[#fde7e4] border border-[#f7c5be] rounded-2xl space-y-2 text-[#91251c] animate-fade-in">
             <div className="flex items-start gap-2.5">
-              <XCircle className="w-5 h-5 text-danger-red shrink-0 mt-0.5" />
+              <XCircle className="w-5 h-5 text-[#d94b3d] shrink-0 mt-0.5" />
               <div className="text-xs space-y-1">
-                <p className="font-bold text-danger-red">Pesanan Dibatalkan oleh Penjaga</p>
-                <p className="text-text-muted">
+                <p className="font-bold text-sm text-[#91251c]">Pesanan Dibatalkan oleh Penjaga</p>
+                <p className="text-[#68645e] leading-relaxed">
                   Alasan: <strong>{order.cancelReason || 'Bahan baku habis atau warung tutup sementara.'}</strong>
                 </p>
                 {order.refund && order.refund.status !== 'NONE' && (
-                  <p className="text-brand-green font-semibold pt-1">
+                  <p className="text-[#1c4d25] font-semibold pt-1">
                     Status Refund: {order.refund.status === 'FULL_REFUNDED' ? 'Lunas Ditransfer' : 'Menunggu Transfer'} ({formatRupiah(order.refund.amount)})
                   </p>
                 )}
@@ -225,14 +273,14 @@ function OrderTrackingContent() {
           </div>
         )}
 
-        {/* Card Ringkasan Status Pesanan */}
-        <section className="bg-white p-6 rounded-3xl border border-border-line shadow-xs space-y-5">
+        {/* Card Utama Bukti Pesanan */}
+        <section className="bg-white p-6 sm:p-8 rounded-[16px] border border-[#e9e5df] shadow-card space-y-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#918c84]">
                 Bukti Pesanan Warmindo
               </span>
-              <h1 className="text-xl sm:text-2xl font-black font-mono text-ink mt-0.5">
+              <h1 className="text-xl sm:text-2xl font-bold font-mono text-[#242321] mt-0.5 tracking-tight">
                 {order.number}
               </h1>
             </div>
@@ -247,7 +295,7 @@ function OrderTrackingContent() {
                       ? 'success'
                       : order.fulfillment === 'CANCELLED'
                       ? 'danger'
-                      : 'info'
+                      : 'gold'
                   }
                   size="sm"
                 >
@@ -257,97 +305,108 @@ function OrderTrackingContent() {
             </div>
           </div>
 
-          {/* Estimasi Jam Ambil */}
-          <div className="p-4 bg-soft-green/30 border border-brand-green/20 rounded-2xl space-y-1">
-            <span className="text-xs font-semibold text-brand-green">
+          {/* Kotak Estimasi Jam Ambil */}
+          <div className="p-4 sm:p-5 bg-[#fbf9f5] border border-[#e9e5df] rounded-xl space-y-1.5">
+            <span className="text-xs font-semibold text-[#68645e] block">
               Waktu Pengambilan di Warung
             </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-black text-ink">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#242321]">
                 {formatTimeWIB(order.pickup)} WIB
               </span>
-              <span className="text-xs text-text-muted">
+              <span className="text-xs text-[#918c84]">
                 ({formatDateTimeWIB(order.pickup)})
               </span>
             </div>
-            <p className="text-[11px] text-text-muted pt-0.5">
-              Makanan disiapkan mendekati jam ini agar tetap hangat dan fresh saat kamu tiba.
+            <p className="text-[11px] text-[#68645e] pt-0.5 leading-relaxed">
+              Makanan disiapkan mendekati jam ini agar tetap hangat dan segar saat kamu tiba di warung.
             </p>
           </div>
 
           {/* Rincian Pemesan */}
-          <div className="grid grid-cols-2 gap-4 text-xs pt-1 border-t border-border-line">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1 border-t border-[#eeeae4]">
             <div>
-              <span className="text-text-muted block">Nama Pemesan</span>
-              <strong className="text-ink text-sm">{order.name}</strong>
+              <span className="text-[#918c84] block mb-0.5">Nama Pemesan</span>
+              <strong className="text-[#242321] text-sm">{order.name}</strong>
             </div>
             <div>
-              <span className="text-text-muted block">WhatsApp</span>
-              <strong className="text-ink text-sm">{order.phone}</strong>
+              <span className="text-[#918c84] block mb-0.5">Nomor WhatsApp</span>
+              <strong className="text-[#242321] text-sm">{order.phone}</strong>
             </div>
           </div>
 
-          {/* Rincian Menu */}
-          <div className="space-y-3 pt-3 border-t border-border-line">
-            <span className="text-xs font-bold uppercase tracking-wider text-ink">
+          {/* Rincian Menu yang Dipesan */}
+          <div className="space-y-3 pt-3 border-t border-[#eeeae4]">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#242321]">
               Rincian Menu yang Dipesan
             </span>
 
-            <div className="divide-y divide-border-line">
+            <div className="divide-y divide-[#eeeae4]">
               {order.items.map((it, idx) => (
-                <div key={idx} className="py-2.5 flex justify-between items-start text-xs">
+                <div key={idx} className="py-3 flex justify-between items-start text-xs">
                   <div>
-                    <span className="font-bold text-ink">
+                    <span className="font-bold text-[#242321]">
                       {it.qty}x {it.name}
                     </span>
-                    <div className="text-text-muted space-x-1 mt-0.5">
-                      {it.temp && <span>[{it.temp}]</span>}
-                      {it.egg && <span>[+Telur]</span>}
+                    <div className="text-[#68645e] space-x-1.5 mt-0.5">
+                      {it.temp && (
+                        <span className="bg-[#fbf9f5] px-1.5 py-0.5 rounded text-[11px] border border-[#e9e5df]">
+                          {it.temp}
+                        </span>
+                      )}
+                      {it.egg && (
+                        <span className="bg-[#fbf9f5] px-1.5 py-0.5 rounded text-[11px] border border-[#e9e5df]">
+                          + Telur
+                        </span>
+                      )}
                       {it.note && <span>({it.note})</span>}
                     </div>
                   </div>
-                  <span className="font-semibold text-ink">
+                  <span className="font-bold text-[#242321]">
                     {formatRupiah(it.unit * it.qty)}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-3 border-t border-border-line flex justify-between items-center text-sm font-black text-ink">
+            <div className="pt-3 border-t border-[#eeeae4] flex justify-between items-center text-sm font-bold text-[#242321]">
               <span>Total Tagihan</span>
-              <span className="text-brand-green text-base">
+              <span className="text-base sm:text-lg font-extrabold text-[#242321]">
                 {formatRupiah(order.total)}
               </span>
             </div>
           </div>
 
-          {/* Tautan Privat & Bagikan */}
-          <div className="pt-4 border-t border-border-line space-y-2">
+          {/* Tautan Privat dan Salin Link */}
+          <div className="pt-4 border-t border-[#eeeae4] space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-ink">
+              <span className="text-xs font-semibold text-[#242321]">
                 Simpan Tautan Pesanan
               </span>
               {copied && (
-                <span className="text-[11px] text-brand-green font-bold">
-                  Tautan disalin ke clipboard!
+                <span className="text-[11px] text-[#1c4d25] font-bold flex items-center gap-1 animate-fade-in">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Tautan disalin ke clipboard!</span>
                 </span>
               )}
             </div>
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="w-full min-h-[44px] px-3.5 py-2.5 bg-paper hover:bg-neutral-100 border border-border-line rounded-xl text-xs font-semibold text-ink flex items-center justify-between transition-colors cursor-pointer"
-            >
-              <span className="truncate font-mono text-[11px] text-text-muted pr-2">
+
+            <div className="p-2.5 bg-[#f5f2ed] border border-[#e9e5df] rounded-xl flex items-center justify-between gap-2">
+              <span className="truncate font-mono text-xs text-[#68645e] px-1 select-all">
                 {typeof window !== 'undefined' ? window.location.href : order.token}
               </span>
-              <div className="flex items-center gap-1.5 shrink-0 text-brand-green">
-                <Copy className="w-4 h-4" />
-                <span>Salin</span>
-              </div>
-            </button>
-            <p className="text-[11px] text-text-muted">
-              Kamu bisa membuka halaman ini kapan saja dari perangkat ini lewat menu Riwayat Pesanan.
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="min-h-[40px] px-3.5 py-2 rounded-lg bg-white border border-[#e9e5df] text-[#242321] font-semibold text-xs flex items-center gap-1.5 hover:bg-[#fbf9f5] transition-colors cursor-pointer shrink-0 shadow-xs"
+              >
+                <Copy className="w-3.5 h-3.5 text-[#77736d]" />
+                <span>{copied ? 'Tersalin' : 'Salin'}</span>
+              </button>
+            </div>
+
+            <p className="text-[11px] text-[#918c84] leading-relaxed">
+              Kamu bisa membuka kembali halaman ini sewaktu-waktu dari peramban ini lewat menu Riwayat Pesanan.
             </p>
           </div>
         </section>
@@ -361,7 +420,14 @@ function OrderTrackingContent() {
           totalAmount={order.total}
           onSelectOutcome={handleRetryPaymentOutcome}
         />
-      </div>
+      </main>
+
+      <FoodlyFooter />
+
+      <CartDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={() => setIsCartDrawerOpen(false)}
+      />
     </div>
   );
 }
@@ -370,8 +436,8 @@ export default function OrderTrackingPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-paper flex items-center justify-center p-4">
-          <div className="w-8 h-8 border-3 border-brand-green border-t-transparent rounded-full animate-spin" />
+        <div className="bg-[#f5f2ed] min-h-screen flex items-center justify-center p-6">
+          <div className="w-8 h-8 border-3 border-[#f5c943] border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

@@ -62,6 +62,9 @@
   --color-rating-gold: #e9b82f;
   --color-discount-red: #d94b3d;
   --color-icon-gray: #77736d;
+
+  --shadow-card: 0 1px 2px rgba(40, 32, 20, 0.025);
+  --shadow-dropdown: 0 4px 14px rgba(40, 32, 20, 0.08);
 }
 
 body {

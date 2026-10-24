@@ -33,6 +33,10 @@ import {
   Ban,
   Check,
   Sparkles,
+  Clock,
+  Flame,
+  AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function AdminAntreanPage() {
@@ -40,7 +44,7 @@ export default function AdminAntreanPage() {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [activeTab, setActiveTab] = useState<
-    'SEMUA' | 'PERLU_DITANGANI' | 'WA_GAGAL' | 'SELESAI' | 'BATAL'
+    'PERLU_DITANGANI' | 'SEMUA' | 'WA_GAGAL' | 'SELESAI' | 'BATAL'
   >('PERLU_DITANGANI');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -101,7 +105,11 @@ export default function AdminAntreanPage() {
     };
   }, [loadData]);
 
-  const updateOrderStatus = (orderId: string, nextStatus: OrderFulfillmentStatus) => {
+  const updateOrderStatus = (
+    orderId: string,
+    nextStatus: OrderFulfillmentStatus,
+    customNotificationMessage?: string
+  ) => {
     const updated = orders.map((o) => {
       if (o.id === orderId) {
         return {
@@ -126,7 +134,12 @@ export default function AdminAntreanPage() {
           : null
       );
     }
-    showToast(`Status pesanan berhasil diubah menjadi: ${nextStatus}`);
+
+    if (customNotificationMessage) {
+      showToast(customNotificationMessage);
+    } else {
+      showToast(`Status pesanan berhasil diperbarui: ${nextStatus}`);
+    }
   };
 
   // Retry kirim notifikasi WA ke sif aktif (FR-35, FR-51)
@@ -214,7 +227,11 @@ export default function AdminAntreanPage() {
     setSelectedOrder(order);
     setRefundAmount(order.refund?.amount || order.total);
     setRefundReason(order.refund?.reason || order.cancelReason || 'Bahan habis');
-    setRefundStatus(order.refund?.status === 'PARTIAL_REFUNDED' ? 'PARTIAL_REFUNDED' : 'FULL_REFUNDED');
+    setRefundStatus(
+      order.refund?.status === 'PARTIAL_REFUNDED'
+        ? 'PARTIAL_REFUNDED'
+        : 'FULL_REFUNDED'
+    );
     setIsRefundModalOpen(true);
   };
 
@@ -265,7 +282,16 @@ export default function AdminAntreanPage() {
       navigator.clipboard.writeText(draftText);
       setCopiedDraft(true);
       setTimeout(() => setCopiedDraft(false), 2500);
-      showToast('Draft pesan pelanggan berhasil disalin!');
+      showToast('Draft pesan pelanggan berhasil disalin ke clipboard.');
+    }
+  };
+
+  // Salin draft pesan WA penjaga
+  const handleCopyShiftDraft = (order: Order, shift: Shift) => {
+    const draftText = buildKitchenOrderWhatsAppMessage(order, shift);
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(draftText);
+      showToast('Pesan WA penjaga sif berhasil disalin.');
     }
   };
 
@@ -279,7 +305,9 @@ export default function AdminAntreanPage() {
     if (!matchesSearch) return false;
 
     if (activeTab === 'PERLU_DITANGANI') {
-      return o.payment === 'PAID' && ['NEW', 'PREPARING', 'READY'].includes(o.fulfillment);
+      return (
+        o.payment === 'PAID' && ['NEW', 'PREPARING', 'READY'].includes(o.fulfillment)
+      );
     }
     if (activeTab === 'WA_GAGAL') {
       return o.notification === 'FAILED';
@@ -294,7 +322,8 @@ export default function AdminAntreanPage() {
   });
 
   const activeShift =
-    shifts.find((s) => s.id === settings?.recipientShiftId) || shifts[0] || {
+    shifts.find((s) => s.id === settings?.recipientShiftId) ||
+    shifts[0] || {
       id: 's1',
       name: 'Aa Iis',
       phone: '6281234500001',
@@ -303,150 +332,233 @@ export default function AdminAntreanPage() {
   const handleReloadSeeds = () => {
     seedDemoOrders();
     loadData();
-    showToast('6 contoh pesanan demo berhasil dimuat ulang!');
+    showToast('6 pesanan demo dapur berhasil dimuat ulang.');
   };
 
+  // Perhitungan 4 Statistik Utama
   const countNeedCooking = orders.filter(
-    (o) => o.payment === 'PAID' && ['NEW', 'PREPARING'].includes(o.fulfillment)
+    (o) => o.payment === 'PAID' && o.fulfillment === 'NEW'
   ).length;
+
+  const countPreparing = orders.filter(
+    (o) => o.payment === 'PAID' && o.fulfillment === 'PREPARING'
+  ).length;
+
   const countReady = orders.filter(
     (o) => o.payment === 'PAID' && o.fulfillment === 'READY'
   ).length;
+
   const countWaFailed = orders.filter(
     (o) => o.notification === 'FAILED'
   ).length;
-  const countCompleted = orders.filter(
-    (o) => o.fulfillment === 'COMPLETED'
-  ).length;
+
+  // Hitungan tab filter
+  const tabCounts = {
+    PERLU_DITANGANI: orders.filter(
+      (o) => o.payment === 'PAID' && ['NEW', 'PREPARING', 'READY'].includes(o.fulfillment)
+    ).length,
+    SEMUA: orders.length,
+    WA_GAGAL: countWaFailed,
+    SELESAI: orders.filter((o) => o.fulfillment === 'COMPLETED').length,
+    BATAL: orders.filter((o) => o.fulfillment === 'CANCELLED' || o.payment !== 'PAID').length,
+  };
 
   return (
-    <div className="min-h-screen bg-paper py-6 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#f5f2ed] py-6 sm:py-8 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+        {/* Navigation Bar */}
         <AdminHeader />
 
+        {/* Floating Feedback Toast */}
         {toastMsg && (
           <div
             role="status"
-            className="p-3 bg-brand-green text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2 animate-fade-in"
+            className="p-3.5 bg-[#242321] text-white text-xs font-bold rounded-2xl shadow-dropdown flex items-center gap-2.5 animate-fade-in border border-[#e9e5df]/20"
           >
-            <CheckCircle className="w-4 h-4 shrink-0" />
+            <CheckCircle className="w-4 h-4 text-[#f5c943] shrink-0" />
             <span>{toastMsg}</span>
           </div>
         )}
 
-        {/* Ringkasan Statistik Cepat */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-white p-3.5 rounded-2xl border border-border-line">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted block">
-              Perlu Dimasak
-            </span>
-            <strong className="text-xl font-black text-ink mt-0.5 block">
-              {countNeedCooking}
-            </strong>
+        {/* Page Intro Heading & Quick Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321] tracking-tight">
+              Antrean Dapur
+            </h1>
+            <p className="text-xs sm:text-sm text-[#68645e] mt-1">
+              Pantau antrean pesanan masuk, tahapan memasak, dan koordinasi dengan sif bertugas secara real-time.
+            </p>
           </div>
 
-          <div className="bg-white p-3.5 rounded-2xl border border-border-line">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-brand-green block">
-              Siap Diambil
-            </span>
-            <strong className="text-xl font-black text-brand-green mt-0.5 block">
-              {countReady}
-            </strong>
-          </div>
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReloadSeeds}
+              title="Muat ulang contoh data antrean demo"
+              className="bg-white hover:bg-[#f5f2ed] border-[#e9e5df] text-[#242321] rounded-full"
+            >
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-[#f5c943]" />
+              <span>Muat Data Demo</span>
+            </Button>
 
-          <div className="bg-white p-3.5 rounded-2xl border border-border-line">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-danger-red block">
-              WA Gagal
-            </span>
-            <strong className="text-xl font-black text-danger-red mt-0.5 block">
-              {countWaFailed}
-            </strong>
-          </div>
-
-          <div className="bg-white p-3.5 rounded-2xl border border-border-line">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted block">
-              Selesai Hari Ini
-            </span>
-            <strong className="text-xl font-black text-ink mt-0.5 block">
-              {countCompleted}
-            </strong>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadData}
+              title={`Pembaruan terakhir ${lastUpdated} WIB`}
+              className="bg-white hover:bg-[#f5f2ed] border-[#e9e5df] text-[#242321] rounded-full"
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-[#77736d]" />
+              <span>Refresh Cepat ({lastUpdated || 'WIB'})</span>
+            </Button>
           </div>
         </div>
 
-        {/* Baris Kontrol Tab & Pencarian */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-border-line space-y-3.5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-black text-ink">Antrean Pesanan Dapur</h2>
-              <p className="text-xs text-text-muted mt-0.5">
-                Data diperbarui: <strong>{lastUpdated} WIB</strong> (Auto-refresh aktif).
-              </p>
+        {/* 4 Stat Cards Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Card 1: Perlu Dimasak */}
+          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#f5c943] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#68645e] block">
+                Perlu Dimasak
+              </span>
+              <strong className="text-2xl sm:text-3xl font-black text-[#242321] block tracking-tight">
+                {countNeedCooking}
+              </strong>
+              <p className="text-[11px] text-[#918c84]">Menunggu dimulai</p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReloadSeeds}
-                title="Muat ulang contoh data antrean demo"
-              >
-                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-brand-green" />
-                <span>Muat Contoh Order</span>
-              </Button>
-
-              <Button variant="outline" size="sm" onClick={loadData}>
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                <span>Segarkan</span>
-              </Button>
+            <div className="w-10 h-10 rounded-full bg-[#fef1dc] text-[#a36307] flex items-center justify-center shrink-0">
+              <Utensils className="w-5 h-5" />
             </div>
           </div>
 
-          {/* Filter Tab & Input Cari */}
-          <div className="flex flex-col md:flex-row gap-3 pt-1">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 flex-1">
+          {/* Card 2: Sedang Disiapkan */}
+          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#242321] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#68645e] block">
+                Sedang Disiapkan
+              </span>
+              <strong className="text-2xl sm:text-3xl font-black text-[#242321] block tracking-tight">
+                {countPreparing}
+              </strong>
+              <p className="text-[11px] text-[#918c84]">Dalam proses kompor</p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-[#f5f2ed] text-[#242321] flex items-center justify-center shrink-0">
+              <Flame className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Card 3: Siap Diambil */}
+          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#297838] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1c4d25] block">
+                Siap Diambil
+              </span>
+              <strong className="text-2xl sm:text-3xl font-black text-[#1c4d25] block tracking-tight">
+                {countReady}
+              </strong>
+              <p className="text-[11px] text-[#918c84]">Tersedia di meja kasir</p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-[#e2edd8] text-[#1c4d25] flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Card 4: WA Terkendala */}
+          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#d94b3d] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#91251c] block">
+                WA Terkendala
+              </span>
+              <strong className="text-2xl sm:text-3xl font-black text-[#91251c] block tracking-tight">
+                {countWaFailed}
+              </strong>
+              <p className="text-[11px] text-[#918c84]">Gagal kirim ke sif</p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-[#fde7e4] text-[#d94b3d] flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Filter Band */}
+        <div className="bg-white border border-[#e9e5df] rounded-[12px] p-4 sm:p-5 shadow-card space-y-3.5">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5">
+            {/* Filter Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 flex-1">
               {[
                 { id: 'PERLU_DITANGANI' as const, label: 'Perlu Ditangani' },
+                { id: 'SEMUA' as const, label: 'Semua' },
                 { id: 'WA_GAGAL' as const, label: 'WA Gagal' },
                 { id: 'SELESAI' as const, label: 'Selesai' },
-                { id: 'BATAL' as const, label: 'Batal / Refund' },
-                { id: 'SEMUA' as const, label: 'Semua' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer shrink-0 ${
-                    activeTab === tab.id
-                      ? 'bg-brand-green text-white border-brand-green'
-                      : 'bg-paper text-text-muted hover:text-ink border-border-line'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+                { id: 'BATAL' as const, label: 'Batal' },
+              ].map((tab) => {
+                const isSelected = activeTab === tab.id;
+                const count = tabCounts[tab.id];
+
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#f5c943] text-[#242321] border border-[#f5c943] shadow-xs'
+                        : 'bg-white text-[#68645e] hover:text-[#242321] border border-[#e9e5df] hover:bg-[#f5f2ed]'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        isSelected
+                          ? 'bg-[#242321] text-white'
+                          : 'bg-[#f5f2ed] text-[#68645e]'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="relative w-full md:w-64">
+            {/* Pill Search Input */}
+            <div className="relative w-full lg:w-72 shrink-0">
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nomor / nama..."
-                className="w-full min-h-[38px] pl-9 pr-3 text-xs bg-paper border border-border-line rounded-xl focus:outline-none focus:border-brand-green"
+                placeholder="Cari nomor antrean atau pemesan..."
+                className="w-full min-h-[44px] pl-10 pr-4 text-xs bg-white border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] shadow-xs text-[#242321] placeholder-[#918c84] transition-all"
               />
-              <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-[#77736d] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
         </div>
 
-        {/* Daftar Kartu Antrean */}
+        {/* Queue Order Cards List */}
         {filteredOrders.length === 0 ? (
-          <div className="bg-white p-12 rounded-3xl border border-border-line text-center space-y-3">
-            <Utensils className="w-12 h-12 text-text-muted mx-auto opacity-70" />
-            <h3 className="text-base font-bold text-ink">Tidak Ada Pesanan</h3>
-            <p className="text-xs text-text-muted max-w-sm mx-auto">
-              Tidak ada pesanan yang sesuai dengan filter atau kata kunci saat ini.
+          <div className="bg-white p-12 rounded-[12px] border border-[#e9e5df] text-center space-y-3 shadow-card">
+            <Utensils className="w-12 h-12 text-[#918c84] mx-auto opacity-60" />
+            <h3 className="text-base font-bold text-[#242321]">
+              Tidak Ada Pesanan Dapur
+            </h3>
+            <p className="text-xs text-[#68645e] max-w-sm mx-auto">
+              Tidak ada pesanan yang sesuai dengan filter atau kata kunci saat ini. Silakan muat contoh order demo untuk melihat simulasi.
             </p>
+            <div className="pt-2">
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={handleReloadSeeds}
+                className="rounded-full"
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                <span>Muat Data Demo Dapur</span>
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -460,80 +572,119 @@ export default function AdminAntreanPage() {
               return (
                 <article
                   key={order.id}
-                  className={`bg-white rounded-2xl border p-5 space-y-4 shadow-xs transition-all ${
+                  className={`bg-white border rounded-[12px] p-5 shadow-card space-y-4 hover:border-[#f5c943]/60 transition-all ${
                     isWaFailed
-                      ? 'border-danger-red/40 ring-1 ring-danger-red/20'
-                      : 'border-border-line'
+                      ? 'border-[#d94b3d]/40 ring-1 ring-[#d94b3d]/20'
+                      : 'border-[#e9e5df]'
                   }`}
                 >
-                  {/* Baris Info Utama */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-line pb-3">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-black text-base text-ink">
+                  {/* Order Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eeeae4] pb-3.5">
+                    <div className="space-y-1">
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="font-mono font-black text-base sm:text-lg text-[#242321] tracking-tight">
                           {order.number}
                         </span>
+
+                        {/* Status Pembayaran */}
                         <Badge
                           variant={order.payment === 'PAID' ? 'success' : 'warning'}
                           size="sm"
                         >
-                          {order.payment}
+                          {order.payment === 'PAID' ? 'LUNAS' : 'PENDING'}
                         </Badge>
+
+                        {/* Status Dapur */}
+                        {order.fulfillment === 'NEW' && (
+                          <Badge variant="warning" size="sm">
+                            Perlu Dimasak
+                          </Badge>
+                        )}
+                        {order.fulfillment === 'PREPARING' && (
+                          <Badge variant="gold" size="sm">
+                            Sedang Dimasak
+                          </Badge>
+                        )}
+                        {order.fulfillment === 'READY' && (
+                          <Badge variant="success" size="sm">
+                            Siap Diambil
+                          </Badge>
+                        )}
+                        {order.fulfillment === 'COMPLETED' && (
+                          <Badge variant="neutral" size="sm">
+                            Selesai
+                          </Badge>
+                        )}
+                        {order.fulfillment === 'CANCELLED' && (
+                          <Badge variant="danger" size="sm">
+                            Dibatalkan
+                          </Badge>
+                        )}
+
+                        {/* Status WA Gagal */}
                         {isWaFailed && (
                           <Badge variant="danger" size="sm">
                             WA Gagal
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-text-muted">
-                        Pemesan: <strong className="text-ink">{order.name}</strong> ({order.phone})
+
+                      <p className="text-xs text-[#68645e]">
+                        Pemesan: <strong className="text-[#242321] font-semibold">{order.name}</strong> ({order.phone})
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="text-right">
-                        <span className="text-[11px] text-text-muted block">
-                          Waktu Ambil (WIB)
-                        </span>
-                        <strong className="text-sm font-black text-brand-green">
-                          {formatTimeWIB(order.pickup)}
-                        </strong>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      {/* Warm Tag Waktu Ambil */}
+                      <div
+                        className="inline-flex items-center gap-1.5 bg-[#f5f2ed] border border-[#e9e5df] px-3 py-1.5 rounded-full text-xs font-semibold text-[#242321]"
+                        title={`Pesanan ditargetkan siap pada ${formatDateTimeWIB(order.pickup)}`}
+                      >
+                        <Clock className="w-3.5 h-3.5 text-[#77736d]" />
+                        <span>Ambil: {formatTimeWIB(order.pickup)} WIB</span>
                       </div>
 
+                      {/* Shortcut Chat WhatsApp Pelanggan */}
                       <a
                         href={`https://wa.me/${order.phone}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="w-8 h-8 rounded-lg bg-soft-green text-brand-green hover:bg-brand-green hover:text-white flex items-center justify-center transition-colors"
+                        className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] text-[#1c4d25] hover:text-[#1c4d25] flex items-center justify-center transition-all shadow-xs"
                         title="Chat WA Pelanggan"
+                        aria-label="Chat WhatsApp Pelanggan"
                       >
                         <Phone className="w-4 h-4" />
                       </a>
                     </div>
                   </div>
 
-                  {/* Rincian Menu Pesanan */}
-                  <div className="space-y-1.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted block">
+                  {/* Cooking Details / Rincian Masakan */}
+                  <div className="bg-[#f5f2ed]/40 rounded-xl p-3.5 border border-[#eeeae4] space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#918c84] block">
                       Rincian Masakan
                     </span>
-                    <div className="divide-y divide-border-line">
+
+                    <div className="divide-y divide-[#eeeae4]">
                       {order.items.map((it, idx) => (
                         <div
                           key={idx}
-                          className="py-1.5 flex justify-between items-center text-xs"
+                          className="py-2 first:pt-0 last:pb-0 flex justify-between items-center text-xs"
                         >
-                          <div>
-                            <span className="font-bold text-ink">
-                              {it.qty}x {it.name}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-[#242321] bg-white border border-[#e9e5df] px-2 py-0.5 rounded-md text-[11px] shrink-0">
+                              {it.qty}x
                             </span>
-                            <span className="text-text-muted ml-2">
+                            <span className="font-semibold text-[#242321]">
+                              {it.name}
+                            </span>
+                            <span className="text-[#68645e]">
                               {it.temp && `[${it.temp}] `}
                               {it.egg && '[+Telur] '}
                               {it.note && `("${it.note}")`}
                             </span>
                           </div>
-                          <span className="font-semibold text-ink">
+
+                          <span className="font-bold text-[#242321] shrink-0 ml-2">
                             {formatRupiah(it.unit * it.qty)}
                           </span>
                         </div>
@@ -541,15 +692,22 @@ export default function AdminAntreanPage() {
                     </div>
 
                     {order.note && (
-                      <p className="text-xs bg-amber-50 text-amber-900 p-2 rounded-lg border border-amber-200">
-                        Catatan Order: {order.note}
-                      </p>
+                      <div className="text-xs bg-[#fef1dc] text-[#7a4b08] p-2.5 rounded-lg border border-[#f4d5a7] flex items-start gap-2">
+                        <MessageSquare className="w-4 h-4 shrink-0 mt-0.5 text-[#a36307]" />
+                        <span>
+                          <strong>Catatan Pemesan:</strong> {order.note}
+                        </span>
+                      </div>
                     )}
+
+                    <div className="pt-1.5 flex justify-end text-xs text-[#68645e]">
+                      <span>Total: <strong className="text-[#242321]">{formatRupiah(order.total)}</strong></span>
+                    </div>
                   </div>
 
-                  {/* Baris Aksi Pesanan */}
-                  <div className="pt-2 border-t border-border-line flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                  {/* Action Buttons Band */}
+                  <div className="pt-2 border-t border-[#eeeae4] flex flex-wrap items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Button
                         variant="outline"
                         size="sm"
@@ -557,44 +715,73 @@ export default function AdminAntreanPage() {
                           setSelectedOrder(order);
                           setIsDetailModalOpen(true);
                         }}
+                        className="bg-white hover:bg-[#f5f2ed] border-[#e9e5df] text-[#242321] rounded-full"
                       >
                         <span>Aksi & Detail</span>
                       </Button>
 
+                      {/* Tombol Salin Draf Pesan WA */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopyCustomerReadyDraft(order)}
+                        title="Salin draf chat WhatsApp pesanan siap diambil"
+                        className="bg-white hover:bg-[#f5f2ed] border-[#e9e5df] text-[#242321] rounded-full"
+                      >
+                        <Copy className="w-3.5 h-3.5 mr-1.5 text-[#77736d]" />
+                        <span>Salin Draf WA</span>
+                      </Button>
+
+                      {/* Retry WA if failed */}
                       {isWaFailed && (
-                        <button
-                          type="button"
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleRetryWhatsApp(order)}
-                          className="min-h-[34px] px-3 py-1 bg-danger-red/10 hover:bg-danger-red/20 text-danger-red font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer border border-danger-red/20"
+                          className="bg-[#fde7e4] hover:bg-[#fde7e4]/80 text-[#91251c] border-[#f7c5be] rounded-full"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" />
+                          <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                           <span>Kirim Ulang WA</span>
-                        </button>
+                        </Button>
                       )}
                     </div>
 
-                    {/* Tombol Perubahan Tahapan Status */}
+                    {/* Operational Lifecycle Action Buttons */}
                     {!isDone && !isCancelled && (
                       <div className="flex items-center gap-2">
                         {order.fulfillment === 'NEW' && (
                           <Button
-                            variant="primary"
+                            variant="gold"
                             size="sm"
-                            onClick={() => updateOrderStatus(order.id, 'PREPARING')}
+                            onClick={() =>
+                              updateOrderStatus(
+                                order.id,
+                                'PREPARING',
+                                `Pesanan ${order.number} mulai dimasak di kompor dapur.`
+                              )
+                            }
+                            className="rounded-full shadow-xs"
                           >
-                            <Utensils className="w-3.5 h-3.5 mr-1" />
+                            <Utensils className="w-3.5 h-3.5 mr-1.5" />
                             <span>Mulai Masak</span>
                           </Button>
                         )}
 
                         {isPreparing && (
                           <Button
-                            variant="primary"
+                            variant="gold"
                             size="sm"
-                            onClick={() => updateOrderStatus(order.id, 'READY')}
+                            onClick={() => {
+                              updateOrderStatus(
+                                order.id,
+                                'READY',
+                                `Pesanan ${order.number} siap diambil. Draf notifikasi siap diteruskan ke pelanggan!`
+                              );
+                            }}
+                            className="rounded-full shadow-xs"
                           >
-                            <Check className="w-3.5 h-3.5 mr-1" />
-                            <span>Siap Diambil</span>
+                            <Check className="w-3.5 h-3.5 mr-1.5" />
+                            <span>Tandai Siap Ambil</span>
                           </Button>
                         )}
 
@@ -602,13 +789,34 @@ export default function AdminAntreanPage() {
                           <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => updateOrderStatus(order.id, 'COMPLETED')}
+                            onClick={() =>
+                              updateOrderStatus(
+                                order.id,
+                                'COMPLETED',
+                                `Pesanan ${order.number} telah diserahkan dan selesai.`
+                              )
+                            }
+                            className="bg-[#242321] hover:bg-[#383633] text-white rounded-full shadow-xs"
                           >
-                            <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                            <span>Selesai Diambil</span>
+                            <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+                            <span>Pesanan Diambil (Selesai)</span>
                           </Button>
                         )}
                       </div>
+                    )}
+
+                    {isDone && (
+                      <span className="text-xs font-semibold text-[#1c4d25] flex items-center gap-1.5 bg-[#e2edd8] px-3.5 py-1.5 rounded-full border border-[#c5dcba]">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Pesanan Selesai Diambil</span>
+                      </span>
+                    )}
+
+                    {isCancelled && (
+                      <span className="text-xs font-semibold text-[#91251c] flex items-center gap-1.5 bg-[#fde7e4] px-3.5 py-1.5 rounded-full border border-[#f7c5be]">
+                        <Ban className="w-3.5 h-3.5" />
+                        <span>Pesanan Dibatalkan</span>
+                      </span>
                     )}
                   </div>
                 </article>
@@ -626,30 +834,37 @@ export default function AdminAntreanPage() {
           >
             <div className="space-y-4">
               {/* Rincian Status */}
-              <div className="p-3 bg-paper rounded-xl border border-border-line space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Status Pembayaran</span>
-                  <strong className="text-ink">{selectedOrder.payment}</strong>
+              <div className="p-3.5 bg-[#f5f2ed] rounded-xl border border-[#e9e5df] space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#68645e]">Status Pembayaran</span>
+                  <Badge
+                    variant={selectedOrder.payment === 'PAID' ? 'success' : 'warning'}
+                    size="sm"
+                  >
+                    {selectedOrder.payment}
+                  </Badge>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Status Dapur</span>
-                  <strong className="text-brand-green">{selectedOrder.fulfillment}</strong>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#68645e]">Status Dapur</span>
+                  <Badge variant="gold" size="sm">
+                    {selectedOrder.fulfillment}
+                  </Badge>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Status Notifikasi WA</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#68645e]">Status Notifikasi WA</span>
                   <strong
                     className={
                       selectedOrder.notification === 'FAILED'
-                        ? 'text-danger-red'
-                        : 'text-brand-green'
+                        ? 'text-[#91251c]'
+                        : 'text-[#1c4d25]'
                     }
                   >
                     {selectedOrder.notification} (Percobaan: {selectedOrder.attempts || 1})
                   </strong>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Target Jam Ambil</span>
-                  <strong className="text-ink">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#68645e]">Target Jam Ambil</span>
+                  <strong className="text-[#242321]">
                     {formatTimeWIB(selectedOrder.pickup)} WIB ({formatDateTimeWIB(selectedOrder.pickup)})
                   </strong>
                 </div>
@@ -657,7 +872,7 @@ export default function AdminAntreanPage() {
 
               {/* Aksi Cepat WhatsApp */}
               <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#68645e]">
                   Komunikasi & WhatsApp
                 </p>
 
@@ -665,10 +880,10 @@ export default function AdminAntreanPage() {
                   <button
                     type="button"
                     onClick={() => setIsWaPreviewModalOpen(true)}
-                    className="p-2.5 bg-paper hover:bg-neutral-100 border border-border-line rounded-xl text-xs font-semibold text-ink flex items-center justify-between cursor-pointer"
+                    className="p-3 bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] rounded-xl text-xs font-semibold text-[#242321] flex items-center justify-between cursor-pointer transition-colors min-h-[44px]"
                   >
                     <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-brand-green" />
+                      <MessageSquare className="w-4 h-4 text-[#77736d]" />
                       <span>Lihat Pesan WA Penjaga</span>
                     </div>
                   </button>
@@ -676,10 +891,10 @@ export default function AdminAntreanPage() {
                   <button
                     type="button"
                     onClick={() => handleCopyCustomerReadyDraft(selectedOrder)}
-                    className="p-2.5 bg-paper hover:bg-neutral-100 border border-border-line rounded-xl text-xs font-semibold text-ink flex items-center justify-between cursor-pointer"
+                    className="p-3 bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] rounded-xl text-xs font-semibold text-[#242321] flex items-center justify-between cursor-pointer transition-colors min-h-[44px]"
                   >
                     <div className="flex items-center gap-2">
-                      <Copy className="w-4 h-4 text-brand-green" />
+                      <Copy className="w-4 h-4 text-[#77736d]" />
                       <span>{copiedDraft ? 'Tersalin!' : 'Salin Chat Siap Ambil'}</span>
                     </div>
                   </button>
@@ -691,7 +906,7 @@ export default function AdminAntreanPage() {
                     size="sm"
                     fullWidth
                     onClick={() => handleRetryWhatsApp(selectedOrder)}
-                    className="text-danger-red border-danger-red/30 hover:bg-danger-red/10"
+                    className="bg-[#fde7e4] text-[#91251c] border-[#f7c5be] hover:bg-[#fde7e4]/80 rounded-xl"
                   >
                     <RotateCcw className="w-4 h-4 mr-1.5" />
                     <span>Kirim Ulang Notifikasi WA ke Sif Aktif</span>
@@ -700,9 +915,9 @@ export default function AdminAntreanPage() {
               </div>
 
               {/* Penanganan Masalah & Refund */}
-              <div className="pt-2 border-t border-border-line space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Penanganan Masalah & Refund
+              <div className="pt-2 border-t border-[#eeeae4] space-y-2">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#68645e]">
+                  Penanganan Masalah & Pembatalan
                 </p>
 
                 {selectedOrder.fulfillment !== 'CANCELLED' && (
@@ -714,6 +929,7 @@ export default function AdminAntreanPage() {
                       setIsDetailModalOpen(false);
                       handleOpenCancelModal(selectedOrder);
                     }}
+                    className="rounded-xl"
                   >
                     <Ban className="w-4 h-4 mr-1.5" />
                     <span>Batalkan Pesanan (Bahan Habis)</span>
@@ -721,9 +937,9 @@ export default function AdminAntreanPage() {
                 )}
 
                 {selectedOrder.refund && (
-                  <div className="p-3 bg-neutral-50 rounded-xl border border-border-line space-y-2 text-xs">
+                  <div className="p-3.5 bg-[#f5f2ed] rounded-xl border border-[#e9e5df] space-y-2 text-xs">
                     <div className="flex justify-between items-center">
-                      <span className="text-text-muted">Pencatatan Refund</span>
+                      <span className="text-[#68645e]">Pencatatan Refund</span>
                       <Badge
                         variant={
                           selectedOrder.refund.status === 'FULL_REFUNDED'
@@ -735,17 +951,18 @@ export default function AdminAntreanPage() {
                         {selectedOrder.refund.status}
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-text-muted">
-                      Nominal: <strong>{formatRupiah(selectedOrder.refund.amount)}</strong> · Alasan: {selectedOrder.refund.reason}
+                    <p className="text-[11px] text-[#68645e]">
+                      Nominal: <strong className="text-[#242321]">{formatRupiah(selectedOrder.refund.amount)}</strong> (Alasan: {selectedOrder.refund.reason})
                     </p>
                     <Button
-                      variant="outline"
+                      variant="gold"
                       size="sm"
                       fullWidth
                       onClick={() => {
                         setIsDetailModalOpen(false);
                         handleOpenRefundModal(selectedOrder);
                       }}
+                      className="rounded-xl"
                     >
                       <span>Perbarui Catatan Refund Manual</span>
                     </Button>
@@ -753,11 +970,12 @@ export default function AdminAntreanPage() {
                 )}
               </div>
 
-              <div className="text-right pt-2 border-t border-border-line">
+              <div className="text-right pt-2 border-t border-[#eeeae4]">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsDetailModalOpen(false)}
+                  className="rounded-xl"
                 >
                   Tutup
                 </Button>
@@ -773,13 +991,13 @@ export default function AdminAntreanPage() {
           title="Batalkan Pesanan"
         >
           <form onSubmit={handleConfirmCancel} className="space-y-4">
-            <div className="p-3 bg-danger-red/10 border border-danger-red/20 rounded-xl text-danger-red text-xs">
-              Pembatalan tidak mentransfer uang otomatis. Hubungi pelanggan via WhatsApp untuk nomor rekening dan catat refund manual.
+            <div className="p-3.5 bg-[#fde7e4] border border-[#f7c5be] rounded-xl text-[#91251c] text-xs leading-relaxed">
+              Pembatalan tidak mentransfer uang otomatis. Hubungi pemesan via WhatsApp untuk nomor rekening pelanggan dan catat refund manual.
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-ink">
-                Alasan Pembatalan <span className="text-danger-red">*</span>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#242321]">
+                Alasan Pembatalan <span className="text-[#d94b3d]">*</span>
               </label>
               <textarea
                 rows={3}
@@ -788,20 +1006,21 @@ export default function AdminAntreanPage() {
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="Contoh: Stok mie soto habis dan pelanggan konfirmasi batal."
-                className="w-full p-3 text-xs bg-white border border-border-line rounded-xl focus:outline-none focus:border-danger-red"
+                className="w-full p-3 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#d94b3d] text-[#242321]"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsCancelModalOpen(false)}
+                className="rounded-xl"
               >
                 Kembali
               </Button>
-              <Button type="submit" variant="danger" size="sm">
+              <Button type="submit" variant="danger" size="sm" className="rounded-xl">
                 Konfirmasi Batalkan
               </Button>
             </div>
@@ -815,9 +1034,9 @@ export default function AdminAntreanPage() {
           title="Pencatatan Refund Manual"
         >
           <form onSubmit={handleSaveRefund} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-ink">
-                Nominal Pengembalian Dana (Rp) <span className="text-danger-red">*</span>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#242321]">
+                Nominal Pengembalian Dana (Rp) <span className="text-[#d94b3d]">*</span>
               </label>
               <input
                 type="number"
@@ -825,18 +1044,18 @@ export default function AdminAntreanPage() {
                 required
                 value={refundAmount}
                 onChange={(e) => setRefundAmount(Number(e.target.value))}
-                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-border-line rounded-xl focus:outline-none focus:border-brand-green"
+                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321]"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-ink">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#242321]">
                 Status Transfer Penjaga
               </label>
               <select
                 value={refundStatus}
                 onChange={(e) => setRefundStatus(e.target.value as RefundStatus)}
-                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-border-line rounded-xl focus:outline-none focus:border-brand-green"
+                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321]"
               >
                 <option value="PENDING">Pending (Belum Ditransfer)</option>
                 <option value="FULL_REFUNDED">Sudah Ditransfer Penuh (Lunas)</option>
@@ -844,29 +1063,30 @@ export default function AdminAntreanPage() {
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-ink">
-                Keterangan / Alasan Refund
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#242321]">
+                Keterangan atau Alasan Refund
               </label>
               <input
                 type="text"
                 value={refundReason}
                 onChange={(e) => setRefundReason(e.target.value)}
                 placeholder="Contoh: Ditransfer via BCA ke pelanggan"
-                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-border-line rounded-xl focus:outline-none focus:border-brand-green"
+                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321]"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsRefundModalOpen(false)}
+                className="rounded-xl"
               >
                 Batal
               </Button>
-              <Button type="submit" variant="primary" size="sm">
+              <Button type="submit" variant="gold" size="sm" className="rounded-xl">
                 Simpan Catatan Refund
               </Button>
             </div>
@@ -881,17 +1101,27 @@ export default function AdminAntreanPage() {
             title="Preview Pesan WhatsApp ke Penjaga Sif"
           >
             <div className="space-y-4">
-              <div className="p-4 bg-paper rounded-xl border border-border-line font-mono text-xs whitespace-pre-wrap leading-relaxed text-ink select-all">
+              <div className="p-4 bg-[#f5f2ed] rounded-xl border border-[#e9e5df] font-mono text-xs whitespace-pre-wrap leading-relaxed text-[#242321] select-all">
                 {buildKitchenOrderWhatsAppMessage(selectedOrder, activeShift)}
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2.5">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsWaPreviewModalOpen(false)}
+                  className="rounded-xl"
                 >
-                  Tutup Preview
+                  Tutup
+                </Button>
+                <Button
+                  variant="gold"
+                  size="sm"
+                  onClick={() => handleCopyShiftDraft(selectedOrder, activeShift)}
+                  className="rounded-xl"
+                >
+                  <Copy className="w-3.5 h-3.5 mr-1.5" />
+                  <span>Salin Pesan WA</span>
                 </Button>
               </div>
             </div>

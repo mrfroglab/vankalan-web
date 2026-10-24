@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   Wifi,
   WifiOff,
-  Power,
 } from 'lucide-react';
 
 export function AdminHeader() {
@@ -42,7 +41,12 @@ export function AdminHeader() {
     };
   }, []);
 
-  const activeShift = shifts.find((s) => s.id === settings?.recipientShiftId) || shifts[0];
+  const activeShift =
+    shifts.find((s) => s.id === settings?.recipientShiftId) ||
+    shifts[0] || {
+      name: 'Aa Iis',
+      phone: '6281234500001',
+    };
 
   const navLinks = [
     { href: '/admin/antrean', label: 'Antrean Dapur', icon: Layers },
@@ -53,51 +57,61 @@ export function AdminHeader() {
 
   return (
     <header className="space-y-4">
-      {/* Top Banner Operasional */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-border-line flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+      {/* Top Operational Banner */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#e9e5df] shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="w-10 h-10 rounded-xl bg-paper hover:bg-neutral-100 border border-border-line flex items-center justify-center text-text-muted hover:text-ink transition-colors shrink-0"
-            title="Buka Halaman Pelanggan"
+            className="w-11 h-11 rounded-full bg-[#f5f2ed] hover:bg-[#e9e5df] border border-[#e9e5df] flex items-center justify-center text-[#68645e] hover:text-[#242321] transition-colors shrink-0"
+            title="Kembali ke Tampilan Pelanggan"
+            aria-label="Kembali ke Tampilan Pelanggan"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-black text-ink">
-                Admin Warmindo Putra Vangkalan
-              </h1>
-              <span className="text-[10px] font-mono uppercase bg-neutral-100 border border-border-line px-2 py-0.5 rounded-md text-text-muted">
-                DEMO
+            <div className="flex items-center flex-wrap gap-2">
+              <div className="flex items-center">
+                <span className="bg-[#d94b3d] text-white font-black text-xs px-2 py-1 rounded-md tracking-wider mr-2 select-none">
+                  PV
+                </span>
+                <h1 className="text-base sm:text-lg font-bold text-[#242321]">
+                  Dapur Warmindo Putra Vangkalan
+                </h1>
+              </div>
+              <span className="text-[10px] font-mono uppercase bg-[#f5f2ed] border border-[#e9e5df] px-2 py-0.5 rounded-md text-[#68645e]">
+                DAPUR
               </span>
             </div>
-            <p className="text-xs text-text-muted mt-0.5">
-              Sif Bertugas: <strong className="text-ink">{activeShift?.name || 'Aa Iis'}</strong> ({activeShift?.phone || '-'})
+            <p className="text-xs text-[#68645e] mt-1">
+              Sif Bertugas: <strong className="text-[#242321] font-semibold">{activeShift.name}</strong> ({activeShift.phone})
             </p>
           </div>
         </div>
 
-        {/* Status Indikator */}
+        {/* Status Pills */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          {/* Status Toko Online */}
+          {/* Toko Online Status */}
           <div
-            className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 border ${
+            className={`min-h-[36px] px-3.5 py-1.5 rounded-full font-bold flex items-center gap-1.5 border transition-all ${
               settings?.open
-                ? 'bg-soft-green border-brand-green/30 text-brand-green'
-                : 'bg-danger-red/10 border-danger-red/30 text-danger-red'
+                ? 'bg-[#e2edd8] border-[#c5dcba] text-[#1c4d25]'
+                : 'bg-[#fde7e4] border-[#f7c5be] text-[#91251c]'
             }`}
           >
-            <Power className="w-3.5 h-3.5" />
-            <span>Pesanan Online {settings?.open ? 'BUKA' : 'TUTUP'}</span>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                settings?.open ? 'bg-[#297838]' : 'bg-[#b64035]'
+              }`}
+            />
+            <span>Toko Online: {settings?.open ? 'BUKA' : 'TUTUP'}</span>
           </div>
 
           {/* Status WAHA */}
           <div
-            className={`px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 border ${
+            className={`min-h-[36px] px-3.5 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border transition-all ${
               settings?.waConnected
-                ? 'bg-neutral-50 border-border-line text-brand-green'
-                : 'bg-danger-red/10 border-danger-red/30 text-danger-red'
+                ? 'bg-[#f5f2ed] border-[#e9e5df] text-[#1c4d25]'
+                : 'bg-[#fde7e4] border-[#f7c5be] text-[#91251c]'
             }`}
             title={
               settings?.waConnected
@@ -106,23 +120,26 @@ export function AdminHeader() {
             }
           >
             {settings?.waConnected ? (
-              <Wifi className="w-3.5 h-3.5" />
+              <Wifi className="w-3.5 h-3.5 text-[#1c4d25]" />
             ) : (
-              <WifiOff className="w-3.5 h-3.5" />
+              <WifiOff className="w-3.5 h-3.5 text-[#91251c]" />
             )}
-            <span>WA: {settings?.waConnected ? 'Terhubung' : 'Terputus'}</span>
+            <span>
+              Status WAHA: {settings?.waConnected ? 'Terhubung' : 'Terputus'}
+            </span>
           </div>
 
+          {/* Button Tampilan Pelanggan */}
           <Link
             href="/"
-            className="px-3 py-1.5 rounded-xl bg-paper hover:bg-neutral-100 border border-border-line text-ink font-semibold transition-colors"
+            className="min-h-[44px] px-4 py-2 rounded-full bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
-            Tampilan Pelanggan
+            <span>Tampilan Pelanggan</span>
           </Link>
         </div>
       </div>
 
-      {/* Tab Navigasi Admin */}
+      {/* Navigation Tabs */}
       <nav
         className="flex items-center gap-2 overflow-x-auto pb-1"
         aria-label="Navigasi Internal Admin"
@@ -134,10 +151,10 @@ export function AdminHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className={`min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer shrink-0 ${
+              className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
                 isActive
-                  ? 'bg-brand-green text-white shadow-xs'
-                  : 'bg-white text-text-muted hover:text-ink border border-border-line hover:bg-neutral-50'
+                  ? 'bg-[#242321] text-white shadow-xs'
+                  : 'bg-white text-[#68645e] hover:text-[#242321] border border-[#e9e5df] hover:bg-[#f5f2ed]'
               }`}
             >
               <Icon className="w-4 h-4" />

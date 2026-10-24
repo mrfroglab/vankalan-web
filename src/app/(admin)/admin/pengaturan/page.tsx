@@ -9,7 +9,6 @@ import {
   seedDemoOrders,
 } from '@/lib/store';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { Button } from '@/components/ui/Button';
 import {
   Power,
   Clock,
@@ -18,6 +17,9 @@ import {
   RotateCcw,
   CheckCircle2,
   Sparkles,
+  Egg,
+  Store,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function AdminPengaturanPage() {
@@ -63,7 +65,11 @@ export default function AdminPengaturanPage() {
     const nextOpen = !isOpen;
     setIsOpen(nextOpen);
     saveStoreSettings({ ...settings, open: nextOpen });
-    showToast(nextOpen ? 'Pemesanan online dibuka.' : 'Pemesanan online ditutup sementara.');
+    showToast(
+      nextOpen
+        ? 'Pemesanan online dibuka. Pelanggan dapat membuat pesanan baru.'
+        : 'Pemesanan online ditutup sementara.'
+    );
   };
 
   const handleToggleWa = () => {
@@ -73,8 +79,8 @@ export default function AdminPengaturanPage() {
     saveStoreSettings({ ...settings, waConnected: nextWa });
     showToast(
       nextWa
-        ? 'Koneksi WAHA demo dipulihkan.'
-        : 'Koneksi WAHA demo diputus. Notifikasi order baru akan gagal dan masuk antrean retry.'
+        ? 'Koneksi WAHA dipulihkan. Notifikasi WhatsApp aktif normal.'
+        : 'Koneksi WAHA diputus. Notifikasi pesanan baru masuk ke status Gagal.'
     );
   };
 
@@ -91,13 +97,13 @@ export default function AdminPengaturanPage() {
 
   const handleSeedDemoOrders = () => {
     seedDemoOrders();
-    showToast('6 contoh pesanan demo berhasil dimuat ulang ke antrean.');
+    showToast('6 contoh pesanan demo berhasil dimuat ulang ke antrean dapur.');
   };
 
   const handleResetDemo = () => {
     if (
       confirm(
-        'Yakin ingin mereset seluruh data demo? Semua perubahan menu, order lokal, dan sif akan dikembalikan ke setelan awal pabrik.'
+        'Yakin ingin mereset seluruh data demo? Semua perubahan menu, order lokal, dan sif akan dikembalikan ke setelan pabrik.'
       )
     ) {
       resetAllData();
@@ -109,191 +115,279 @@ export default function AdminPengaturanPage() {
   if (!settings) return null;
 
   return (
-    <div className="min-h-screen bg-paper py-6 px-4 sm:px-6">
+    <div className="bg-[#f5f2ed] min-h-screen py-6 sm:py-8 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <AdminHeader />
 
         {toastMessage && (
           <div
             role="status"
-            className="p-3 bg-brand-green text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2 animate-fade-in"
+            className="p-3.5 bg-[#242321] text-white text-xs font-semibold rounded-xl shadow-dropdown flex items-center gap-2 animate-fade-in"
           >
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
 
         {/* Section Header */}
-        <div>
-          <h2 className="text-xl font-black text-ink">Pengaturan Operasional & WA</h2>
-          <p className="text-xs text-text-muted mt-0.5">
-            Kelola ketersediaan pemesanan online, durasi estimasi dapur, serta simulasi kegagalan koneksi WhatsApp.
+        <div className="bg-white p-5 sm:p-6 rounded-[12px] border border-[#e9e5df] shadow-card">
+          <h2 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
+            Pengaturan Toko & WhatsApp
+          </h2>
+          <p className="text-xs sm:text-sm text-[#68645e] mt-1 leading-normal">
+            Konfigurasi status penerimaan pesanan online, durasi estimasi dapur, serta simulasi integrasi WhatsApp.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Kolom Kiri: Pengaturan Operasional */}
+          {/* Kolom Kiri: Section 1 & Section 2 */}
           <div className="space-y-6">
-            {/* Card Buka / Tutup Toko */}
-            <section className="bg-white p-5 rounded-2xl border border-border-line space-y-4 shadow-xs">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-ink flex items-center gap-2">
-                <Power className="w-4 h-4 text-brand-green" />
-                <span>Penerimaan Pesanan Online</span>
-              </h3>
-
-              <div className="p-4 bg-paper rounded-xl border border-border-line flex items-center justify-between">
+            {/* Section 1: Status Pemesanan Online */}
+            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
+                  <Store className="w-4 h-4" />
+                </div>
                 <div>
-                  <strong className="text-sm text-ink block">
-                    Status: {isOpen ? 'Online (Menerima Pesanan)' : 'Tutup Sementara'}
-                  </strong>
-                  <span className="text-xs text-text-muted">
-                    {isOpen
-                      ? 'Pelanggan dapat melakukan checkout pesanan pickup.'
-                      : 'Checkout diblokir. Pelanggan hanya bisa melihat katalog.'}
+                  <h3 className="text-sm font-bold text-[#242321]">
+                    Status Pemesanan Online
+                  </h3>
+                  <span className="text-xs text-[#68645e]">
+                    Kontrol ketersediaan checkout untuk pelanggan
                   </span>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleToggleOpen}
-                  className={`min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    isOpen
-                      ? 'bg-danger-red/10 hover:bg-danger-red/20 text-danger-red border border-danger-red/30'
-                      : 'bg-brand-green hover:bg-forest-green text-white'
-                  }`}
-                >
-                  {isOpen ? 'Tutup Online' : 'Buka Online'}
-                </button>
-              </div>
-            </section>
-
-            {/* Form Estimasi & Telur */}
-            <form
-              onSubmit={handleSaveOperational}
-              className="bg-white p-5 rounded-2xl border border-border-line space-y-4 shadow-xs"
-            >
-              <h3 className="text-sm font-bold uppercase tracking-wider text-ink flex items-center gap-2">
-                <Clock className="w-4 h-4 text-brand-green" />
-                <span>Estimasi & Biaya Tambahan</span>
-              </h3>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-ink">
-                  Estimasi Persiapan Masak (Menit)
-                </label>
-                <input
-                  type="number"
-                  min={5}
-                  max={60}
-                  step={1}
-                  required
-                  value={estimate}
-                  onChange={(e) => setEstimate(Number(e.target.value))}
-                  className="w-full min-h-[44px] px-3.5 text-sm bg-paper border border-border-line rounded-xl focus:outline-none focus:border-brand-green"
-                />
-                <p className="text-[11px] text-text-muted">
-                  Berlaku untuk checkout baru pilihan &quot;Secepatnya&quot;. Pesanan lunas sebelumnya tidak diubah.
-                </p>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-ink">
-                  Biaya Tambahan Telur (Rp)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  step={500}
-                  required
-                  value={eggPrice}
-                  onChange={(e) => setEggPrice(Number(e.target.value))}
-                  className="w-full min-h-[44px] px-3.5 text-sm bg-paper border border-border-line rounded-xl focus:outline-none focus:border-brand-green"
-                />
-              </div>
-
-              <Button type="submit" variant="primary" size="sm">
-                Simpan Perubahan
-              </Button>
-            </form>
-          </div>
-
-          {/* Kolom Kanan: Simulator WAHA & Reset Data */}
-          <div className="space-y-6">
-            {/* Card Simulator WAHA */}
-            <section className="bg-white p-5 rounded-2xl border border-border-line space-y-4 shadow-xs">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-ink flex items-center gap-2">
-                {waConnected ? (
-                  <Wifi className="w-4 h-4 text-brand-green" />
-                ) : (
-                  <WifiOff className="w-4 h-4 text-danger-red" />
-                )}
-                <span>Simulator Koneksi WAHA</span>
-              </h3>
-
-              <div className="p-4 bg-paper rounded-xl border border-border-line space-y-3">
+              <div className="p-4 bg-[#fbf9f5] rounded-xl border border-[#e9e5df] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-ink">Koneksi WhatsApp</span>
+                  <span className="text-xs font-bold text-[#242321]">
+                    Status Gerai:
+                  </span>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                      waConnected
-                        ? 'bg-soft-green text-brand-green border border-brand-green/30'
-                        : 'bg-danger-red/10 text-danger-red border border-danger-red/30'
+                    className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-xs inline-flex items-center gap-1.5 ${
+                      isOpen
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
+                        : 'bg-[#d94b3d]/10 text-[#d94b3d] border border-[#d94b3d]/30'
                     }`}
                   >
-                    {waConnected ? 'Terhubung' : 'Terputus'}
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isOpen ? 'bg-emerald-600 animate-pulse' : 'bg-[#d94b3d]'
+                      }`}
+                    />
+                    <span>{isOpen ? 'Buka (Menerima Pesanan)' : 'Tutup Sementara'}</span>
                   </span>
                 </div>
 
-                <p className="text-xs text-text-muted leading-relaxed">
-                  Gunakan tombol di bawah untuk menyimulasikan sesi WAHA yang terputus (misal token kedaluwarsa atau homeserver offline). Saat terputus, pesanan yang dilunasi akan menandai notifikasi sebagai <strong>FAILED</strong>, sehingga kamu bisa mencoba fitur &quot;Kirim Ulang WA&quot; di dapur.
+                <p className="text-xs text-[#68645e] leading-relaxed">
+                  {isOpen
+                    ? 'Pelanggan dapat melakukan checkout pesanan mandiri via web.'
+                    : 'Checkout dibatasi sementara. Pelanggan hanya dapat melihat katalog menu tanpa menyelesaikan pesanan.'}
                 </p>
 
-                <Button
-                  type="button"
-                  variant={waConnected ? 'danger' : 'primary'}
-                  size="sm"
-                  fullWidth
-                  onClick={handleToggleWa}
-                >
-                  {waConnected ? 'Simulasikan WA Terputus' : 'Pulihkan Koneksi WA'}
-                </Button>
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handleToggleOpen}
+                    className={`w-full min-h-[44px] px-4 py-2 text-xs sm:text-sm font-bold rounded-full transition-colors cursor-pointer inline-flex items-center justify-center gap-2 shadow-xs ${
+                      isOpen
+                        ? 'bg-[#d94b3d]/10 hover:bg-[#d94b3d]/20 text-[#d94b3d] border border-[#d94b3d]/30'
+                        : 'bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321]'
+                    }`}
+                  >
+                    <Power className="w-4 h-4" />
+                    <span>{isOpen ? 'Tutup Pesanan Online' : 'Buka Pesanan Online'}</span>
+                  </button>
+                </div>
               </div>
             </section>
 
-            {/* Card Reset Data Demo */}
-            <section className="bg-white p-5 rounded-2xl border border-border-line space-y-3 shadow-xs">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-ink flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brand-green" />
-                <span>Simulasi & Contoh Data</span>
-              </h3>
+            {/* Section 2: Operasional & Tarif Tambahan */}
+            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#242321]">
+                    Operasional & Tarif Tambahan
+                  </h3>
+                  <span className="text-xs text-[#68645e]">
+                    Estimasi durasi memasak dan tarif varian telur
+                  </span>
+                </div>
+              </div>
 
-              <p className="text-xs text-text-muted leading-relaxed">
-                Muat ulang 6 contoh pesanan demo (pesanan baru, sedang dimasak, siap diambil, WA gagal, dan pembatalan dengan refund) untuk menguji seluruh antrean.
-              </p>
+              <form onSubmit={handleSaveOperational} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#242321] flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#918c84]" />
+                    <span>Estimasi Menit Persiapan Masak</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={5}
+                    max={60}
+                    step={1}
+                    required
+                    value={estimate}
+                    onChange={(e) => setEstimate(Number(e.target.value))}
+                    className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                  />
+                  <p className="text-[11px] text-[#68645e]">
+                    Durasi ini digunakan sebagai acuan estimasi selesai saat pelanggan memilih opsi Secepatnya.
+                  </p>
+                </div>
 
-              <div className="space-y-2 pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  fullWidth
-                  onClick={handleSeedDemoOrders}
-                >
-                  <Sparkles className="w-4 h-4 mr-1.5 text-brand-green" />
-                  <span>Muat Contoh Pesanan Demo</span>
-                </Button>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#242321] flex items-center gap-1.5">
+                    <Egg className="w-3.5 h-3.5 text-[#918c84]" />
+                    <span>Harga Tambahan Telur (Rp)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={500}
+                    required
+                    value={eggPrice}
+                    onChange={(e) => setEggPrice(Number(e.target.value))}
+                    className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                  />
+                  <p className="text-[11px] text-[#68645e]">
+                    Biaya tambahan flat yang dikenakan saat pelanggan memilih varian telur.
+                  </p>
+                </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  fullWidth
-                  onClick={handleResetDemo}
-                  className="text-danger-red hover:bg-danger-red/10 border-danger-red/30"
-                >
-                  <RotateCcw className="w-4 h-4 mr-1.5" />
-                  <span>Reset Semua Data ke Awal</span>
-                </Button>
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full min-h-[44px] px-5 py-2.5 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <span>Simpan Pengaturan Operasional</span>
+                  </button>
+                </div>
+              </form>
+            </section>
+          </div>
+
+          {/* Kolom Kanan: Section 3 & Section 4 */}
+          <div className="space-y-6">
+            {/* Section 3: Simulator Koneksi WAHA WhatsApp */}
+            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
+                  {waConnected ? (
+                    <Wifi className="w-4 h-4 text-emerald-700" />
+                  ) : (
+                    <WifiOff className="w-4 h-4 text-[#d94b3d]" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#242321]">
+                    Simulator Koneksi WAHA WhatsApp
+                  </h3>
+                  <span className="text-xs text-[#68645e]">
+                    Simulasi pengiriman notifikasi WhatsApp otomatis
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-[#fbf9f5] rounded-xl border border-[#e9e5df] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#242321]">
+                    Status Sesi WAHA:
+                  </span>
+                  <span
+                    className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-xs inline-flex items-center gap-1.5 ${
+                      waConnected
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
+                        : 'bg-[#d94b3d]/10 text-[#d94b3d] border border-[#d94b3d]/30'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        waConnected ? 'bg-emerald-600' : 'bg-[#d94b3d]'
+                      }`}
+                    />
+                    <span>{waConnected ? 'Terhubung Normal' : 'Simulasi Terputus'}</span>
+                  </span>
+                </div>
+
+                <p className="text-xs text-[#68645e] leading-relaxed">
+                  Saat status terhubung, pesanan yang telah lunas otomatis mengirim pesan notifikasi ke WhatsApp penjaga aktif. Ketika disimulasikan terputus, pesan akan masuk status Gagal dan memicu opsi Kirim Ulang Manual pada layar antrean.
+                </p>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handleToggleWa}
+                    className={`w-full min-h-[44px] px-4 py-2 text-xs sm:text-sm font-bold rounded-full transition-colors cursor-pointer inline-flex items-center justify-center gap-2 shadow-xs ${
+                      waConnected
+                        ? 'bg-white hover:bg-[#fbf9f5] text-[#d94b3d] border border-[#d94b3d]/40'
+                        : 'bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321]'
+                    }`}
+                  >
+                    {waConnected ? (
+                      <>
+                        <WifiOff className="w-4 h-4" />
+                        <span>Simulasikan WA Terputus</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wifi className="w-4 h-4" />
+                        <span>Pulihkan Sesi WA Terhubung</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 4: Data Demo & Reset */}
+            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
+                  <Sparkles className="w-4 h-4 text-[#242321]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#242321]">
+                    Data Demo & Reset
+                  </h3>
+                  <span className="text-xs text-[#68645e]">
+                    Alat pengujian antrean dan pemulihan kondisi awal
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-[#fbf9f5] rounded-xl border border-[#e9e5df] space-y-3">
+                <p className="text-xs text-[#68645e] leading-relaxed">
+                  Muat ulang 6 contoh skenario pesanan (pesanan baru, sedang dimasak, siap diambil, WA gagal, dan pembatalan dengan refund) untuk menguji seluruh alur kerja dapur.
+                </p>
+
+                <div className="space-y-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSeedDemoOrders}
+                    className="w-full min-h-[44px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#242321] border border-[#e9e5df] font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#f5c943]" />
+                    <span>Muat 6 Pesanan Demo</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetDemo}
+                    className="w-full min-h-[44px] px-4 py-2 bg-white hover:bg-[#d94b3d]/10 text-[#d94b3d] border border-[#d94b3d]/30 font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Reset Total Seluruh Data</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[11px] text-[#918c84] pt-1">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span>Reset total akan mengembalikan menu, antrean, dan sif ke setelan bawaan.</span>
+                </div>
               </div>
             </section>
           </div>

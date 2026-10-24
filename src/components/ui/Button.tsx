@@ -26,7 +26,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // Standar ergonomi mobile: minimal touch target 44px
     const sizeStyles = {
-      sm: 'min-h-[40px] px-3.5 py-2 text-xs gap-1.5',
+      sm: 'min-h-[44px] px-3.5 py-2 text-xs gap-1.5',
       md: 'min-h-[44px] px-4 py-2.5 text-sm gap-2',
       lg: 'min-h-[48px] px-5 py-3 text-base gap-2.5',
     };
