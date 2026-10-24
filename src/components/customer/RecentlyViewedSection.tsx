@@ -66,11 +66,11 @@ export function RecentlyViewedSection({
               <article
                 key={item.id}
                 onClick={() => onSelectMenu(item)}
-                className="rounded-[11px] bg-white border border-[#e9e5df] p-3 flex flex-col justify-between hover:shadow-card transition-all cursor-pointer group relative"
+                className="rounded-2xl bg-white border border-[#e9e5df] p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-card hover:-translate-y-0.5 transition-all cursor-pointer group relative select-none"
               >
                 <div>
                   {/* Image Container */}
-                  <div className="relative w-full h-36 rounded-[8px] overflow-hidden bg-[#f5f2ed] mb-3">
+                  <div className="relative w-full h-36 rounded-xl overflow-hidden bg-[#f5f2ed] mb-3 border border-[#eeeae4]/60">
                     {item.image ? (
                       <Image
                         src={item.image}
@@ -89,7 +89,7 @@ export function RecentlyViewedSection({
                     {/* Status Badge */}
                     {badgeText && (
                       <div className="absolute top-2 left-2 z-10">
-                        <span className="bg-[#f8d84f] text-[#242321] text-[10px] font-bold px-2 py-0.5 rounded-[5px] shadow-xs">
+                        <span className="bg-[#f8d84f] text-[#242321] text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
                           {badgeText}
                         </span>
                       </div>

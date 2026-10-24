@@ -282,7 +282,7 @@ export default function HomePage() {
               </div>
             ) : filteredMenu.length === 0 ? (
               /* Kondisi Hasil Kosong */
-              <div className="bg-white rounded-xl border border-[#e9e5df] p-8 sm:p-12 text-center shadow-card">
+              <div className="bg-white rounded-2xl border border-[#e9e5df] p-8 sm:p-12 text-center shadow-card">
                 <div className="w-14 h-14 rounded-full bg-[#f5f2ed] border border-[#e9e5df] flex items-center justify-center mx-auto mb-3.5 text-[#77736d]">
                   <ChefHat className="w-7 h-7" aria-hidden="true" />
                 </div>

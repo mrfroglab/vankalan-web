@@ -68,7 +68,7 @@ export function CustomizeItemModal({
     <Modal isOpen={isOpen} onClose={onClose} title={item.name}>
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         {/* Foto / Ilustrasi Header */}
-        <div className="w-full h-36 bg-[#fbf9f5] rounded-xl overflow-hidden flex items-center justify-center border border-[#eeeae4]/60 relative">
+        <div className="w-full h-36 bg-[#fbf9f5] rounded-2xl overflow-hidden flex items-center justify-center border border-[#eeeae4]/60 relative">
           {item.image ? (
             <Image
               src={item.image}
@@ -93,7 +93,7 @@ export function CustomizeItemModal({
 
         {/* Opsi Tambahan Telur */}
         {hasEggOption && (
-          <div className="p-3.5 bg-white border border-[#e9e5df] rounded-xl hover:border-[#f5c943] transition-colors">
+          <div className="p-3.5 bg-white border border-[#e9e5df] rounded-2xl hover:border-[#f5c943] transition-colors">
             <label className="flex items-center justify-between cursor-pointer select-none">
               <div className="flex items-center gap-3">
                 <span
@@ -143,7 +143,7 @@ export function CustomizeItemModal({
                     key={t}
                     type="button"
                     onClick={() => setSelectedTemp(t)}
-                    className={`min-h-[44px] p-2.5 sm:p-3 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-3.5 py-2.5 rounded-full border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       isSelected
                         ? 'border-[#f5c943] bg-[#f5c943]/20 text-[#242321] font-bold shadow-xs'
                         : 'border-[#e9e5df] bg-white text-[#68645e] hover:bg-[#f5f2ed] hover:text-[#242321]'
@@ -175,30 +175,30 @@ export function CustomizeItemModal({
             placeholder="Contoh: jangan pakai sawi, kuah dipisah, mi setengah matang..."
             rows={2}
             maxLength={150}
-            className="w-full p-3 text-xs sm:text-sm rounded-xl border border-[#e9e5df] bg-white text-[#242321] placeholder:text-[#918c84] focus:outline-none focus:border-[#f5c943] transition-colors resize-none"
+            className="w-full p-3.5 text-xs sm:text-sm rounded-2xl border border-[#e9e5df] bg-white text-[#242321] placeholder:text-[#918c84] focus:outline-none focus:border-[#f5c943] transition-colors resize-none"
           />
         </div>
 
         {/* Jumlah & Subtotal */}
         <div className="pt-3 border-t border-[#eeeae4] flex items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-2 bg-white border border-[#e9e5df] rounded-xl p-1">
+          <div className="flex items-center gap-1.5 bg-white border border-[#e9e5df] rounded-full p-1">
             <button
               type="button"
               disabled={qty <= 1}
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               aria-label="Kurangi jumlah pesanan"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-[#242321] hover:bg-[#f5f2ed] disabled:opacity-30 cursor-pointer transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] disabled:opacity-30 cursor-pointer transition-colors"
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="w-7 text-center font-bold text-sm text-[#242321]">
+            <span className="w-6 text-center font-bold text-sm text-[#242321]">
               {qty}
             </span>
             <button
               type="button"
               onClick={() => setQty((q) => q + 1)}
               aria-label="Tambah jumlah pesanan"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
             >
               <Plus className="w-4 h-4" />
             </button>

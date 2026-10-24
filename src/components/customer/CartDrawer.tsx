@@ -54,12 +54,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     </h4>
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {item.egg ? (
-                        <span className="text-[11px] bg-[#f5f2ed] text-[#242321] border border-[#e9e5df] px-2 py-0.5 rounded-md font-medium">
+                        <span className="text-[11px] bg-[#f5f2ed] text-[#242321] border border-[#e9e5df] px-2.5 py-0.5 rounded-full font-medium">
                           + Telur
                         </span>
                       ) : null}
                       {item.temp ? (
-                        <span className="text-[11px] bg-neutral-100 text-[#242321] border border-[#e9e5df] px-2 py-0.5 rounded-md font-medium">
+                        <span className="text-[11px] bg-neutral-100 text-[#242321] border border-[#e9e5df] px-2.5 py-0.5 rounded-full font-medium">
                           {item.temp}
                         </span>
                       ) : null}
@@ -75,12 +75,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   </div>
 
                   {/* Quantity Stepper */}
-                  <div className="flex items-center gap-1.5 bg-white border border-[#e9e5df] rounded-xl p-1 shrink-0">
+                  <div className="flex items-center gap-1 bg-white border border-[#e9e5df] rounded-full p-1 shrink-0">
                     <button
                       type="button"
                       onClick={() => updateQty(item.id, item.qty - 1)}
                       aria-label="Kurangi jumlah"
-                      className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
                     >
                       {item.qty === 1 ? (
                         <Trash2 className="w-4 h-4 text-[#d94b3d]" />
@@ -95,7 +95,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       type="button"
                       onClick={() => updateQty(item.id, item.qty + 1)}
                       aria-label="Tambah jumlah"
-                      className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                     </button>

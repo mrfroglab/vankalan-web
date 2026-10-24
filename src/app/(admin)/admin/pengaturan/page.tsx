@@ -122,7 +122,7 @@ export default function AdminPengaturanPage() {
         {toastMessage && (
           <div
             role="status"
-            className="p-3.5 bg-[#242321] text-white text-xs font-semibold rounded-xl shadow-dropdown flex items-center gap-2 animate-fade-in"
+            className="p-3 px-4 bg-[#242321] text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
           >
             <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
             <span>{toastMessage}</span>
@@ -130,7 +130,7 @@ export default function AdminPengaturanPage() {
         )}
 
         {/* Section Header */}
-        <div className="bg-white p-5 sm:p-6 rounded-[12px] border border-[#e9e5df] shadow-card">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] shadow-card">
           <h2 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
             Pengaturan Toko & WhatsApp
           </h2>
@@ -143,7 +143,7 @@ export default function AdminPengaturanPage() {
           {/* Kolom Kiri: Section 1 & Section 2 */}
           <div className="space-y-6">
             {/* Section 1: Status Pemesanan Online */}
-            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
                   <Store className="w-4 h-4" />
@@ -158,7 +158,7 @@ export default function AdminPengaturanPage() {
                 </div>
               </div>
 
-              <div className="p-4 bg-[#fbf9f5] rounded-xl border border-[#e9e5df] space-y-3">
+              <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#242321]">
                     Status Gerai:
@@ -203,7 +203,7 @@ export default function AdminPengaturanPage() {
             </section>
 
             {/* Section 2: Operasional & Tarif Tambahan */}
-            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
                   <Clock className="w-4 h-4" />
@@ -232,7 +232,7 @@ export default function AdminPengaturanPage() {
                     required
                     value={estimate}
                     onChange={(e) => setEstimate(Number(e.target.value))}
-                    className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                    className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
                   />
                   <p className="text-[11px] text-[#68645e]">
                     Durasi ini digunakan sebagai acuan estimasi selesai saat pelanggan memilih opsi Secepatnya.
@@ -251,7 +251,7 @@ export default function AdminPengaturanPage() {
                     required
                     value={eggPrice}
                     onChange={(e) => setEggPrice(Number(e.target.value))}
-                    className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                    className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
                   />
                   <p className="text-[11px] text-[#68645e]">
                     Biaya tambahan flat yang dikenakan saat pelanggan memilih varian telur.
@@ -273,7 +273,7 @@ export default function AdminPengaturanPage() {
           {/* Kolom Kanan: Section 3 & Section 4 */}
           <div className="space-y-6">
             {/* Section 3: Simulator Koneksi WAHA WhatsApp */}
-            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
                   {waConnected ? (
@@ -292,7 +292,7 @@ export default function AdminPengaturanPage() {
                 </div>
               </div>
 
-              <div className="p-4 bg-[#fbf9f5] rounded-xl border border-[#e9e5df] space-y-3">
+              <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#242321]">
                     Status Sesi WAHA:
@@ -344,7 +344,7 @@ export default function AdminPengaturanPage() {
             </section>
 
             {/* Section 4: Data Demo & Reset */}
-            <section className="bg-white border border-[#e9e5df] rounded-[12px] p-5 shadow-card space-y-4">
+            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
                   <Sparkles className="w-4 h-4 text-[#242321]" />
@@ -359,7 +359,7 @@ export default function AdminPengaturanPage() {
                 </div>
               </div>
 
-              <div className="p-4 bg-[#fbf9f5] rounded-xl border border-[#e9e5df] space-y-3">
+              <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3">
                 <p className="text-xs text-[#68645e] leading-relaxed">
                   Muat ulang 6 contoh skenario pesanan (pesanan baru, sedang dimasak, siap diambil, WA gagal, dan pembatalan dengan refund) untuk menguji seluruh alur kerja dapur.
                 </p>

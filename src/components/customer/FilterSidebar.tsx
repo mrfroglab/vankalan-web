@@ -96,7 +96,7 @@ export function FilterSidebar({
 
   return (
     <aside
-      className={`bg-white border border-[#e9e5df] rounded-xl p-4 sm:p-5 shadow-card ${className}`}
+      className={`bg-white border border-[#e9e5df] rounded-2xl p-4 sm:p-5 shadow-card ${className}`}
       aria-label="Panel Filter Menu"
     >
       {/* Header Panel */}
@@ -133,7 +133,7 @@ export function FilterSidebar({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => handleCategorySelect(cat)}
-                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors cursor-pointer min-h-[40px] text-left ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-full text-xs transition-colors cursor-pointer min-h-[40px] text-left ${
                   isSelected
                     ? 'bg-[#f5f2ed] text-[#242321] font-semibold'
                     : 'text-[#68645e] hover:bg-[#f5f2ed]/60 hover:text-[#242321]'
@@ -182,7 +182,7 @@ export function FilterSidebar({
                 key={price}
                 type="button"
                 onClick={() => handlePriceSelect(price)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer min-h-[38px] flex items-center justify-between border ${
+                className={`w-full text-left px-3.5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer min-h-[38px] flex items-center justify-between border ${
                   isSelected
                     ? 'bg-[#f5c943]/20 border-[#f5c943] text-[#242321] font-bold shadow-xs'
                     : 'bg-white border-[#e9e5df] text-[#68645e] hover:bg-[#f5f2ed] hover:text-[#242321]'
@@ -216,7 +216,7 @@ export function FilterSidebar({
                 key={portion}
                 type="button"
                 onClick={() => handlePortionSelect(portion)}
-                className={`px-3 py-1.5 rounded-[6px] text-xs font-semibold transition-all cursor-pointer border ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
                   isSelected
                     ? 'bg-[#f5c943] border-[#f5c943] text-[#242321] shadow-xs'
                     : 'bg-white border-[#e9e5df] text-[#68645e] hover:bg-[#f5f2ed] hover:text-[#242321]'
@@ -245,7 +245,7 @@ export function FilterSidebar({
             return (
               <label
                 key={meal}
-                className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs text-[#242321] hover:bg-[#f5f2ed]/60 transition-colors cursor-pointer select-none min-h-[36px]"
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs text-[#242321] hover:bg-[#f5f2ed]/60 transition-colors cursor-pointer select-none min-h-[36px]"
               >
                 <input
                   type="checkbox"
@@ -288,7 +288,7 @@ export function FilterSidebar({
                 key={option.value}
                 type="button"
                 onClick={() => handleRatingSelect(option.value)}
-                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors cursor-pointer min-h-[38px] text-left border ${
+                className={`w-full flex items-center justify-between px-3.5 py-2 rounded-full text-xs transition-colors cursor-pointer min-h-[38px] text-left border ${
                   isSelected
                     ? 'bg-[#f5c943]/20 border-[#f5c943] text-[#242321] font-semibold'
                     : 'bg-white border-[#e9e5df] text-[#68645e] hover:bg-[#f5f2ed] hover:text-[#242321]'
@@ -331,7 +331,7 @@ export function FilterSidebar({
                 key={String(option.value)}
                 type="button"
                 onClick={() => handleAvailabilitySelect(option.value)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-colors cursor-pointer min-h-[38px] text-left border ${
+                className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-full text-xs transition-colors cursor-pointer min-h-[38px] text-left border ${
                   isSelected
                     ? 'bg-[#f5c943]/20 border-[#f5c943] text-[#242321] font-semibold'
                     : 'bg-white border-[#e9e5df] text-[#68645e] hover:bg-[#f5f2ed] hover:text-[#242321]'

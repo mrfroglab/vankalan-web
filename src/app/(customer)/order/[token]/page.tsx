@@ -151,7 +151,7 @@ function OrderTrackingContent() {
           onOpenCart={() => setIsCartDrawerOpen(true)}
         />
         <main className="max-w-md mx-auto w-full px-4 sm:px-6 py-12 flex-1 flex items-center justify-center">
-          <div className="w-full bg-white p-8 sm:p-10 rounded-[16px] border border-[#e9e5df] text-center space-y-4 shadow-card">
+          <div className="w-full bg-white p-8 sm:p-10 rounded-2xl border border-[#e9e5df] text-center space-y-4 shadow-card">
             <div className="w-16 h-16 rounded-full bg-[#fde7e4] border border-[#f7c5be] flex items-center justify-center mx-auto text-[#91251c]">
               <AlertCircle className="w-8 h-8" />
             </div>
@@ -274,7 +274,7 @@ function OrderTrackingContent() {
         )}
 
         {/* Card Utama Bukti Pesanan */}
-        <section className="bg-white p-6 sm:p-8 rounded-[16px] border border-[#e9e5df] shadow-card space-y-6">
+        <section className="bg-white p-6 sm:p-8 rounded-2xl border border-[#e9e5df] shadow-card space-y-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#918c84]">
@@ -306,7 +306,7 @@ function OrderTrackingContent() {
           </div>
 
           {/* Kotak Estimasi Jam Ambil */}
-          <div className="p-4 sm:p-5 bg-[#fbf9f5] border border-[#e9e5df] rounded-xl space-y-1.5">
+          <div className="p-4 sm:p-5 bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl space-y-1.5">
             <span className="text-xs font-semibold text-[#68645e] block">
               Waktu Pengambilan di Warung
             </span>
@@ -391,14 +391,14 @@ function OrderTrackingContent() {
               )}
             </div>
 
-            <div className="p-2.5 bg-[#f5f2ed] border border-[#e9e5df] rounded-xl flex items-center justify-between gap-2">
+            <div className="p-1.5 pl-4 bg-[#f5f2ed] border border-[#e9e5df] rounded-full flex items-center justify-between gap-2">
               <span className="truncate font-mono text-xs text-[#68645e] px-1 select-all">
                 {typeof window !== 'undefined' ? window.location.href : order.token}
               </span>
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="min-h-[40px] px-3.5 py-2 rounded-lg bg-white border border-[#e9e5df] text-[#242321] font-semibold text-xs flex items-center gap-1.5 hover:bg-[#fbf9f5] transition-colors cursor-pointer shrink-0 shadow-xs"
+                className="min-h-[40px] px-4 py-2 rounded-full bg-white border border-[#e9e5df] text-[#242321] font-semibold text-xs flex items-center gap-1.5 hover:bg-[#fbf9f5] transition-colors cursor-pointer shrink-0 shadow-xs"
               >
                 <Copy className="w-3.5 h-3.5 text-[#77736d]" />
                 <span>{copied ? 'Tersalin' : 'Salin'}</span>

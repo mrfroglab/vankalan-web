@@ -49,7 +49,7 @@ export function FoodlyHeader({
           className="flex items-center gap-1.5 sm:gap-2 group min-h-[44px] cursor-pointer shrink"
           aria-label="Kembali ke beranda Warmindo Putra Vangkalan"
         >
-          <span className="bg-[#d94b3d] text-white font-black text-xs px-2 py-1 rounded-md tracking-wider shrink-0 select-none">
+          <span className="bg-[#d94b3d] text-white font-black text-xs px-2.5 py-1 rounded-full tracking-wider shrink-0 select-none">
             PV
           </span>
           <div className="flex flex-col min-w-0">

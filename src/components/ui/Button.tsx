@@ -22,7 +22,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-semibold transition-all rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 select-none';
+      'inline-flex items-center justify-center font-semibold transition-all rounded-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 select-none';
 
     // Standar ergonomi mobile: minimal touch target 44px
     const sizeStyles = {

@@ -207,7 +207,7 @@ export default function CheckoutPage() {
         </nav>
 
         {items.length === 0 && !isPaymentModalOpen ? (
-          <div className="bg-white p-8 sm:p-12 rounded-[12px] border border-[#e9e5df] text-center space-y-4 shadow-card my-6">
+          <div className="bg-white p-8 sm:p-12 rounded-2xl border border-[#e9e5df] text-center space-y-4 shadow-card my-6">
             <div className="w-16 h-16 rounded-full bg-[#fbf9f5] border border-[#e9e5df] flex items-center justify-center mx-auto text-[#77736d]">
               <ShoppingBag className="w-8 h-8" />
             </div>
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
 
             {formError && (
               <div
-                className="p-4 bg-[#fde7e4] border border-[#f7c5be] rounded-xl text-[#91251c] text-xs font-semibold animate-fade-in"
+                className="p-4 bg-[#fde7e4] border border-[#f7c5be] rounded-2xl text-[#91251c] text-xs font-semibold animate-fade-in"
                 role="alert"
               >
                 {formError}
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Seksi 1: Data Pemesan */}
-              <section className="bg-white p-5 sm:p-6 rounded-[12px] border border-[#e9e5df] space-y-4 shadow-card">
+              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] space-y-4 shadow-card">
                 <h2 className="text-xs uppercase tracking-wider font-bold text-[#242321]">
                   1. Identitas Pemesan
                 </h2>
@@ -265,7 +265,7 @@ export default function CheckoutPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Contoh: Budi Santoso"
-                    className="w-full min-h-[46px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
+                    className="w-full min-h-[46px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
                   />
                 </div>
 
@@ -280,7 +280,7 @@ export default function CheckoutPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Contoh: 081234567890"
-                    className="w-full min-h-[46px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
+                    className="w-full min-h-[46px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
                   />
                   <p className="text-[11px] text-[#918c84]">
                     Penjaga warung akan mengirim konfirmasi dan notifikasi pesanan siap via WhatsApp.
@@ -289,14 +289,14 @@ export default function CheckoutPage() {
               </section>
 
               {/* Seksi 2: Waktu Pengambilan */}
-              <section className="bg-white p-5 sm:p-6 rounded-[12px] border border-[#e9e5df] space-y-4 shadow-card">
+              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] space-y-4 shadow-card">
                 <h2 className="text-xs uppercase tracking-wider font-bold text-[#242321]">
                   2. Waktu Pengambilan (Pickup)
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label
-                    className={`flex flex-col p-4 border rounded-xl cursor-pointer transition-all ${
+                    className={`flex flex-col p-4 border rounded-2xl cursor-pointer transition-all ${
                       mode === 'asap'
                         ? 'border-[#f5c943] bg-[#fef8e8] shadow-xs'
                         : 'border-[#e9e5df] bg-[#fbf9f5] hover:bg-white'
@@ -319,7 +319,7 @@ export default function CheckoutPage() {
                   </label>
 
                   <label
-                    className={`flex flex-col p-4 border rounded-xl cursor-pointer transition-all ${
+                    className={`flex flex-col p-4 border rounded-2xl cursor-pointer transition-all ${
                       mode === 'scheduled'
                         ? 'border-[#f5c943] bg-[#fef8e8] shadow-xs'
                         : 'border-[#e9e5df] bg-[#fbf9f5] hover:bg-white'
@@ -354,7 +354,7 @@ export default function CheckoutPage() {
                       id="scheduled-time"
                       value={selectedPickupTime}
                       onChange={(e) => setSelectedPickupTime(e.target.value)}
-                      className="w-full min-h-[46px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
+                      className="w-full min-h-[46px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
                     >
                       <option value="">Pilih jam pengambilan...</option>
                       {scheduledTimeOptions.map((opt) => (
@@ -377,13 +377,13 @@ export default function CheckoutPage() {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Contoh: sambal dipisah ya mas, kuah jangan terlalu asin"
-                    className="w-full p-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors resize-none"
+                    className="w-full p-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors resize-none"
                   />
                 </div>
               </section>
 
               {/* Seksi 3: Ringkasan Pesanan */}
-              <section className="bg-white p-5 sm:p-6 rounded-[12px] border border-[#e9e5df] space-y-4 shadow-card">
+              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] space-y-4 shadow-card">
                 <h2 className="text-xs uppercase tracking-wider font-bold text-[#242321]">
                   3. Ringkasan Pesanan
                 </h2>
@@ -423,7 +423,7 @@ export default function CheckoutPage() {
                   </span>
                 </div>
 
-                <div className="p-3.5 bg-[#fbf9f5] border border-[#e9e5df] rounded-xl flex items-center gap-2.5 text-xs text-[#68645e]">
+                <div className="p-3.5 bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl flex items-center gap-2.5 text-xs text-[#68645e]">
                   <ShieldCheck className="w-4 h-4 text-[#242321] shrink-0" />
                   <span>Biaya gateway ditanggung warung. Tidak ada tambahan biaya admin.</span>
                 </div>

@@ -2,11 +2,11 @@ import React from 'react';
 
 export function MenuCardSkeleton() {
   return (
-    <div className="bg-white border border-[#e9e5df] rounded-[11px] p-2.5 sm:p-3 flex flex-col justify-between select-none">
+    <div className="bg-white border border-[#e9e5df] rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between select-none">
       <div>
         {/* Kontainer Gambar Skeleton */}
-        <div className="relative w-full h-36 sm:h-40 bg-[#fbf9f5] rounded-[9px] overflow-hidden mb-2.5 border border-[#eeeae4]/60 animate-shimmer">
-          <div className="absolute top-2 left-2 w-14 h-4 bg-white/80 rounded-[6px]" />
+        <div className="relative w-full h-36 sm:h-40 bg-[#fbf9f5] rounded-xl overflow-hidden mb-2.5 border border-[#eeeae4]/60 animate-shimmer">
+          <div className="absolute top-2 left-2 w-14 h-4 bg-white/80 rounded-full" />
           <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80" />
         </div>
 

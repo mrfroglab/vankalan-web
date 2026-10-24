@@ -56,13 +56,13 @@ export function MenuCard({ item, onSelect, isStoreOpen = true }: MenuCardProps) 
   return (
     <article
       onClick={() => isAvailable && onSelect(item)}
-      className={`group relative flex flex-col justify-between bg-white border border-[#e9e5df] rounded-[11px] p-2.5 sm:p-3 hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 select-none ${
+      className={`group relative flex flex-col justify-between bg-white border border-[#e9e5df] rounded-2xl p-3 sm:p-3.5 hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 select-none ${
         isAvailable ? 'cursor-pointer' : 'opacity-70 cursor-not-allowed bg-neutral-50/80'
       }`}
     >
       <div>
         {/* Kontainer Gambar Produk */}
-        <div className="relative w-full h-36 sm:h-40 bg-[#fbf9f5] rounded-[9px] overflow-hidden flex items-center justify-center mb-2.5 border border-[#eeeae4]/60">
+        <div className="relative w-full h-36 sm:h-40 bg-[#fbf9f5] rounded-xl overflow-hidden flex items-center justify-center mb-2.5 border border-[#eeeae4]/60">
           {item.image ? (
             <Image
               src={item.image}
@@ -79,7 +79,7 @@ export function MenuCard({ item, onSelect, isStoreOpen = true }: MenuCardProps) 
           {badgeText && (
             <div className="absolute top-2 left-2 z-10">
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-[6px] tracking-wide shadow-xs ${
+                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide shadow-xs ${
                   !isAvailable
                     ? 'bg-[#d94b3d] text-white'
                     : 'bg-[#f8d84f] text-[#242321]'

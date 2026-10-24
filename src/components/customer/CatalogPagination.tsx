@@ -69,7 +69,7 @@ export function CatalogPagination({
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
         aria-label="Halaman sebelumnya"
-        className="min-w-[36px] h-9 px-2 rounded-[8px] text-xs font-semibold flex items-center justify-center transition-all bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed] disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed cursor-pointer"
+        className="w-9 h-9 rounded-full text-xs font-semibold flex items-center justify-center transition-all bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed] disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed cursor-pointer shadow-xs"
       >
         <ChevronLeft className="w-4 h-4 text-[#77736d]" />
       </button>
@@ -80,7 +80,7 @@ export function CatalogPagination({
           return (
             <span
               key={`dots-${index}`}
-              className="min-w-[36px] h-9 px-1 text-xs font-semibold text-[#918c84] flex items-center justify-center select-none"
+              className="w-9 h-9 text-xs font-semibold text-[#918c84] flex items-center justify-center select-none"
             >
               ...
             </span>
@@ -96,7 +96,7 @@ export function CatalogPagination({
             onClick={() => onPageChange(item)}
             aria-current={isActive ? 'page' : undefined}
             aria-label={`Halaman ${item}`}
-            className={`min-w-[36px] h-9 px-3 rounded-[8px] text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
+            className={`min-w-[36px] h-9 px-3 rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
               isActive
                 ? 'bg-[#f5c943] border border-[#f5c943] text-[#242321] font-bold shadow-xs'
                 : 'bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed]'
@@ -113,7 +113,7 @@ export function CatalogPagination({
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
         aria-label="Halaman berikutnya"
-        className="min-w-[36px] h-9 px-2 rounded-[8px] text-xs font-semibold flex items-center justify-center transition-all bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed] disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed cursor-pointer"
+        className="w-9 h-9 rounded-full text-xs font-semibold flex items-center justify-center transition-all bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed] disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed cursor-pointer shadow-xs"
       >
         <ChevronRight className="w-4 h-4 text-[#77736d]" />
       </button>

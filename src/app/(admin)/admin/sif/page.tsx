@@ -163,7 +163,7 @@ export default function AdminSifPage() {
         {toastMessage && (
           <div
             role="status"
-            className="p-3.5 bg-[#242321] text-white text-xs font-semibold rounded-xl shadow-dropdown flex items-center gap-2 animate-fade-in"
+            className="p-3 px-4 bg-[#242321] text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
           >
             <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
             <span>{toastMessage}</span>
@@ -171,7 +171,7 @@ export default function AdminSifPage() {
         )}
 
         {/* Section Header */}
-        <div className="bg-white p-5 sm:p-6 rounded-[12px] border border-[#e9e5df] shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
               Penjaga & Manajemen Sif
@@ -210,7 +210,7 @@ export default function AdminSifPage() {
                 return (
                   <div
                     key={s.id}
-                    className={`bg-white border rounded-[12px] p-5 shadow-card space-y-3 transition-all ${
+                    className={`bg-white border rounded-2xl p-5 shadow-card space-y-3 transition-all ${
                       isActive
                         ? 'border-[#f5c943] ring-2 ring-[#f5c943]/30'
                         : 'border-[#e9e5df] hover:border-[#918c84]/40'
@@ -292,7 +292,7 @@ export default function AdminSifPage() {
             </div>
 
             {/* Warm alert box */}
-            <div className="bg-[#fbf9f5] border border-[#e9e5df] rounded-xl p-5 shadow-card space-y-4">
+            <div className="bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#242321]" />
                 <h4 className="text-sm font-bold text-[#242321]">
@@ -305,7 +305,7 @@ export default function AdminSifPage() {
               </p>
 
               {pendingOrders.length === 0 ? (
-                <div className="py-8 px-4 text-center text-xs text-[#68645e] bg-white rounded-xl border border-[#e9e5df]">
+                <div className="py-8 px-4 text-center text-xs text-[#68645e] bg-white rounded-2xl border border-[#e9e5df]">
                   <ShieldCheck className="w-8 h-8 text-emerald-600 mx-auto mb-2 opacity-80" />
                   <strong className="block text-[#242321] font-bold">
                     Dapur Bersih
@@ -317,7 +317,7 @@ export default function AdminSifPage() {
                   {pendingOrders.map((o) => (
                     <div
                       key={o.id}
-                      className="p-3 bg-white rounded-xl border border-[#e9e5df] space-y-1.5 text-xs shadow-xs"
+                      className="p-3 bg-white rounded-2xl border border-[#e9e5df] space-y-1.5 text-xs shadow-xs"
                     >
                       <div className="flex justify-between items-center">
                         <strong className="font-mono text-xs font-bold text-[#242321]">
@@ -358,7 +358,7 @@ export default function AdminSifPage() {
         >
           <form onSubmit={handleSaveShift} className="space-y-4">
             {formError && (
-              <div className="p-3 bg-[#d94b3d]/10 border border-[#d94b3d]/30 rounded-xl text-[#d94b3d] text-xs font-semibold">
+              <div className="p-3 bg-[#d94b3d]/10 border border-[#d94b3d]/30 rounded-2xl text-[#d94b3d] text-xs font-semibold">
                 {formError}
               </div>
             )}
@@ -374,7 +374,7 @@ export default function AdminSifPage() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Contoh: Aa Iis"
-                className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
               />
             </div>
 
@@ -388,7 +388,7 @@ export default function AdminSifPage() {
                 value={formPhone}
                 onChange={(e) => setFormPhone(e.target.value)}
                 placeholder="Contoh: 081234567890"
-                className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
               />
               <p className="text-[11px] text-[#68645e]">
                 Format nomor otomatis dinormalisasi menggunakan awalan kode negara 62.

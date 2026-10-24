@@ -34,7 +34,7 @@ export function FoodlyFooter() {
           {/* Kolom 1: Profil Brand & Jam Operasional */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <span className="bg-[#d94b3d] text-white font-black text-xs px-2 py-1 rounded-md tracking-wider select-none shrink-0">
+              <span className="bg-[#d94b3d] text-white font-black text-xs px-2.5 py-1 rounded-full tracking-wider select-none shrink-0">
                 PV
               </span>
               <span className="text-base font-bold text-[#242321] tracking-tight">
@@ -47,7 +47,7 @@ export function FoodlyFooter() {
               spesial, nasi telur, camilan, dan minuman segar.
             </p>
 
-            <div className="mt-4 inline-flex items-center gap-2 bg-white/90 border border-[#e9e5df] text-xs text-[#242321] font-medium px-3 py-1.5 rounded-lg shadow-xs">
+            <div className="mt-4 inline-flex items-center gap-2 bg-white/90 border border-[#e9e5df] text-xs text-[#242321] font-medium px-3.5 py-1.5 rounded-full shadow-xs">
               <Clock className="w-3.5 h-3.5 text-[#77736d] shrink-0" aria-hidden="true" />
               <span>Buka Setiap Hari: 08:00 - 02:00 WIB</span>
             </div>

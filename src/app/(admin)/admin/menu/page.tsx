@@ -234,7 +234,7 @@ export default function AdminMenuPage() {
         {toastMessage && (
           <div
             role="status"
-            className="p-3.5 bg-[#242321] text-white text-xs font-semibold rounded-xl shadow-dropdown flex items-center gap-2 animate-fade-in"
+            className="p-3 px-4 bg-[#242321] text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
           >
             <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
             <span>{toastMessage}</span>
@@ -242,7 +242,7 @@ export default function AdminMenuPage() {
         )}
 
         {/* Header Kelola Menu & Kategori */}
-        <div className="bg-white p-5 sm:p-6 rounded-[12px] border border-[#e9e5df] shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
               Kelola Menu & Kategori
@@ -331,7 +331,7 @@ export default function AdminMenuPage() {
 
         {/* Menu Grid */}
         {filteredMenu.length === 0 ? (
-          <div className="bg-white border border-[#e9e5df] rounded-[12px] p-12 text-center shadow-card">
+          <div className="bg-white border border-[#e9e5df] rounded-2xl p-12 text-center shadow-card">
             <p className="text-sm font-semibold text-[#242321]">
               Tidak ada menu yang sesuai dengan filter.
             </p>
@@ -344,13 +344,13 @@ export default function AdminMenuPage() {
             {filteredMenu.map((m) => (
               <div
                 key={m.id}
-                className={`bg-white border border-[#e9e5df] rounded-[12px] p-4 shadow-card hover:shadow-dropdown transition-all flex flex-col justify-between group ${
+                className={`bg-white border border-[#e9e5df] rounded-2xl p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex flex-col justify-between group ${
                   !m.available ? 'opacity-85 bg-[#fbf9f5]/70' : ''
                 }`}
               >
                 <div>
                   {/* Thumbnail Gambar atau Fallback Ilustrasi */}
-                  <div className="relative w-full h-36 bg-[#fbf9f5] rounded-[8px] overflow-hidden flex items-center justify-center border border-[#eeeae4]/60 mb-3">
+                  <div className="relative w-full h-36 bg-[#fbf9f5] rounded-xl overflow-hidden flex items-center justify-center border border-[#eeeae4]/60 mb-3">
                     {m.image ? (
                       <Image
                         src={m.image}
@@ -366,7 +366,7 @@ export default function AdminMenuPage() {
                     {/* Status Badges di Sudut Atas */}
                     <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-[6px] tracking-wide shadow-xs ${
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide shadow-xs ${
                           m.available
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
                             : 'bg-[#d94b3d] text-white'
@@ -376,7 +376,7 @@ export default function AdminMenuPage() {
                       </span>
 
                       {m.popular && (
-                        <span className="bg-[#f8d84f] text-[#242321] text-[10px] font-bold px-2 py-0.5 rounded-[6px] tracking-wide shadow-xs">
+                        <span className="bg-[#f8d84f] text-[#242321] text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide shadow-xs">
                           Populer
                         </span>
                       )}
@@ -503,7 +503,7 @@ export default function AdminMenuPage() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Contoh: Indomie Goreng Spesial Telur"
-                className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
               />
             </div>
 
@@ -515,7 +515,7 @@ export default function AdminMenuPage() {
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] focus:outline-none focus:border-[#f5c943]"
+                  className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943]"
                 >
                   {categories.map((c) => (
                     <option key={c} value={c}>
@@ -536,7 +536,7 @@ export default function AdminMenuPage() {
                   required
                   value={formPrice}
                   onChange={(e) => setFormPrice(Number(e.target.value))}
-                  className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                  className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
                 />
               </div>
             </div>
@@ -549,7 +549,7 @@ export default function AdminMenuPage() {
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="Rasa gurih khas dengan taburan bawang goreng renyah..."
-                className="w-full p-3 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className="w-full p-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
               />
             </div>
 
@@ -558,7 +558,7 @@ export default function AdminMenuPage() {
               <select
                 value={formKind}
                 onChange={(e) => setFormKind(e.target.value as MenuItem['kind'])}
-                className="w-full min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] focus:outline-none focus:border-[#f5c943]"
+                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943]"
               >
                 <option value="noodle">Mi Goreng</option>
                 <option value="soup">Mi Kuah</option>
@@ -571,7 +571,7 @@ export default function AdminMenuPage() {
             </div>
 
             {/* Opsi & Variasi Menu */}
-            <div className="p-4 bg-[#fbf9f5] rounded-xl border border-[#e9e5df] space-y-3 text-xs">
+            <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3 text-xs">
               <p className="font-bold text-[#242321]">Opsi & Variasi Tambahan</p>
 
               <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -619,7 +619,7 @@ export default function AdminMenuPage() {
                     step={500}
                     value={formColdExtra}
                     onChange={(e) => setFormColdExtra(Number(e.target.value))}
-                    className="w-full min-h-[38px] px-3 text-xs bg-white border border-[#e9e5df] rounded-lg text-[#242321] focus:outline-none focus:border-[#f5c943]"
+                    className="w-full min-h-[38px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943]"
                   />
                 </div>
               )}
@@ -688,7 +688,7 @@ export default function AdminMenuPage() {
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
                 placeholder="Nama kategori baru..."
-                className="flex-1 min-h-[44px] px-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-xl text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943]"
+                className="flex-1 min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943]"
               />
               <button
                 type="submit"
@@ -698,7 +698,7 @@ export default function AdminMenuPage() {
               </button>
             </form>
 
-            <div className="divide-y divide-[#eeeae4] border border-[#e9e5df] rounded-xl bg-white overflow-hidden">
+            <div className="divide-y divide-[#eeeae4] border border-[#e9e5df] rounded-2xl bg-white overflow-hidden">
               {categories.map((c) => {
                 const itemCount = menuList.filter((m) => m.category === c).length;
                 return (

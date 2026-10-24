@@ -401,7 +401,7 @@ export default function AdminAntreanPage() {
         </div>
 
         {/* Search and Filter Band */}
-        <div className="bg-white border border-[#e9e5df] rounded-[12px] p-4 sm:p-5 shadow-card space-y-3.5">
+        <div className="bg-white border border-[#e9e5df] rounded-2xl p-4 sm:p-5 shadow-card space-y-3.5">
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5">
             {/* Filter Chips */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 flex-1">
@@ -457,7 +457,7 @@ export default function AdminAntreanPage() {
 
         {/* Queue Order Cards List */}
         {filteredOrders.length === 0 ? (
-          <div className="bg-white p-12 rounded-[12px] border border-[#e9e5df] text-center space-y-3 shadow-card">
+          <div className="bg-white p-12 rounded-2xl border border-[#e9e5df] text-center space-y-3 shadow-card">
             <Utensils className="w-12 h-12 text-[#918c84] mx-auto opacity-60" />
             <h3 className="text-base font-bold text-[#242321]">
               Tidak Ada Pesanan Dapur
@@ -489,7 +489,7 @@ export default function AdminAntreanPage() {
               return (
                 <article
                   key={order.id}
-                  className={`bg-white border rounded-[12px] p-5 shadow-card space-y-4 hover:border-[#f5c943]/60 transition-all ${
+                  className={`bg-white border rounded-2xl p-5 shadow-card space-y-4 hover:border-[#f5c943]/60 transition-all ${
                     isWaFailed
                       ? 'border-[#d94b3d]/40 ring-1 ring-[#d94b3d]/20'
                       : 'border-[#e9e5df]'
@@ -576,7 +576,7 @@ export default function AdminAntreanPage() {
                   </div>
 
                   {/* Cooking Details / Rincian Masakan */}
-                  <div className="bg-[#f5f2ed]/40 rounded-xl p-3.5 border border-[#eeeae4] space-y-2.5">
+                  <div className="bg-[#f5f2ed]/40 rounded-2xl p-3.5 border border-[#eeeae4] space-y-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#918c84] block">
                       Rincian Masakan
                     </span>
@@ -588,7 +588,7 @@ export default function AdminAntreanPage() {
                           className="py-2 first:pt-0 last:pb-0 flex justify-between items-center text-xs"
                         >
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-[#242321] bg-white border border-[#e9e5df] px-2 py-0.5 rounded-md text-[11px] shrink-0">
+                            <span className="font-bold text-[#242321] bg-white border border-[#e9e5df] px-2.5 py-0.5 rounded-full text-[11px] shrink-0">
                               {it.qty}x
                             </span>
                             <span className="font-semibold text-[#242321]">
@@ -609,7 +609,7 @@ export default function AdminAntreanPage() {
                     </div>
 
                     {order.note && (
-                      <div className="text-xs bg-[#fef1dc] text-[#7a4b08] p-2.5 rounded-lg border border-[#f4d5a7] flex items-start gap-2">
+                      <div className="text-xs bg-[#fef1dc] text-[#7a4b08] p-3 rounded-2xl border border-[#f4d5a7] flex items-start gap-2">
                         <MessageSquare className="w-4 h-4 shrink-0 mt-0.5 text-[#a36307]" />
                         <span>
                           <strong>Catatan Pemesan:</strong> {order.note}
@@ -751,7 +751,7 @@ export default function AdminAntreanPage() {
           >
             <div className="space-y-4">
               {/* Rincian Status */}
-              <div className="p-3.5 bg-[#f5f2ed] rounded-xl border border-[#e9e5df] space-y-2 text-xs">
+              <div className="p-3.5 bg-[#f5f2ed] rounded-2xl border border-[#e9e5df] space-y-2 text-xs">
                 <div className="flex justify-between items-center">
                   <span className="text-[#68645e]">Status Pembayaran</span>
                   <Badge
@@ -797,7 +797,7 @@ export default function AdminAntreanPage() {
                   <button
                     type="button"
                     onClick={() => setIsWaPreviewModalOpen(true)}
-                    className="p-3 bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] rounded-xl text-xs font-semibold text-[#242321] flex items-center justify-between cursor-pointer transition-colors min-h-[44px]"
+                    className="p-3 px-4 bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] rounded-full text-xs font-semibold text-[#242321] flex items-center justify-between cursor-pointer transition-colors min-h-[44px]"
                   >
                     <div className="flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-[#77736d]" />
@@ -808,7 +808,7 @@ export default function AdminAntreanPage() {
                   <button
                     type="button"
                     onClick={() => handleCopyCustomerReadyDraft(selectedOrder)}
-                    className="p-3 bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] rounded-xl text-xs font-semibold text-[#242321] flex items-center justify-between cursor-pointer transition-colors min-h-[44px]"
+                    className="p-3 px-4 bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] rounded-full text-xs font-semibold text-[#242321] flex items-center justify-between cursor-pointer transition-colors min-h-[44px]"
                   >
                     <div className="flex items-center gap-2">
                       <Copy className="w-4 h-4 text-[#77736d]" />
@@ -823,7 +823,7 @@ export default function AdminAntreanPage() {
                     size="sm"
                     fullWidth
                     onClick={() => handleRetryWhatsApp(selectedOrder)}
-                    className="bg-[#fde7e4] text-[#91251c] border-[#f7c5be] hover:bg-[#fde7e4]/80 rounded-xl"
+                    className="bg-[#fde7e4] text-[#91251c] border-[#f7c5be] hover:bg-[#fde7e4]/80 rounded-full"
                   >
                     <RotateCcw className="w-4 h-4 mr-1.5" />
                     <span>Kirim Ulang Notifikasi WA ke Sif Aktif</span>
@@ -846,7 +846,7 @@ export default function AdminAntreanPage() {
                       setIsDetailModalOpen(false);
                       handleOpenCancelModal(selectedOrder);
                     }}
-                    className="rounded-xl"
+                    className="rounded-full"
                   >
                     <Ban className="w-4 h-4 mr-1.5" />
                     <span>Batalkan Pesanan (Bahan Habis)</span>
@@ -854,7 +854,7 @@ export default function AdminAntreanPage() {
                 )}
 
                 {selectedOrder.refund && (
-                  <div className="p-3.5 bg-[#f5f2ed] rounded-xl border border-[#e9e5df] space-y-2 text-xs">
+                  <div className="p-3.5 bg-[#f5f2ed] rounded-2xl border border-[#e9e5df] space-y-2 text-xs">
                     <div className="flex justify-between items-center">
                       <span className="text-[#68645e]">Pencatatan Refund</span>
                       <Badge
@@ -879,7 +879,7 @@ export default function AdminAntreanPage() {
                         setIsDetailModalOpen(false);
                         handleOpenRefundModal(selectedOrder);
                       }}
-                      className="rounded-xl"
+                      className="rounded-full"
                     >
                       <span>Perbarui Catatan Refund Manual</span>
                     </Button>
@@ -892,7 +892,7 @@ export default function AdminAntreanPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsDetailModalOpen(false)}
-                  className="rounded-xl"
+                  className="rounded-full"
                 >
                   Tutup
                 </Button>
@@ -908,7 +908,7 @@ export default function AdminAntreanPage() {
           title="Batalkan Pesanan"
         >
           <form onSubmit={handleConfirmCancel} className="space-y-4">
-            <div className="p-3.5 bg-[#fde7e4] border border-[#f7c5be] rounded-xl text-[#91251c] text-xs leading-relaxed">
+            <div className="p-3.5 bg-[#fde7e4] border border-[#f7c5be] rounded-2xl text-[#91251c] text-xs leading-relaxed">
               Pembatalan tidak mentransfer uang otomatis. Hubungi pemesan via WhatsApp untuk nomor rekening pelanggan dan catat refund manual.
             </div>
 
@@ -923,7 +923,7 @@ export default function AdminAntreanPage() {
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="Contoh: Stok mie soto habis dan pelanggan konfirmasi batal."
-                className="w-full p-3 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#d94b3d] text-[#242321]"
+                className="w-full p-3.5 text-xs bg-white border border-[#e9e5df] rounded-2xl focus:outline-none focus:border-[#d94b3d] text-[#242321] resize-none"
               />
             </div>
 
@@ -933,11 +933,11 @@ export default function AdminAntreanPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="rounded-xl"
+                className="rounded-full"
               >
                 Kembali
               </Button>
-              <Button type="submit" variant="danger" size="sm" className="rounded-xl">
+              <Button type="submit" variant="danger" size="sm" className="rounded-full">
                 Konfirmasi Batalkan
               </Button>
             </div>
@@ -961,7 +961,7 @@ export default function AdminAntreanPage() {
                 required
                 value={refundAmount}
                 onChange={(e) => setRefundAmount(Number(e.target.value))}
-                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321]"
+                className="w-full min-h-[44px] px-4 text-xs bg-white border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321]"
               />
             </div>
 
@@ -972,7 +972,7 @@ export default function AdminAntreanPage() {
               <select
                 value={refundStatus}
                 onChange={(e) => setRefundStatus(e.target.value as RefundStatus)}
-                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321]"
+                className="w-full min-h-[44px] px-4 text-xs bg-white border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321]"
               >
                 <option value="PENDING">Pending (Belum Ditransfer)</option>
                 <option value="FULL_REFUNDED">Sudah Ditransfer Penuh (Lunas)</option>
@@ -989,7 +989,7 @@ export default function AdminAntreanPage() {
                 value={refundReason}
                 onChange={(e) => setRefundReason(e.target.value)}
                 placeholder="Contoh: Ditransfer via BCA ke pelanggan"
-                className="w-full min-h-[44px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-xl focus:outline-none focus:border-[#f5c943] text-[#242321]"
+                className="w-full min-h-[44px] px-4 text-xs bg-white border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321]"
               />
             </div>
 
@@ -999,11 +999,11 @@ export default function AdminAntreanPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsRefundModalOpen(false)}
-                className="rounded-xl"
+                className="rounded-full"
               >
                 Batal
               </Button>
-              <Button type="submit" variant="gold" size="sm" className="rounded-xl">
+              <Button type="submit" variant="gold" size="sm" className="rounded-full">
                 Simpan Catatan Refund
               </Button>
             </div>
@@ -1018,7 +1018,7 @@ export default function AdminAntreanPage() {
             title="Preview Pesan WhatsApp ke Penjaga Sif"
           >
             <div className="space-y-4">
-              <div className="p-4 bg-[#f5f2ed] rounded-xl border border-[#e9e5df] font-mono text-xs whitespace-pre-wrap leading-relaxed text-[#242321] select-all">
+              <div className="p-4 bg-[#f5f2ed] rounded-2xl border border-[#e9e5df] font-mono text-xs whitespace-pre-wrap leading-relaxed text-[#242321] select-all">
                 {buildKitchenOrderWhatsAppMessage(selectedOrder, activeShift)}
               </div>
 
@@ -1027,7 +1027,7 @@ export default function AdminAntreanPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsWaPreviewModalOpen(false)}
-                  className="rounded-xl"
+                  className="rounded-full"
                 >
                   Tutup
                 </Button>
@@ -1035,7 +1035,7 @@ export default function AdminAntreanPage() {
                   variant="gold"
                   size="sm"
                   onClick={() => handleCopyShiftDraft(selectedOrder, activeShift)}
-                  className="rounded-xl"
+                  className="rounded-full"
                 >
                   <Copy className="w-3.5 h-3.5 mr-1.5" />
                   <span>Salin Pesan WA</span>

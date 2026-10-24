@@ -55,7 +55,7 @@ export function CatalogToolbar({
           <button
             type="button"
             onClick={handleOpenFilter}
-            className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed] transition-colors cursor-pointer min-h-[36px]"
+            className="lg:hidden flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed] transition-colors cursor-pointer min-h-[38px]"
             aria-label="Buka filter menu"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-[#77736d]" />
@@ -78,7 +78,7 @@ export function CatalogToolbar({
               id="catalog-sort"
               value={currentSort}
               onChange={(e) => onSortChange(e.target.value as SortOption)}
-              className="appearance-none bg-white border border-[#e9e5df] text-[#242321] text-xs font-medium rounded-lg pl-3 pr-8 py-1.5 min-h-[36px] hover:border-[#918c84] focus:outline-none focus:border-[#f5c943] transition-colors cursor-pointer"
+              className="appearance-none bg-white border border-[#e9e5df] text-[#242321] text-xs font-medium rounded-full pl-3.5 pr-8 py-1.5 min-h-[38px] hover:border-[#918c84] focus:outline-none focus:border-[#f5c943] transition-colors cursor-pointer"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

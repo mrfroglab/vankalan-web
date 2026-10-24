@@ -55,7 +55,7 @@ export function StoreHeader({ isOpen, estimateMinutes }: StoreHeaderProps) {
       >
         <Link
           href="/"
-          className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors active:scale-[0.97] cursor-pointer shrink-0 ${
+          className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors active:scale-[0.97] cursor-pointer shrink-0 ${
             pathname === '/'
               ? 'bg-brand-green text-white'
               : 'bg-white text-text-muted hover:text-ink border border-border-line'
@@ -67,7 +67,7 @@ export function StoreHeader({ isOpen, estimateMinutes }: StoreHeaderProps) {
 
         <Link
           href="/history"
-          className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors active:scale-[0.97] cursor-pointer shrink-0 ${
+          className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors active:scale-[0.97] cursor-pointer shrink-0 ${
             pathname === '/history'
               ? 'bg-brand-green text-white'
               : 'bg-white text-text-muted hover:text-ink border border-border-line'
@@ -79,7 +79,7 @@ export function StoreHeader({ isOpen, estimateMinutes }: StoreHeaderProps) {
 
         <Link
           href="/admin/antrean"
-          className="min-h-[40px] ml-auto px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-ink border border-border-line flex items-center gap-1.5 transition-colors active:scale-[0.97] cursor-pointer shrink-0"
+          className="min-h-[40px] ml-auto px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-ink border border-border-line flex items-center gap-1.5 transition-colors active:scale-[0.97] cursor-pointer shrink-0"
         >
           <Shield className="w-3.5 h-3.5 text-text-muted" />
           <span>Area Admin / Dapur</span>

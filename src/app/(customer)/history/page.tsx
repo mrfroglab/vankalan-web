@@ -120,7 +120,7 @@ export default function CustomerHistoryPage() {
         {toastMsg && (
           <div
             role="status"
-            className="p-3 bg-[#242321] text-white text-xs font-semibold rounded-xl shadow-xs flex items-center gap-2 animate-fade-in"
+            className="p-3 px-4 bg-[#242321] text-white text-xs font-semibold rounded-full shadow-xs flex items-center gap-2 animate-fade-in"
           >
             <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
             <span>{toastMsg}</span>
@@ -150,7 +150,7 @@ export default function CustomerHistoryPage() {
         </div>
 
         {/* Segmented Filter Tabs */}
-        <div className="bg-white border border-[#e9e5df] p-1.5 rounded-xl flex items-center gap-1.5 overflow-x-auto shadow-card">
+        <div className="bg-white border border-[#e9e5df] p-1.5 rounded-full flex items-center gap-1.5 overflow-x-auto shadow-card">
           {[
             { id: 'SEMUA' as const, label: 'Semua' },
             { id: 'AKTIF' as const, label: 'Sedang Berjalan' },
@@ -163,7 +163,7 @@ export default function CustomerHistoryPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveFilter(tab.id)}
-                className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                className={`min-h-[40px] px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
                   isActive
                     ? 'bg-[#f5c943] text-[#242321] shadow-xs'
                     : 'text-[#68645e] hover:text-[#242321] hover:bg-[#f5f2ed]'
@@ -182,7 +182,7 @@ export default function CustomerHistoryPage() {
             <p className="text-xs text-[#918c84] mt-3">Memuat riwayat pesanan...</p>
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="bg-white p-8 sm:p-12 rounded-[11px] border border-[#e9e5df] text-center space-y-4 shadow-card">
+          <div className="bg-white p-8 sm:p-12 rounded-2xl border border-[#e9e5df] text-center space-y-4 shadow-card">
             <div className="w-16 h-16 rounded-full bg-[#fbf9f5] border border-[#e9e5df] flex items-center justify-center mx-auto text-[#77736d]">
               <ShoppingBag className="w-8 h-8" />
             </div>
@@ -220,7 +220,7 @@ export default function CustomerHistoryPage() {
             {filteredOrders.map((o) => (
               <div
                 key={o.id}
-                className="bg-white border border-[#e9e5df] rounded-[11px] p-5 sm:p-6 shadow-card hover:shadow-dropdown transition-all space-y-3.5"
+                className="bg-white border border-[#e9e5df] rounded-2xl p-5 sm:p-6 shadow-card hover:shadow-dropdown transition-all space-y-3.5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -254,7 +254,7 @@ export default function CustomerHistoryPage() {
                 </div>
 
                 {/* Info Jadwal Ambil */}
-                <div className="flex items-center gap-2.5 text-xs text-[#242321] bg-[#fbf9f5] p-3 rounded-xl border border-[#e9e5df]">
+                <div className="flex items-center gap-2.5 text-xs text-[#242321] bg-[#fbf9f5] p-3 rounded-2xl border border-[#e9e5df]">
                   <Clock className="w-4 h-4 text-[#77736d] shrink-0" />
                   <span>
                     Jadwal ambil: <strong>{formatTimeWIB(o.pickup)} WIB</strong> ({o.mode === 'asap' ? 'Secepatnya' : 'Terjadwal'})

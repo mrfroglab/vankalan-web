@@ -71,14 +71,14 @@ export function AdminHeader() {
           <div>
             <div className="flex items-center flex-wrap gap-2">
               <div className="flex items-center">
-                <span className="bg-[#d94b3d] text-white font-black text-xs px-2 py-1 rounded-md tracking-wider mr-2 select-none">
+                <span className="bg-[#d94b3d] text-white font-black text-xs px-2.5 py-1 rounded-full tracking-wider mr-2 select-none">
                   PV
                 </span>
                 <h1 className="text-base sm:text-lg font-bold text-[#242321]">
                   Dapur Warmindo Putra Vangkalan
                 </h1>
               </div>
-              <span className="text-[10px] font-mono uppercase bg-[#f5f2ed] border border-[#e9e5df] px-2 py-0.5 rounded-md text-[#68645e]">
+              <span className="text-[10px] font-mono uppercase bg-[#f5f2ed] border border-[#e9e5df] px-2.5 py-0.5 rounded-full text-[#68645e]">
                 DAPUR
               </span>
             </div>
