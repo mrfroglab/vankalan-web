@@ -275,7 +275,7 @@ export default function HomePage() {
 
             {/* Kondisi Memuat Data */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <MenuCardSkeleton key={i} />
                 ))}
@@ -304,7 +304,7 @@ export default function HomePage() {
             ) : (
               /* Grid Produk Katalog */
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4">
                   {paginatedMenu.map((item, index) => (
                     <div
                       key={item.id}
