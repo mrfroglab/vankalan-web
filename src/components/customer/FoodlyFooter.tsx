@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Clock, Code2, ArrowUpRight, Mail } from 'lucide-react';
+import { Clock, ArrowUpRight, Mail } from 'lucide-react';
 import { FaInstagram, FaWhatsapp, FaTiktok, FaGithub } from 'react-icons/fa6';
 
 export function FoodlyFooter() {
@@ -114,16 +114,6 @@ export function FoodlyFooter() {
         <div className="mt-10 pt-8 border-t border-[#e9e5df]">
           <div className="bg-white border border-[#e9e5df] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div className="space-y-1.5 max-w-2xl">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#918c84] bg-[#f5f2ed] border border-[#e9e5df] px-2.5 py-0.5 rounded-full">
-                  <Code2 className="w-3.5 h-3.5 text-[#d94b3d]" />
-                  <span>Pengembang Web</span>
-                </span>
-                <span className="text-xs font-semibold text-[#1c4d25] bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full">
-                  Terbuka untuk Freelance & Kolaborasi
-                </span>
-              </div>
-
               <h3 className="text-base sm:text-lg font-bold text-[#242321] tracking-tight">
                 Januarsyah Akbar (Bang Jan)
               </h3>
