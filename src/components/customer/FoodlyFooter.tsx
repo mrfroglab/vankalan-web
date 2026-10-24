@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { Clock } from 'lucide-react';
-import { FaInstagram, FaWhatsapp, FaTiktok } from 'react-icons/fa6';
+import { Clock, Code2, ArrowUpRight, Mail } from 'lucide-react';
+import { FaInstagram, FaWhatsapp, FaTiktok, FaGithub } from 'react-icons/fa6';
 
 export function FoodlyFooter() {
   const popularMenus = [
@@ -110,9 +110,87 @@ export function FoodlyFooter() {
           </div>
         </div>
 
+        {/* Banner Promosi Diri & Developer Credit */}
+        <div className="mt-10 pt-8 border-t border-[#e9e5df]">
+          <div className="bg-white border border-[#e9e5df] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#918c84] bg-[#f5f2ed] border border-[#e9e5df] px-2.5 py-0.5 rounded-full">
+                  <Code2 className="w-3.5 h-3.5 text-[#d94b3d]" />
+                  <span>Pengembang Web</span>
+                </span>
+                <span className="text-xs font-semibold text-[#1c4d25] bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full">
+                  Terbuka untuk Freelance & Kolaborasi
+                </span>
+              </div>
+
+              <h3 className="text-base sm:text-lg font-bold text-[#242321] tracking-tight">
+                Januarsyah Akbar (Bang Jan)
+              </h3>
+
+              <p className="text-xs sm:text-sm text-[#68645e] leading-relaxed">
+                Mahasiswa Teknologi Rekayasa Perangkat Lunak (TRPL) SV UGM. Mengembangkan aplikasi web interaktif, sistem operasional dapur, dan katalog belanja digital responsif. Butuh website untuk bisnismu atau ingin berkolaborasi proyek?
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
+              <a
+                href="https://github.com/januarsyah901"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[42px] px-4 py-2 rounded-full bg-[#242321] hover:bg-black text-white text-xs font-bold flex items-center gap-2 transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                <FaGithub className="w-4 h-4" />
+                <span>Portofolio & GitHub</span>
+                <ArrowUpRight className="w-3.5 h-3.5 opacity-70" />
+              </a>
+
+              <a
+                href="https://www.instagram.com/hallojanuu/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[42px] px-3.5 py-2 rounded-full bg-white hover:bg-[#fbf9f5] text-[#242321] border border-[#e9e5df] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+              >
+                <FaInstagram className="w-3.5 h-3.5 text-[#e1306c]" />
+                <span>@hallojanuu</span>
+              </a>
+
+              <a
+                href="https://www.tiktok.com/@bangjanu09"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[42px] px-3.5 py-2 rounded-full bg-white hover:bg-[#fbf9f5] text-[#242321] border border-[#e9e5df] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+              >
+                <FaTiktok className="w-3 h-3 text-[#242321]" />
+                <span>@bangjanu09</span>
+              </a>
+
+              <a
+                href="mailto:januarsyahakbar791@gmail.com"
+                className="min-h-[42px] px-3.5 py-2 rounded-full bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                title="Kirim email ke Januarsyah Akbar"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Hubungi Saya</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
         {/* Baris Bawah: Hak Cipta dan Tombol Media Sosial */}
-        <div className="border-t border-[#eeeae4] mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#918c84]">
-          <p>© 2026 Warmindo Putra Vangkalan. Seluruh hak cipta dilindungi.</p>
+        <div className="border-t border-[#eeeae4] mt-6 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#918c84]">
+          <p>
+            © 2026 Warmindo Putra Vangkalan. Dibuat dan dikembangkan oleh{' '}
+            <a
+              href="https://github.com/januarsyah901"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-[#242321] hover:underline underline-offset-2"
+            >
+              Januarsyah Akbar
+            </a>
+            .
+          </p>
 
           <div
             className="flex items-center gap-2"
