@@ -34,9 +34,6 @@ import {
   Check,
   Sparkles,
   Clock,
-  Flame,
-  AlertTriangle,
-  CheckCircle2,
 } from 'lucide-react';
 
 export default function AdminAntreanPage() {
@@ -335,19 +332,6 @@ export default function AdminAntreanPage() {
     showToast('6 pesanan demo dapur berhasil dimuat ulang.');
   };
 
-  // Perhitungan 4 Statistik Utama
-  const countNeedCooking = orders.filter(
-    (o) => o.payment === 'PAID' && o.fulfillment === 'NEW'
-  ).length;
-
-  const countPreparing = orders.filter(
-    (o) => o.payment === 'PAID' && o.fulfillment === 'PREPARING'
-  ).length;
-
-  const countReady = orders.filter(
-    (o) => o.payment === 'PAID' && o.fulfillment === 'READY'
-  ).length;
-
   const countWaFailed = orders.filter(
     (o) => o.notification === 'FAILED'
   ).length;
@@ -413,73 +397,6 @@ export default function AdminAntreanPage() {
               <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-[#77736d]" />
               <span>Refresh Cepat ({lastUpdated || 'WIB'})</span>
             </Button>
-          </div>
-        </div>
-
-        {/* 4 Stat Cards Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* Card 1: Perlu Dimasak */}
-          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#f5c943] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#68645e] block">
-                Perlu Dimasak
-              </span>
-              <strong className="text-2xl sm:text-3xl font-black text-[#242321] block tracking-tight">
-                {countNeedCooking}
-              </strong>
-              <p className="text-[11px] text-[#918c84]">Menunggu dimulai</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-[#fef1dc] text-[#a36307] flex items-center justify-center shrink-0">
-              <Utensils className="w-5 h-5" />
-            </div>
-          </div>
-
-          {/* Card 2: Sedang Disiapkan */}
-          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#242321] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#68645e] block">
-                Sedang Disiapkan
-              </span>
-              <strong className="text-2xl sm:text-3xl font-black text-[#242321] block tracking-tight">
-                {countPreparing}
-              </strong>
-              <p className="text-[11px] text-[#918c84]">Dalam proses kompor</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-[#f5f2ed] text-[#242321] flex items-center justify-center shrink-0">
-              <Flame className="w-5 h-5" />
-            </div>
-          </div>
-
-          {/* Card 3: Siap Diambil */}
-          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#297838] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1c4d25] block">
-                Siap Diambil
-              </span>
-              <strong className="text-2xl sm:text-3xl font-black text-[#1c4d25] block tracking-tight">
-                {countReady}
-              </strong>
-              <p className="text-[11px] text-[#918c84]">Tersedia di meja kasir</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-[#e2edd8] text-[#1c4d25] flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-          </div>
-
-          {/* Card 4: WA Terkendala */}
-          <div className="bg-white border border-[#e9e5df] border-l-4 border-l-[#d94b3d] rounded-[12px] p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#91251c] block">
-                WA Terkendala
-              </span>
-              <strong className="text-2xl sm:text-3xl font-black text-[#91251c] block tracking-tight">
-                {countWaFailed}
-              </strong>
-              <p className="text-[11px] text-[#918c84]">Gagal kirim ke sif</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-[#fde7e4] text-[#d94b3d] flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
           </div>
         </div>
 
