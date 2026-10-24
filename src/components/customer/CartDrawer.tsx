@@ -13,7 +13,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const { items, updateQty, clearCart, totalAmount, totalItems } = useCart();
+  const { items, updateQty, clearCart, totalAmount, totalItems, isStoreOpen } = useCart();
 
   return (
     <Modal
@@ -114,14 +114,30 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </strong>
             </div>
 
-            <Link href="/checkout" onClick={onClose} className="block w-full">
-              <button
-                type="button"
-                className="w-full min-h-[48px] bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold py-3.5 px-5 rounded-full shadow-xs active:scale-95 transition-all text-sm flex items-center justify-center cursor-pointer"
-              >
-                Lanjut ke Pembayaran ({formatRupiah(totalAmount)})
-              </button>
-            </Link>
+            {isStoreOpen ? (
+              <Link href="/checkout" onClick={onClose} className="block w-full">
+                <button
+                  type="button"
+                  className="w-full min-h-[48px] bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold py-3.5 px-5 rounded-full shadow-xs active:scale-95 transition-all text-sm flex items-center justify-center cursor-pointer"
+                >
+                  Lanjut ke Pembayaran ({formatRupiah(totalAmount)})
+                </button>
+              </Link>
+            ) : (
+              <div className="space-y-1.5">
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  className="w-full min-h-[48px] bg-neutral-100 border border-neutral-300 text-neutral-400 font-semibold py-3.5 px-5 rounded-full text-sm flex items-center justify-center cursor-not-allowed select-none"
+                >
+                  Warmindo Tutup Sementara
+                </button>
+                <p className="text-[11px] text-center text-[#8c5a14]">
+                  Pesanan online saat ini ditutup. Anda tetap dapat menyimpan keranjang ini.
+                </p>
+              </div>
+            )}
 
             <button
               type="button"

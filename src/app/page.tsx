@@ -24,7 +24,7 @@ import { FloatingCartBar } from '@/components/customer/FloatingCartBar';
 import { CartDrawer } from '@/components/customer/CartDrawer';
 import { CustomizeItemModal } from '@/components/customer/CustomizeItemModal';
 import { getMenuItems, getCategories } from '@/lib/store';
-import { ChefHat, AlertCircle, RotateCcw } from 'lucide-react';
+import { ChefHat, RotateCcw } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 8;
 
@@ -238,26 +238,7 @@ export default function HomePage() {
         onOpenCart={() => setIsCartDrawerOpen(true)}
       />
 
-      {/* 2. Banner Notifikasi Status Toko */}
-      {!isStoreOpen && (
-        <div
-          role="alert"
-          className="bg-[#f8d84f]/25 border-b border-[#f5c943]/40 text-[#242321] px-4 sm:px-6 py-2.5"
-        >
-          <div className="max-w-7xl mx-auto flex items-center gap-2.5 text-xs sm:text-sm font-medium">
-            <AlertCircle
-              className="w-4 h-4 text-[#c04c18] shrink-0"
-              aria-hidden="true"
-            />
-            <span>
-              Toko sedang tutup sementara. Anda tetap dapat menjelajahi menu,
-              namun pesanan baru belum dapat diproses.
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Pita Pengenalan Halaman & Pencarian Cepat */}
+      {/* 2. Pita Pengenalan Halaman & Pencarian Cepat */}
       <PageIntroBand
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
