@@ -1,12 +1,13 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { MenuItem } from '@/types';
 import { formatRupiah } from '@/lib/constants';
-import { Badge } from '@/components/ui/Badge';
 import { FoodIllustration } from './FoodIllustration';
-import { Plus } from 'lucide-react';
+import { Star, Clock, Plus, Heart } from 'lucide-react';
 
-interface MenuCardProps {
+export interface MenuCardProps {
   item: MenuItem;
   onSelect: (item: MenuItem) => void;
   isStoreOpen?: boolean;
@@ -14,62 +15,144 @@ interface MenuCardProps {
 
 export function MenuCard({ item, onSelect, isStoreOpen = true }: MenuCardProps) {
   const isAvailable = item.available && isStoreOpen;
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pv_favorites');
+      if (raw) {
+        const favs = JSON.parse(raw);
+        if (Array.isArray(favs) && favs.includes(item.id)) {
+          setIsFavorite(true);
+        }
+      }
+    } catch {
+      // Abaikan error parsing penyimpanan lokal
+    }
+  }, [item.id]);
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFavorite((prev) => {
+      const next = !prev;
+      try {
+        const raw = localStorage.getItem('pv_favorites');
+        const favs: string[] = raw ? JSON.parse(raw) : [];
+        const updated = next
+          ? Array.from(new Set([...favs, item.id]))
+          : favs.filter((id) => id !== item.id);
+        localStorage.setItem('pv_favorites', JSON.stringify(updated));
+      } catch {
+        // Abaikan error penyimpanan lokal
+      }
+      return next;
+    });
+  };
+
+  const badgeText = !isAvailable
+    ? 'HABIS'
+    : item.badge || (item.popular ? 'FAVORIT' : null);
 
   return (
     <article
       onClick={() => isAvailable && onSelect(item)}
-      className={`group relative flex flex-col justify-between bg-white border border-border-line rounded-2xl overflow-hidden transition-all duration-200 ${
-        isAvailable
-          ? 'hover:-translate-y-1 hover:shadow-md cursor-pointer'
-          : 'opacity-70 cursor-not-allowed bg-neutral-50'
+      className={`group relative flex flex-col justify-between bg-white border border-[#e9e5df] rounded-[11px] p-2.5 sm:p-3 hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 select-none ${
+        isAvailable ? 'cursor-pointer' : 'opacity-70 cursor-not-allowed bg-neutral-50/80'
       }`}
     >
       <div>
-        {/* Kontainer Gambar / Ilustrasi */}
-        <div className="relative w-full h-36 sm:h-40 bg-[#f2efe4] flex items-center justify-center overflow-hidden border-b border-border-line after:absolute after:inset-0 after:bg-brand-green/0 group-hover:after:bg-brand-green/5 after:transition-colors after:duration-200 after:z-[1]">
+        {/* Kontainer Gambar Produk */}
+        <div className="relative w-full h-36 sm:h-40 bg-[#fbf9f5] rounded-[9px] overflow-hidden flex items-center justify-center mb-2.5 border border-[#eeeae4]/60">
           {item.image ? (
             <Image
               src={item.image}
               alt={item.name}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <FoodIllustration kind={item.kind} className="w-full h-full p-2" />
           )}
 
-          {/* Badge Status Habis / Populer */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-            {!item.available ? (
-              <Badge variant="danger">Habis</Badge>
-            ) : item.popular ? (
-              <Badge variant="warning">Favorit</Badge>
-            ) : null}
-          </div>
+          {/* Status Badge */}
+          {badgeText && (
+            <div className="absolute top-2 left-2 z-10">
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-[6px] tracking-wide shadow-xs ${
+                  !isAvailable
+                    ? 'bg-[#d94b3d] text-white'
+                    : 'bg-[#f8d84f] text-[#242321]'
+                }`}
+              >
+                {badgeText}
+              </span>
+            </div>
+          )}
+
+          {/* Tombol Simpan Favorit */}
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            aria-label={isFavorite ? `Hapus ${item.name} dari favorit` : `Simpan ${item.name} ke favorit`}
+            className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-xs transition-colors cursor-pointer before:absolute before:-inset-1 before:content-[''] ${
+              isFavorite
+                ? 'text-[#d94b3d]'
+                : 'text-[#77736d] hover:text-[#d94b3d]'
+            }`}
+          >
+            <Heart
+              className={`w-4 h-4 ${isFavorite ? 'fill-[#d94b3d] text-[#d94b3d]' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
         </div>
 
-        {/* Konten Menu */}
-        <div className="p-3.5 sm:p-4">
-          <h3 className="font-bold text-sm sm:text-base text-ink line-clamp-1 group-hover:text-brand-green transition-colors">
+        {/* Detail Produk */}
+        <div>
+          <h3 className="font-semibold text-xs sm:text-sm text-[#242321] line-clamp-1 group-hover:text-[#c04c18] transition-colors">
             {item.name}
           </h3>
-          <p className="mt-1 text-xs sm:text-sm text-text-muted line-clamp-2 leading-relaxed">
+          <p className="text-[11px] text-[#68645e] line-clamp-2 mt-1 leading-snug">
             {item.description}
           </p>
+
+          {/* Baris Metadata: Rating & Waktu Persiapan */}
+          <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-[#eeeae4]">
+            <div className="flex items-center gap-1">
+              <Star
+                className="w-3.5 h-3.5 fill-[#e9b82f] text-[#e9b82f]"
+                aria-hidden="true"
+              />
+              <span className="text-[11px] font-bold text-[#242321]">
+                {(item.rating ?? 4.8).toFixed(1)}
+              </span>
+              <span className="text-[10px] text-[#918c84]">
+                ({item.reviewsCount ?? 45})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1 text-[#68645e]">
+              <Clock className="w-3 h-3 text-[#918c84]" aria-hidden="true" />
+              <span className="text-[10px] font-medium text-[#68645e]">
+                {item.prepTime ?? 10} mnt
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Bagian Bawah: Harga & Tombol Tambah */}
-      <div className="p-3.5 sm:p-4 pt-0 flex items-center justify-between gap-2 mt-2">
+      {/* Baris Bawah: Harga & Tombol Tambah ke Keranjang */}
+      <div className="flex items-center justify-between gap-2 mt-2.5 pt-1">
         <div>
-          <span className="text-xs text-text-muted block">Mulai dari</span>
-          <strong className="text-sm sm:text-base font-extrabold text-ink">
+          <span className="text-[10px] text-[#918c84] block leading-none mb-0.5">
+            Mulai dari
+          </span>
+          <strong className="font-extrabold text-xs sm:text-sm text-[#242321]">
             {formatRupiah(item.price)}
           </strong>
         </div>
 
-        {/* Tombol aksi dengan tap target ergonomis minimal 44x44px */}
         <button
           type="button"
           disabled={!isAvailable}
@@ -78,9 +161,9 @@ export function MenuCard({ item, onSelect, isStoreOpen = true }: MenuCardProps) 
             if (isAvailable) onSelect(item);
           }}
           aria-label={`Tambah ${item.name} ke keranjang`}
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-soft-green text-brand-green hover:bg-brand-green hover:text-white active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:hover:bg-soft-green disabled:hover:text-brand-green cursor-pointer"
+          className="relative w-9 h-9 rounded-full bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] flex items-center justify-center shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-40 shrink-0 before:absolute before:-inset-1 before:content-['']"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
         </button>
       </div>
     </article>

@@ -2,7 +2,7 @@ import React from 'react';
 
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'success' | 'warning' | 'danger' | 'neutral' | 'info';
+  variant?: 'success' | 'warning' | 'danger' | 'neutral' | 'info' | 'gold';
   className?: string;
   dot?: boolean;
   size?: 'sm' | 'md' | 'lg';
@@ -21,6 +21,7 @@ export function Badge({
     danger: 'bg-[#fde7e4] text-[#91251c] border-[#f7c5be]',
     neutral: 'bg-soft-green text-ink border-border-line',
     info: 'bg-[#e7f0fa] text-[#1a4a75] border-[#c6def4]',
+    gold: 'bg-[#f8d84f] text-[#242321] border-[#e9b82f] font-bold',
   };
 
   const dotStyles = {
@@ -29,6 +30,7 @@ export function Badge({
     danger: 'bg-[#b64035]',
     neutral: 'bg-[#526058]',
     info: 'bg-[#1e619d]',
+    gold: 'bg-[#242321]',
   };
 
   const sizeStyles = {

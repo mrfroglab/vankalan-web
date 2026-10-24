@@ -13,6 +13,12 @@ export interface MenuItem {
   temperatures?: ('Panas' | 'Dingin')[];
   coldExtra?: number;
   image?: string;
+  rating?: number;
+  reviewsCount?: number;
+  prepTime?: number;
+  badge?: 'FAVORIT' | 'BARU' | 'TERLARIS';
+  portion?: 'Reguler' | 'Double' | 'Jumbo';
+  mealTime?: ('Sarapan' | 'Snacks' | 'Makan Malam' | 'Larut Malam')[];
 }
 
 export type OrderPaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';

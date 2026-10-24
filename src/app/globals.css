@@ -1,19 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf8f2;
-  --foreground: #1b332b;
-  --paper: #faf8f2;
-  --ink: #1b332b;
-  --brand-green: #173f33;
-  --brand-green-hover: #215444;
-  --brand-orange: #c04c18;
-  --brand-orange-hover: #a33e11;
-  --soft-green: #eef2e8;
-  --border-line: #dbe2d6;
-  --text-muted: #526058;
-  --danger-red: #b64035;
-  --warning-amber: #8c5a14;
+  /* design.md color tokens */
+  --color-warm-canvas: #f5f2ed;
+  --color-footer-cream: #f1ede7;
+  --color-white: #ffffff;
+  --color-soft-border: #e9e5df;
+  --color-muted-divider: #eeeae4;
+  --color-primary-ink: #242321;
+  --color-secondary-ink: #68645e;
+  --color-muted-gray: #918c84;
+  --color-foodly-gold: #f5c943;
+  --color-gold-hover: #e8b82b;
+  --color-sale-gold: #f8d84f;
+  --color-rating-gold: #e9b82f;
+  --color-discount-red: #d94b3d;
+  --color-icon-gray: #77736d;
+
+  /* Backward compatible theme mappings */
+  --background: #f5f2ed;
+  --foreground: #242321;
+  --paper: #f5f2ed;
+  --ink: #242321;
+  --brand-green: #242321;
+  --brand-green-hover: #383633;
+  --brand-orange: #f5c943;
+  --brand-orange-hover: #e8b82b;
+  --soft-green: #f1ede7;
+  --border-line: #e9e5df;
+  --text-muted: #68645e;
+  --danger-red: #d94b3d;
+  --warning-amber: #e9b82f;
 }
 
 @theme inline {
@@ -30,26 +47,45 @@
   --color-text-muted: var(--text-muted);
   --color-danger-red: var(--danger-red);
   --color-warning-amber: var(--warning-amber);
+
+  /* Specific design tokens */
+  --color-warm-canvas: #f5f2ed;
+  --color-footer-cream: #f1ede7;
+  --color-soft-border: #e9e5df;
+  --color-muted-divider: #eeeae4;
+  --color-primary-ink: #242321;
+  --color-secondary-ink: #68645e;
+  --color-muted-gray: #918c84;
+  --color-foodly-gold: #f5c943;
+  --color-gold-hover: #e8b82b;
+  --color-sale-gold: #f8d84f;
+  --color-rating-gold: #e9b82f;
+  --color-discount-red: #d94b3d;
+  --color-icon-gray: #77736d;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-warm-canvas);
+  color: var(--color-primary-ink);
+  font-family: var(--font-geist-sans), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.font-editorial {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 /* Aksesibilitas: Indikator fokus yang jelas dan kontras */
 :focus-visible {
-  outline: 3px solid #e8a147;
+  outline: 2px solid #f5c943;
   outline-offset: 2px;
 }
 
-/* Safe area padding untuk tombol navigasi bawah melayang di perangkat mobile */
 .safe-bottom-clearance {
   padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 90px);
 }
 
+/* Animations */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -92,8 +128,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, var(--border-line) 25%, var(--soft-green) 50%, var(--border-line) 75%);
+  background: linear-gradient(90deg, #e9e5df 25%, #f1ede7 50%, #e9e5df 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
-

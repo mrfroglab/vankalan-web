@@ -22,18 +22,18 @@ export function FloatingCartBar({ onOpenCart }: FloatingCartBarProps) {
       <button
         type="button"
         onClick={onOpenCart}
-        className="w-full min-h-[56px] px-5 py-3 rounded-2xl bg-brand-green text-white shadow-[0_4px_24px_rgba(23,63,51,0.3)] hover:shadow-[0_6px_32px_rgba(23,63,51,0.4)] hover:bg-brand-green-hover flex items-center justify-between gap-3 transition-all duration-200 active:scale-[0.98] cursor-pointer"
+        className="w-full min-h-[56px] px-5 py-3 rounded-2xl bg-[#242321] text-white shadow-dropdown hover:bg-[#383633] flex items-center justify-between gap-3 transition-all duration-200 active:scale-[0.98] cursor-pointer border border-[#383633]"
       >
         <div className="flex items-center gap-3">
           <div className="relative">
-            <ShoppingBag className="w-6 h-6 text-white" />
-            <span className="absolute -top-1.5 -right-2 bg-brand-orange text-white text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-brand-green">
+            <ShoppingBag className="w-6 h-6 text-white" aria-hidden="true" />
+            <span className="absolute -top-1.5 -right-2 bg-[#f5c943] text-[#242321] text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#242321]">
               {totalItems}
             </span>
           </div>
           <div className="text-left">
             <span className="text-xs text-white/80 block leading-tight">
-              {totalItems} item di keranjang
+              {totalItems} menu di keranjang
             </span>
             <strong className="text-sm font-extrabold text-white">
               {formatRupiah(totalAmount)}
@@ -41,9 +41,9 @@ export function FloatingCartBar({ onOpenCart }: FloatingCartBarProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs font-bold bg-white/15 px-3 py-1.5 rounded-xl">
+        <div className="flex items-center gap-1.5 text-xs font-bold bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] px-3.5 py-1.5 rounded-full transition-colors">
           <span>Lihat</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </div>
       </button>
     </aside>
