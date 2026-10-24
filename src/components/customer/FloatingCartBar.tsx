@@ -17,12 +17,12 @@ export function FloatingCartBar({ onOpenCart }: FloatingCartBarProps) {
   return (
     <aside
       aria-label="Ringkasan keranjang melayang"
-      className="fixed left-4 right-4 sm:left-auto sm:right-6 sm:w-96 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40"
+      className="fixed left-4 right-4 sm:left-auto sm:right-6 sm:w-96 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 animate-slide-up"
     >
       <button
         type="button"
         onClick={onOpenCart}
-        className="w-full min-h-[56px] px-5 py-3 rounded-2xl bg-brand-green text-white shadow-xl hover:bg-brand-green-hover flex items-center justify-between gap-3 transition-transform active:scale-[0.99] cursor-pointer"
+        className="w-full min-h-[56px] px-5 py-3 rounded-2xl bg-brand-green text-white shadow-[0_4px_24px_rgba(23,63,51,0.3)] hover:shadow-[0_6px_32px_rgba(23,63,51,0.4)] hover:bg-brand-green-hover flex items-center justify-between gap-3 transition-all duration-200 active:scale-[0.98] cursor-pointer"
       >
         <div className="flex items-center gap-3">
           <div className="relative">

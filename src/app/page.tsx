@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { MenuItem, Category } from '@/types';
-import { INITIAL_MENU } from '@/lib/constants';
+import { MenuItem } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { StoreHeader } from '@/components/customer/StoreHeader';
 import { CategoryFilter } from '@/components/customer/CategoryFilter';
@@ -11,20 +10,47 @@ import { MenuCard } from '@/components/customer/MenuCard';
 import { CustomizeItemModal } from '@/components/customer/CustomizeItemModal';
 import { FloatingCartBar } from '@/components/customer/FloatingCartBar';
 import { CartDrawer } from '@/components/customer/CartDrawer';
+import { MenuCardSkeleton } from '@/components/customer/MenuCardSkeleton';
 import { Search, ChefHat } from 'lucide-react';
+import { getMenuItems, getCategories } from '@/lib/store';
 
-const CATEGORIES: (Category | 'Semua')[] = ['Semua', 'Mi', 'Nasi', 'Camilan', 'Minuman'];
-
-function CatalogContent() {
+export default function CatalogPage() {
   const { addItem, eggPrice, isStoreOpen, estimateMinutes } = useCart();
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'Semua'>('Semua');
+  const [menuList, setMenuList] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<string[]>(['Semua']);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeItemForCustomization, setActiveItemForCustomization] = useState<MenuItem | null>(null);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const loadData = useCallback(() => {
+    const items = getMenuItems();
+    const cats = getCategories();
+    setMenuList(items);
+    setCategories(['Semua', ...cats]);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+
+    const handleUpdate = () => {
+      loadData();
+    };
+
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('pv_storage_update', handleUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('pv_storage_update', handleUpdate);
+    };
+  }, [loadData]);
 
   // Filter menu berdasarkan kategori dan pencarian kata kunci
   const filteredMenu = useMemo(() => {
-    return INITIAL_MENU.filter((item) => {
+    return menuList.filter((item) => {
       const matchCategory =
         selectedCategory === 'Semua' || item.category === selectedCategory;
       const matchSearch =
@@ -32,7 +58,7 @@ function CatalogContent() {
         item.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchCategory && matchSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [menuList, selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-paper flex flex-col">
@@ -56,9 +82,9 @@ function CatalogContent() {
           </div>
 
           <CategoryFilter
-            categories={CATEGORIES}
+            categories={categories}
             selected={selectedCategory}
-            onSelect={setSelectedCategory}
+            onSelect={(cat) => setSelectedCategory(cat)}
           />
         </section>
 
@@ -69,11 +95,17 @@ function CatalogContent() {
               {selectedCategory === 'Semua' ? 'Semua Menu' : `Kategori ${selectedCategory}`}
             </h2>
             <span className="text-xs text-text-muted">
-              {filteredMenu.length} menu tersedia
+              {filteredMenu.length} menu ditampilkan
             </span>
           </div>
 
-          {filteredMenu.length === 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <MenuCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredMenu.length === 0 ? (
             <div className="py-16 text-center bg-white rounded-2xl border border-border-line p-6">
               <ChefHat className="w-12 h-12 text-text-muted mx-auto mb-3" />
               <p className="font-bold text-sm text-ink">Menu tidak ditemukan</p>
@@ -83,13 +115,18 @@ function CatalogContent() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-              {filteredMenu.map((item) => (
-                <MenuCard
+              {filteredMenu.map((item, index) => (
+                <div
                   key={item.id}
-                  item={item}
-                  isStoreOpen={isStoreOpen}
-                  onSelect={(selected) => setActiveItemForCustomization(selected)}
-                />
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
+                >
+                  <MenuCard
+                    item={item}
+                    isStoreOpen={isStoreOpen}
+                    onSelect={(selected) => setActiveItemForCustomization(selected)}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -98,24 +135,21 @@ function CatalogContent() {
 
       {/* Footer Minimalis */}
       <footer className="border-t border-border-line py-6 bg-white text-xs text-text-muted text-center px-4">
-        <p>Warmindo Putra Vangkalan &copy; 2026. Pesan dulu secara online, tinggal ambil.</p>
-        <div className="mt-2 flex justify-center gap-4 text-xs">
-          <Link href="/admin/antrean" className="hover:text-brand-green underline">
-            Panel Kasir / Dapur
+        <p className="font-semibold text-ink">Warmindo Putra Vangkalan</p>
+        <p className="mt-1">Pemesanan online khusus ambil sendiri (pickup). Bayar mudah, tanpa login.</p>
+        <div className="mt-3 flex justify-center gap-4 text-[11px]">
+          <Link href="/history" className="text-brand-green hover:underline">
+            Riwayat Pesanan
+          </Link>
+          <span>•</span>
+          <Link href="/admin/antrean" className="text-text-muted hover:text-ink">
+            Dapur Admin
           </Link>
         </div>
       </footer>
 
-      {/* Modal Kustomisasi Menu (Telur / Suhu / Catatan) */}
-      <CustomizeItemModal
-        item={activeItemForCustomization}
-        isOpen={Boolean(activeItemForCustomization)}
-        onClose={() => setActiveItemForCustomization(null)}
-        eggPrice={eggPrice}
-        onAddToCart={(data) => {
-          addItem(data);
-        }}
-      />
+      {/* Bar Keranjang Melayang di Mobile */}
+      <FloatingCartBar onOpenCart={() => setIsCartDrawerOpen(true)} />
 
       {/* Drawer / Bottom Sheet Keranjang */}
       <CartDrawer
@@ -123,12 +157,17 @@ function CatalogContent() {
         onClose={() => setIsCartDrawerOpen(false)}
       />
 
-      {/* Tombol Keranjang Melayang di Bawah */}
-      <FloatingCartBar onOpenCart={() => setIsCartDrawerOpen(true)} />
+      {/* Modal Kustomisasi Menu */}
+      <CustomizeItemModal
+        item={activeItemForCustomization}
+        isOpen={Boolean(activeItemForCustomization)}
+        eggPrice={eggPrice}
+        onClose={() => setActiveItemForCustomization(null)}
+        onAddToCart={(cartPayload) => {
+          addItem(cartPayload);
+          setActiveItemForCustomization(null);
+        }}
+      />
     </div>
   );
-}
-
-export default function HomePage() {
-  return <CatalogContent />;
 }

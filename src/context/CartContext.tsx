@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { MenuItem } from '@/types';
+import { getStoreSettings, DEFAULT_SETTINGS } from '@/lib/store';
 
 export interface CartItem {
   id: string; // unique cart item id
@@ -29,13 +30,20 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'pv_warmindo_cart_v2';
-const DEFAULT_EGG_PRICE = 4000;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [isStoreOpen] = useState<boolean>(true);
-  const [estimateMinutes] = useState<number>(10);
+  const [isStoreOpen, setIsStoreOpen] = useState<boolean>(DEFAULT_SETTINGS.open);
+  const [estimateMinutes, setEstimateMinutes] = useState<number>(DEFAULT_SETTINGS.estimate);
+  const [eggPrice, setEggPrice] = useState<number>(DEFAULT_SETTINGS.eggPrice);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
+
+  const syncSettings = useCallback(() => {
+    const s = getStoreSettings();
+    setIsStoreOpen(s.open);
+    setEstimateMinutes(s.estimate);
+    setEggPrice(s.eggPrice);
+  }, []);
 
   // Muat dari localStorage saat client render
   useEffect(() => {
@@ -44,12 +52,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (saved) {
         setItems(JSON.parse(saved));
       }
+      syncSettings();
     } catch (e) {
       console.warn('Gagal memuat keranjang dari localStorage', e);
     } finally {
       setIsHydrated(true);
     }
-  }, []);
+
+    const handleStorageUpdate = () => {
+      syncSettings();
+    };
+
+    window.addEventListener('storage', handleStorageUpdate);
+    window.addEventListener('pv_storage_update', handleStorageUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageUpdate);
+      window.removeEventListener('pv_storage_update', handleStorageUpdate);
+    };
+  }, [syncSettings]);
 
   // Simpan ke localStorage saat items berubah
   useEffect(() => {
@@ -67,7 +88,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     temp?: 'Panas' | 'Dingin'
   ): number => {
     let price = menuItem.price;
-    if (egg) price += DEFAULT_EGG_PRICE;
+    if (egg) price += eggPrice;
     if (temp === 'Dingin' && menuItem.coldExtra) price += menuItem.coldExtra;
     return price;
   };
@@ -79,7 +100,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       newItemData.temp
     );
 
-    // Cek apakah item dengan menu, opsi telur, opsi suhu, dan catatan yang persis sama sudah ada
     setItems((prev) => {
       const existingIndex = prev.findIndex(
         (it) =>
@@ -122,9 +142,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
   };
 
-  const totalItems = items.reduce((sum, item) => sum + item.qty, 0);
+  const totalItems = items.reduce((acc, curr) => acc + curr.qty, 0);
   const totalAmount = items.reduce(
-    (sum, item) => sum + item.unitPrice * item.qty,
+    (acc, curr) => acc + curr.unitPrice * curr.qty,
     0
   );
 
@@ -138,7 +158,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         totalItems,
         totalAmount,
-        eggPrice: DEFAULT_EGG_PRICE,
+        eggPrice,
         isStoreOpen,
         estimateMinutes,
       }}

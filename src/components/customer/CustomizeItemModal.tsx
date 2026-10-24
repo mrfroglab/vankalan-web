@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { MenuItem } from '@/types';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -68,8 +69,18 @@ export function CustomizeItemModal({
     <Modal isOpen={isOpen} onClose={onClose} title={item.name}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Foto / Ilustrasi Header */}
-        <div className="w-full h-36 bg-[#f2efe4] rounded-2xl overflow-hidden flex items-center justify-center border border-border-line">
-          <FoodIllustration kind={item.kind} className="w-full h-full p-2" />
+        <div className="w-full h-36 bg-[#f2efe4] rounded-2xl overflow-hidden flex items-center justify-center border border-border-line relative">
+          {item.image ? (
+            <Image
+              src={item.image}
+              alt={item.name}
+              fill
+              sizes="(max-width: 640px) 100vw, 50vw"
+              className="object-cover"
+            />
+          ) : (
+            <FoodIllustration kind={item.kind} className="w-full h-full p-2" />
+          )}
         </div>
 
         <div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { MenuItem } from '@/types';
 import { formatRupiah } from '@/lib/constants';
 import { Badge } from '@/components/ui/Badge';
@@ -25,8 +26,18 @@ export function MenuCard({ item, onSelect, isStoreOpen = true }: MenuCardProps) 
     >
       <div>
         {/* Kontainer Gambar / Ilustrasi */}
-        <div className="relative w-full h-36 sm:h-40 bg-[#f2efe4] flex items-center justify-center overflow-hidden border-b border-border-line">
-          <FoodIllustration kind={item.kind} className="w-full h-full p-2" />
+        <div className="relative w-full h-36 sm:h-40 bg-[#f2efe4] flex items-center justify-center overflow-hidden border-b border-border-line after:absolute after:inset-0 after:bg-brand-green/0 group-hover:after:bg-brand-green/5 after:transition-colors after:duration-200 after:z-[1]">
+          {item.image ? (
+            <Image
+              src={item.image}
+              alt={item.name}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover"
+            />
+          ) : (
+            <FoodIllustration kind={item.kind} className="w-full h-full p-2" />
+          )}
 
           {/* Badge Status Habis / Populer */}
           <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
@@ -67,7 +78,7 @@ export function MenuCard({ item, onSelect, isStoreOpen = true }: MenuCardProps) 
             if (isAvailable) onSelect(item);
           }}
           aria-label={`Tambah ${item.name} ke keranjang`}
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-soft-green text-brand-green hover:bg-brand-green hover:text-white transition-all disabled:opacity-40 disabled:hover:bg-soft-green disabled:hover:text-brand-green cursor-pointer"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-soft-green text-brand-green hover:bg-brand-green hover:text-white active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:hover:bg-soft-green disabled:hover:text-brand-green cursor-pointer"
         >
           <Plus className="w-5 h-5" />
         </button>

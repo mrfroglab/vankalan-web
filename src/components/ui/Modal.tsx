@@ -44,7 +44,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs transition-opacity"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -54,7 +54,7 @@ export function Modal({
     >
       <div
         ref={dialogRef}
-        className={`w-full max-w-lg bg-paper border border-border-line shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[85dvh] overflow-hidden ${
+        className={`w-full max-w-lg bg-paper border border-border-line shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[85dvh] overflow-hidden animate-slide-up-sheet sm:animate-scale-in ${
           asBottomSheetOnMobile
             ? 'rounded-t-3xl sm:rounded-2xl'
             : 'rounded-2xl m-4'

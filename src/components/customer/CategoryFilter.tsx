@@ -1,10 +1,9 @@
 import React from 'react';
-import { Category } from '@/types';
 
 interface CategoryFilterProps {
-  categories: (Category | 'Semua')[];
-  selected: Category | 'Semua';
-  onSelect: (category: Category | 'Semua') => void;
+  categories: string[];
+  selected: string;
+  onSelect: (category: string) => void;
 }
 
 export function CategoryFilter({

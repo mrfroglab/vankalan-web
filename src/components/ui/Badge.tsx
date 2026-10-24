@@ -5,6 +5,7 @@ export interface BadgeProps {
   variant?: 'success' | 'warning' | 'danger' | 'neutral' | 'info';
   className?: string;
   dot?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function Badge({
@@ -12,6 +13,7 @@ export function Badge({
   variant = 'neutral',
   className = '',
   dot = false,
+  size = 'md',
 }: BadgeProps) {
   const variantStyles = {
     success: 'bg-[#e2edd8] text-[#1c4d25] border-[#c5dcba]',
@@ -29,9 +31,15 @@ export function Badge({
     info: 'bg-[#1e619d]',
   };
 
+  const sizeStyles = {
+    sm: 'px-2 py-0.5 text-[11px]',
+    md: 'px-2.5 py-1 text-xs',
+    lg: 'px-3 py-1.5 text-sm',
+  };
+
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-semibold rounded-full border ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
       {dot ? (
         <span

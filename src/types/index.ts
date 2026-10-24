@@ -5,18 +5,27 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
-  category: Category;
+  category: Category | string;
   kind: 'noodle' | 'soup' | 'rice' | 'toast' | 'tea' | 'coffee' | 'orange';
   available: boolean;
   egg?: boolean;
   popular?: boolean;
   temperatures?: ('Panas' | 'Dingin')[];
   coldExtra?: number;
+  image?: string;
 }
 
 export type OrderPaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';
 export type OrderFulfillmentStatus = 'NEW' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
 export type OrderNotificationStatus = 'QUEUED' | 'SENT' | 'FAILED' | 'UNKNOWN';
+export type RefundStatus = 'NONE' | 'PENDING' | 'PARTIAL_REFUNDED' | 'FULL_REFUNDED';
+
+export interface RefundRecord {
+  status: RefundStatus;
+  amount: number;
+  reason: string;
+  confirmedAt?: number;
+}
 
 export interface OrderItem {
   name: string;
@@ -45,6 +54,10 @@ export interface Order {
   items: OrderItem[];
   total: number;
   paidAt?: number;
+  cancelReason?: string;
+  refund?: RefundRecord;
+  attempts?: number;
+  completedAt?: number;
 }
 
 export interface Shift {
