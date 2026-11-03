@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getStoreSettings, getShifts } from '@/lib/store';
+import { settingsService } from '@/services/settings';
 import { StoreSettings, Shift } from '@/types';
 import {
   Utensils,
@@ -20,9 +20,17 @@ export function AdminHeader() {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
 
-  const loadData = () => {
-    setSettings(getStoreSettings());
-    setShifts(getShifts());
+  const loadData = async () => {
+    try {
+      const [sett, shfs] = await Promise.all([
+        settingsService.getStoreSettings(),
+        settingsService.getShifts(),
+      ]);
+      setSettings(sett);
+      setShifts(shfs);
+    } catch (e) {
+      console.warn('Gagal memuat settings/shifts di AdminHeader', e);
+    }
   };
 
   useEffect(() => {

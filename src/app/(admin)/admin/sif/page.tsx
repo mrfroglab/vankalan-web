@@ -3,13 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Shift, Order } from '@/types';
-import {
-  getShifts,
-  saveShifts,
-  getStoreSettings,
-  saveStoreSettings,
-  getOrders,
-} from '@/lib/store';
+import { settingsService } from '@/services/settings';
+import { orderService } from '@/services/orders';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Modal } from '@/components/ui/Modal';
 import { formatTimeWIB } from '@/lib/constants';
@@ -43,19 +38,25 @@ export default function AdminSifPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const loadData = () => {
-    const s = getShifts();
-    const settings = getStoreSettings();
-    const orders = getOrders();
+  const loadData = async () => {
+    try {
+      const [s, settings, orders] = await Promise.all([
+        settingsService.getShifts(),
+        settingsService.getStoreSettings(),
+        orderService.getOrders(),
+      ]);
 
-    setShifts(s);
-    setActiveShiftId(settings.recipientShiftId || s[0]?.id || 's1');
+      setShifts(s);
+      setActiveShiftId(settings.recipientShiftId || s[0]?.id || 's1');
 
-    // Pesanan lunas yang belum selesai diserahkan
-    const unfulfilled = orders.filter(
-      (o) => o.payment === 'PAID' && ['NEW', 'PREPARING', 'READY'].includes(o.fulfillment)
-    );
-    setPendingOrders(unfulfilled);
+      // Pesanan lunas yang belum selesai diserahkan
+      const unfulfilled = orders.filter(
+        (o) => o.payment === 'PAID' && ['NEW', 'PREPARING', 'READY'].includes(o.fulfillment)
+      );
+      setPendingOrders(unfulfilled);
+    } catch (e) {
+      console.warn('Gagal memuat data di AdminSifPage:', e);
+    }
   };
 
   useEffect(() => {
@@ -74,10 +75,10 @@ export default function AdminSifPage() {
     };
   }, []);
 
-  const handleActivateShift = (shiftId: string) => {
-    const settings = getStoreSettings();
+  const handleActivateShift = async (shiftId: string) => {
+    const settings = await settingsService.getStoreSettings();
     const shift = shifts.find((s) => s.id === shiftId);
-    saveStoreSettings({ ...settings, recipientShiftId: shiftId });
+    await settingsService.saveStoreSettings({ ...settings, recipientShiftId: shiftId });
     setActiveShiftId(shiftId);
     if (shift) {
       showToast(`Sif aktif berhasil dialihkan ke ${shift.name}.`);
@@ -100,7 +101,7 @@ export default function AdminSifPage() {
     setIsModalOpen(true);
   };
 
-  const handleSaveShift = (e: React.FormEvent) => {
+  const handleSaveShift = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -119,7 +120,7 @@ export default function AdminSifPage() {
           : s
       );
       setShifts(updated);
-      saveShifts(updated);
+      await settingsService.saveShifts(updated);
       showToast(`Data penjaga ${formName.trim()} berhasil diperbarui.`);
     } else {
       const newShift: Shift = {
@@ -129,14 +130,14 @@ export default function AdminSifPage() {
       };
       const updated = [...shifts, newShift];
       setShifts(updated);
-      saveShifts(updated);
+      await settingsService.saveShifts(updated);
       showToast(`Penjaga baru ${formName.trim()} berhasil ditambahkan.`);
     }
 
     setIsModalOpen(false);
   };
 
-  const handleDeleteShift = (id: string) => {
+  const handleDeleteShift = async (id: string) => {
     if (shifts.length <= 1) {
       alert('Harus ada minimal satu penjaga yang terdaftar.');
       return;
@@ -149,7 +150,7 @@ export default function AdminSifPage() {
     if (confirm(`Hapus penjaga ${target ? `"${target.name}"` : 'ini'}?`)) {
       const updated = shifts.filter((s) => s.id !== id);
       setShifts(updated);
-      saveShifts(updated);
+      await settingsService.saveShifts(updated);
       setIsModalOpen(false);
       showToast('Penjaga berhasil dihapus.');
     }

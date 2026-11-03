@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Order } from '@/types';
-import { getOrders, seedDemoOrders } from '@/lib/store';
+import { orderService } from '@/services/orders';
 import { formatRupiah, formatDateTimeWIB, formatTimeWIB } from '@/lib/constants';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -33,9 +33,9 @@ export default function CustomerHistoryPage() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const loadData = () => {
+  const loadData = async () => {
     try {
-      const data = getOrders();
+      const data = await orderService.getOrders();
       setOrders(data);
     } catch (e) {
       console.warn('Gagal memuat riwayat pesanan', e);
@@ -60,9 +60,9 @@ export default function CustomerHistoryPage() {
     };
   }, []);
 
-  const handleReloadSeeds = () => {
-    seedDemoOrders();
-    loadData();
+  const handleReloadSeeds = async () => {
+    await orderService.seedDemoOrders();
+    await loadData();
     showToast('Contoh riwayat pesanan demo berhasil dimuat ulang!');
   };
 

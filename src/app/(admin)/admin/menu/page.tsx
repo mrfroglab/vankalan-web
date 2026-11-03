@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { MenuItem } from '@/types';
-import { getMenuItems, saveMenuItems, getCategories, saveCategories } from '@/lib/store';
+import { menuService } from '@/services/menu';
 import { formatRupiah } from '@/lib/constants';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Modal } from '@/components/ui/Modal';
@@ -53,9 +53,17 @@ export default function AdminMenuPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const loadData = () => {
-    setMenuList(getMenuItems());
-    setCategories(getCategories());
+  const loadData = async () => {
+    try {
+      const [items, cats] = await Promise.all([
+        menuService.getMenuItems(),
+        menuService.getCategories(),
+      ]);
+      setMenuList(items);
+      setCategories(cats);
+    } catch (e) {
+      console.warn('Gagal memuat data menu:', e);
+    }
   };
 
   useEffect(() => {
@@ -75,13 +83,13 @@ export default function AdminMenuPage() {
   }, []);
 
   // Toggle ketersediaan menu secara instan (FR-42)
-  const handleToggleAvailable = (id: string) => {
+  const handleToggleAvailable = async (id: string) => {
     const targetItem = menuList.find((m) => m.id === id);
     const updated = menuList.map((m) =>
       m.id === id ? { ...m, available: !m.available } : m
     );
     setMenuList(updated);
-    saveMenuItems(updated);
+    await menuService.saveMenuItems(updated);
     if (targetItem) {
       showToast(
         !targetItem.available
@@ -123,7 +131,7 @@ export default function AdminMenuPage() {
     setIsMenuModalOpen(true);
   };
 
-  const handleSaveMenu = (e: React.FormEvent) => {
+  const handleSaveMenu = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) return;
 
@@ -151,7 +159,7 @@ export default function AdminMenuPage() {
           : m
       );
       setMenuList(updated);
-      saveMenuItems(updated);
+      await menuService.saveMenuItems(updated);
       showToast(`Menu "${formName.trim()}" berhasil diperbarui.`);
     } else {
       // Tambah baru
@@ -170,37 +178,37 @@ export default function AdminMenuPage() {
       };
       const updated = [...menuList, newItem];
       setMenuList(updated);
-      saveMenuItems(updated);
+      await menuService.saveMenuItems(updated);
       showToast(`Menu baru "${formName.trim()}" berhasil ditambahkan.`);
     }
 
     setIsMenuModalOpen(false);
   };
 
-  const handleDeleteMenu = (id: string) => {
+  const handleDeleteMenu = async (id: string) => {
     const itemToDelete = menuList.find((m) => m.id === id);
     if (confirm(`Yakin ingin menghapus ${itemToDelete ? `"${itemToDelete.name}"` : 'menu ini'} dari katalog?`)) {
       const updated = menuList.filter((m) => m.id !== id);
       setMenuList(updated);
-      saveMenuItems(updated);
+      await menuService.saveMenuItems(updated);
       setIsMenuModalOpen(false);
       showToast('Menu berhasil dihapus dari katalog.');
     }
   };
 
-  const handleAddCategory = (e: React.FormEvent) => {
+  const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newCatName.trim();
     if (!trimmed || categories.includes(trimmed)) return;
     const updated = [...categories, trimmed];
     setCategories(updated);
-    saveCategories(updated);
+    await menuService.saveCategories(updated);
     setNewCatName('');
     setIsCatModalOpen(false);
     showToast(`Kategori "${trimmed}" berhasil ditambahkan.`);
   };
 
-  const handleDeleteCategory = (cat: string) => {
+  const handleDeleteCategory = async (cat: string) => {
     const hasItems = menuList.some((m) => m.category === cat);
     if (hasItems) {
       alert(`Kategori "${cat}" masih memiliki menu aktif. Pindahkan menu terlebih dahulu sebelum menghapus kategori.`);
@@ -209,7 +217,7 @@ export default function AdminMenuPage() {
     if (confirm(`Hapus kategori "${cat}"?`)) {
       const updated = categories.filter((c) => c !== cat);
       setCategories(updated);
-      saveCategories(updated);
+      await menuService.saveCategories(updated);
       if (selectedCategory === cat) setSelectedCategory('Semua');
       showToast(`Kategori "${cat}" berhasil dihapus.`);
     }

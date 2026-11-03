@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { MenuItem } from '@/types';
-import { getStoreSettings, DEFAULT_SETTINGS } from '@/lib/store';
+import { DEFAULT_SETTINGS, settingsService } from '@/services/settings';
 
 export interface CartItem {
   id: string; // unique cart item id
@@ -38,11 +38,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [eggPrice, setEggPrice] = useState<number>(DEFAULT_SETTINGS.eggPrice);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
 
-  const syncSettings = useCallback(() => {
-    const s = getStoreSettings();
-    setIsStoreOpen(s.open);
-    setEstimateMinutes(s.estimate);
-    setEggPrice(s.eggPrice);
+  const syncSettings = useCallback(async () => {
+    try {
+      const s = await settingsService.getStoreSettings();
+      setIsStoreOpen(s.open);
+      setEstimateMinutes(s.estimate);
+      setEggPrice(s.eggPrice);
+    } catch (e) {
+      console.warn('Gagal sync settings di CartContext', e);
+    }
   }, []);
 
   // Muat dari localStorage saat client render

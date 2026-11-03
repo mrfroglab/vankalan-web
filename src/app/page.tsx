@@ -23,7 +23,7 @@ import { FoodlyFooter } from '@/components/customer/FoodlyFooter';
 import { FloatingCartBar } from '@/components/customer/FloatingCartBar';
 import { CartDrawer } from '@/components/customer/CartDrawer';
 import { CustomizeItemModal } from '@/components/customer/CustomizeItemModal';
-import { getMenuItems, getCategories } from '@/lib/store';
+import { menuService } from '@/services/menu';
 import { ChefHat, RotateCcw } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 8;
@@ -45,12 +45,19 @@ export default function HomePage() {
   const [activeItemForCustomization, setActiveItemForCustomization] =
     useState<MenuItem | null>(null);
 
-  const loadData = useCallback(() => {
-    const items = getMenuItems();
-    const cats = getCategories();
-    setMenuList(items);
-    setCategories(['Semua', ...cats]);
-    setIsLoading(false);
+  const loadData = useCallback(async () => {
+    try {
+      const [items, cats] = await Promise.all([
+        menuService.getMenuItems(),
+        menuService.getCategories(),
+      ]);
+      setMenuList(items);
+      setCategories(['Semua', ...cats]);
+    } catch (err) {
+      console.warn('Gagal memuat menu di HomePage:', err);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {

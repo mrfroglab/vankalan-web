@@ -2,12 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/types';
-import {
-  getStoreSettings,
-  saveStoreSettings,
-  resetAllData,
-  seedDemoOrders,
-} from '@/lib/store';
+import { settingsService } from '@/services/settings';
+import { orderService } from '@/services/orders';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import {
   Power,
@@ -30,13 +26,17 @@ export default function AdminPengaturanPage() {
   const [waConnected, setWaConnected] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const loadData = () => {
-    const s = getStoreSettings();
-    setSettings(s);
-    setEstimate(s.estimate);
-    setEggPrice(s.eggPrice);
-    setIsOpen(s.open);
-    setWaConnected(s.waConnected);
+  const loadData = async () => {
+    try {
+      const s = await settingsService.getStoreSettings();
+      setSettings(s);
+      setEstimate(s.estimate);
+      setEggPrice(s.eggPrice);
+      setIsOpen(s.open);
+      setWaConnected(s.waConnected);
+    } catch (e) {
+      console.warn('Gagal memuat settings di AdminPengaturanPage:', e);
+    }
   };
 
   useEffect(() => {
@@ -60,11 +60,11 @@ export default function AdminPengaturanPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleToggleOpen = () => {
+  const handleToggleOpen = async () => {
     if (!settings) return;
     const nextOpen = !isOpen;
     setIsOpen(nextOpen);
-    saveStoreSettings({ ...settings, open: nextOpen });
+    await settingsService.saveStoreSettings({ ...settings, open: nextOpen });
     showToast(
       nextOpen
         ? 'Pemesanan online dibuka. Pelanggan dapat membuat pesanan baru.'
@@ -72,11 +72,11 @@ export default function AdminPengaturanPage() {
     );
   };
 
-  const handleToggleWa = () => {
+  const handleToggleWa = async () => {
     if (!settings) return;
     const nextWa = !waConnected;
     setWaConnected(nextWa);
-    saveStoreSettings({ ...settings, waConnected: nextWa });
+    await settingsService.saveStoreSettings({ ...settings, waConnected: nextWa });
     showToast(
       nextWa
         ? 'Koneksi WAHA dipulihkan. Notifikasi WhatsApp aktif normal.'
@@ -84,10 +84,10 @@ export default function AdminPengaturanPage() {
     );
   };
 
-  const handleSaveOperational = (e: React.FormEvent) => {
+  const handleSaveOperational = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
-    saveStoreSettings({
+    await settingsService.saveStoreSettings({
       ...settings,
       estimate: Number(estimate),
       eggPrice: Number(eggPrice),
@@ -95,19 +95,19 @@ export default function AdminPengaturanPage() {
     showToast('Pengaturan operasional berhasil disimpan.');
   };
 
-  const handleSeedDemoOrders = () => {
-    seedDemoOrders();
+  const handleSeedDemoOrders = async () => {
+    await orderService.seedDemoOrders();
     showToast('6 contoh pesanan demo berhasil dimuat ulang ke antrean dapur.');
   };
 
-  const handleResetDemo = () => {
+  const handleResetDemo = async () => {
     if (
       confirm(
         'Yakin ingin mereset seluruh data demo? Semua perubahan menu, order lokal, dan sif akan dikembalikan ke setelan pabrik.'
       )
     ) {
-      resetAllData();
-      loadData();
+      await settingsService.resetAllData();
+      await loadData();
       showToast('Seluruh data demo berhasil direset ke kondisi awal.');
     }
   };

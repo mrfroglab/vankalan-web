@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import React, { useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Order, OrderPaymentStatus } from '@/types';
 import { formatRupiah, formatDateTimeWIB, formatTimeWIB } from '@/lib/constants';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { getOrders, saveOrders, getStoreSettings } from '@/lib/store';
+import { orderService } from '@/services/orders';
+import { useAutoPolling } from '@/hooks/useAutoPolling';
+import { triggerSnapPayment } from '@/lib/midtrans';
 import { FoodlyHeader } from '@/components/customer/FoodlyHeader';
 import { FoodlyFooter } from '@/components/customer/FoodlyFooter';
 import { CartDrawer } from '@/components/customer/CartDrawer';
@@ -36,10 +38,9 @@ function OrderTrackingContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
 
-  const loadCurrentOrder = useCallback(() => {
+  const loadCurrentOrder = useCallback(async () => {
     try {
-      const orders = getOrders();
-      const found = orders.find((o) => o.token === token);
+      const found = await orderService.getOrderByToken(token);
       if (found) {
         setOrder(found);
       }
@@ -50,21 +51,15 @@ function OrderTrackingContent() {
     }
   }, [token]);
 
-  useEffect(() => {
-    loadCurrentOrder();
+  // Terminal state optimization: hentikan polling jika pesanan COMPLETED atau CANCELLED
+  const isTerminal = order?.fulfillment === 'COMPLETED' || order?.fulfillment === 'CANCELLED';
 
-    const handleUpdate = () => {
-      loadCurrentOrder();
-    };
-
-    window.addEventListener('storage', handleUpdate);
-    window.addEventListener('pv_storage_update', handleUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleUpdate);
-      window.removeEventListener('pv_storage_update', handleUpdate);
-    };
-  }, [loadCurrentOrder]);
+  useAutoPolling(loadCurrentOrder, {
+    intervalMs: 10000, // 10 detik polling sesuai PRD
+    enabled: Boolean(token) && !isTerminal,
+    immediate: true,
+    listenStorage: true,
+  });
 
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
@@ -74,36 +69,43 @@ function OrderTrackingContent() {
     }
   };
 
-  const handleRetryPaymentOutcome = (outcome: OrderPaymentStatus) => {
+  const handleRetryPaymentClick = async () => {
+    if (order?.snapToken) {
+      const snapTriggered = await triggerSnapPayment(order.snapToken, {
+        onSuccess: async () => {
+          await orderService.updateOrderPayment(order.id, 'PAID');
+          await loadCurrentOrder();
+        },
+        onPending: async () => {
+          await orderService.updateOrderPayment(order.id, 'PENDING');
+          await loadCurrentOrder();
+        },
+        onError: async () => {
+          await orderService.updateOrderPayment(order.id, 'FAILED');
+          await loadCurrentOrder();
+        },
+        onClose: async () => {
+          await loadCurrentOrder();
+        },
+      });
+
+      if (snapTriggered) return;
+    }
+
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleRetryPaymentOutcome = async (outcome: OrderPaymentStatus) => {
     if (!order) return;
 
-    const settings = getStoreSettings();
-    const orders = getOrders();
-    const now = Date.now();
+    try {
+      await orderService.updateOrderPayment(order.id, outcome);
+    } catch (err) {
+      console.warn('Gagal update payment status di service:', err);
+    }
 
-    const updatedOrders = orders.map((o) => {
-      if (o.id === order.id) {
-        if (outcome === 'PAID') {
-          return {
-            ...o,
-            payment: 'PAID' as const,
-            paidAt: now,
-            pickup: o.mode === 'asap' ? now + o.estimate * 60 * 1000 : o.pickup,
-            notification: (settings.waConnected ? 'SENT' : 'FAILED') as Order['notification'],
-            attempts: (o.attempts || 0) + 1,
-          };
-        }
-        return {
-          ...o,
-          payment: outcome,
-        };
-      }
-      return o;
-    });
-
-    saveOrders(updatedOrders);
     setIsPaymentModalOpen(false);
-    loadCurrentOrder();
+    await loadCurrentOrder();
   };
 
   const fulfillmentLabels: Record<Order['fulfillment'], string> = {
@@ -244,7 +246,7 @@ function OrderTrackingContent() {
 
             <button
               type="button"
-              onClick={() => setIsPaymentModalOpen(true)}
+              onClick={handleRetryPaymentClick}
               className="w-full min-h-[44px] bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold rounded-full py-2.5 px-4 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm cursor-pointer shadow-xs active:scale-95"
             >
               <RotateCcw className="w-4 h-4" />

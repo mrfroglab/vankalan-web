@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { formatRupiah, formatTimeWIB } from '@/lib/constants';
 import { checkoutFormSchema } from '@/lib/validations/order';
 import { Order, OrderPaymentStatus } from '@/types';
-import { getStoreSettings, getOrders, saveOrders } from '@/lib/store';
+import { orderService } from '@/services/orders';
+import { triggerSnapPayment } from '@/lib/midtrans';
 import { FoodlyHeader } from '@/components/customer/FoodlyHeader';
 import { FoodlyFooter } from '@/components/customer/FoodlyFooter';
 import { CartDrawer } from '@/components/customer/CartDrawer';
@@ -53,7 +54,7 @@ export default function CheckoutPage() {
     setScheduledTimeOptions(options);
   }, [estimateMinutes]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -95,34 +96,13 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      const settings = getStoreSettings();
-      const now = Date.now();
-      const randomToken = 'pv_' + Math.random().toString(36).slice(2, 10);
-      const orderDateStr = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      })
-        .format(new Date(now))
-        .replace(/-/g, '');
-      const orderNumber = `PV-${orderDateStr}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-      const newOrder: Order = {
-        id: 'ord_' + now,
-        token: randomToken,
-        number: orderNumber,
-        created: now,
-        pickup: pickupTimestamp,
-        estimate: estimateMinutes,
-        mode,
+      const result = await orderService.createOrder({
         name: name.trim(),
         phone: validationResult.data.phone,
+        mode,
+        pickup: pickupTimestamp,
+        estimate: estimateMinutes,
         note: note.trim() || undefined,
-        payment: 'PENDING',
-        fulfillment: 'NEW',
-        notification: 'QUEUED',
-        recipientShiftId: settings.recipientShiftId || 's1',
         total: totalAmount,
         items: items.map((it) => ({
           name: it.menuItem.name,
@@ -132,12 +112,39 @@ export default function CheckoutPage() {
           temp: it.temp,
           note: it.note,
         })),
-      };
+      });
 
-      const existingOrders = getOrders();
-      saveOrders([newOrder, ...existingOrders]);
+      const order = result.order;
 
-      setPendingOrder(newOrder);
+      // Jika snapToken tersedia, jalankan Midtrans Snap SDK
+      if (result.snapToken) {
+        const snapTriggered = await triggerSnapPayment(result.snapToken, {
+          onSuccess: async () => {
+            await orderService.updateOrderPayment(order.id, 'PAID');
+            clearCart();
+            router.push(`/order/${order.token}`);
+          },
+          onPending: async () => {
+            await orderService.updateOrderPayment(order.id, 'PENDING');
+            router.push(`/order/${order.token}`);
+          },
+          onError: async () => {
+            await orderService.updateOrderPayment(order.id, 'FAILED');
+            router.push(`/order/${order.token}`);
+          },
+          onClose: () => {
+            router.push(`/order/${order.token}`);
+          },
+        });
+
+        if (snapTriggered) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Fallback ke modal simulasi jika snapToken kosong atau Snap SDK tidak tersedia
+      setPendingOrder(order);
       setIsPaymentModalOpen(true);
       setIsSubmitting(false);
     } catch (err) {
@@ -147,34 +154,15 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePaymentOutcome = (outcome: OrderPaymentStatus) => {
+  const handlePaymentOutcome = async (outcome: OrderPaymentStatus) => {
     if (!pendingOrder) return;
 
-    const settings = getStoreSettings();
-    const orders = getOrders();
-    const now = Date.now();
+    try {
+      await orderService.updateOrderPayment(pendingOrder.id, outcome);
+    } catch (err) {
+      console.warn('Gagal update payment outcome di service:', err);
+    }
 
-    const updatedOrders = orders.map((o) => {
-      if (o.id === pendingOrder.id) {
-        if (outcome === 'PAID') {
-          return {
-            ...o,
-            payment: 'PAID' as const,
-            paidAt: now,
-            pickup: o.mode === 'asap' ? now + o.estimate * 60 * 1000 : o.pickup,
-            notification: (settings.waConnected ? 'SENT' : 'FAILED') as Order['notification'],
-            attempts: 1,
-          };
-        }
-        return {
-          ...o,
-          payment: outcome,
-        };
-      }
-      return o;
-    });
-
-    saveOrders(updatedOrders);
     setIsPaymentModalOpen(false);
 
     if (outcome === 'PAID') {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Order,
   OrderFulfillmentStatus,
@@ -8,13 +8,9 @@ import {
   StoreSettings,
   RefundStatus,
 } from '@/types';
-import {
-  getOrders,
-  saveOrders,
-  getStoreSettings,
-  getShifts,
-  seedDemoOrders,
-} from '@/lib/store';
+import { orderService } from '@/services/orders';
+import { settingsService } from '@/services/settings';
+import { useAutoPolling } from '@/hooks/useAutoPolling';
 import { formatTimeWIB, formatDateTimeWIB, formatRupiah } from '@/lib/constants';
 import { buildKitchenOrderWhatsAppMessage } from '@/lib/waha';
 import { AdminHeader } from '@/components/admin/AdminHeader';
@@ -70,103 +66,71 @@ export default function AdminAntreanPage() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const loadData = useCallback(() => {
-    const ords = getOrders();
-    const sett = getStoreSettings();
-    const shfs = getShifts();
-    setOrders(ords);
-    setSettings(sett);
-    setShifts(shfs);
-    setLastUpdated(formatTimeWIB(Date.now()));
+  const loadData = useCallback(async () => {
+    try {
+      const [ords, sett, shfs] = await Promise.all([
+        orderService.getOrders(),
+        settingsService.getStoreSettings(),
+        settingsService.getShifts(),
+      ]);
+      setOrders(ords);
+      setSettings(sett);
+      setShifts(shfs);
+      setLastUpdated(formatTimeWIB(Date.now()));
+      setSelectedOrder((prev) =>
+        prev ? ords.find((o) => o.id === prev.id) || prev : null
+      );
+    } catch (err) {
+      console.warn('[antrean] Gagal memuat data antrean:', err);
+    }
   }, []);
 
-  useEffect(() => {
-    loadData();
+  // Auto-polling hook setiap 12 detik sesuai PRD FR-47
+  const { isPolling, refresh } = useAutoPolling(loadData, {
+    intervalMs: 12000,
+    enabled: true,
+    immediate: true,
+    listenStorage: true,
+  });
 
-    // Auto-refresh setiap 20 detik (FR-47)
-    const interval = setInterval(() => {
-      loadData();
-    }, 20000);
-
-    const handleUpdate = () => {
-      loadData();
-    };
-
-    window.addEventListener('storage', handleUpdate);
-    window.addEventListener('pv_storage_update', handleUpdate);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('storage', handleUpdate);
-      window.removeEventListener('pv_storage_update', handleUpdate);
-    };
-  }, [loadData]);
-
-  const updateOrderStatus = (
+  const updateOrderStatus = async (
     orderId: string,
     nextStatus: OrderFulfillmentStatus,
     customNotificationMessage?: string
   ) => {
-    const updated = orders.map((o) => {
-      if (o.id === orderId) {
-        return {
-          ...o,
-          fulfillment: nextStatus,
-          completedAt: nextStatus === 'COMPLETED' ? Date.now() : o.completedAt,
-        };
+    try {
+      const updated = await orderService.updateOrderStatus(orderId, nextStatus);
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(updated);
       }
-      return o;
-    });
-    setOrders(updated);
-    saveOrders(updated);
-
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder((prev) =>
-        prev
-          ? {
-              ...prev,
-              fulfillment: nextStatus,
-              completedAt: nextStatus === 'COMPLETED' ? Date.now() : prev.completedAt,
-            }
-          : null
-      );
-    }
-
-    if (customNotificationMessage) {
-      showToast(customNotificationMessage);
-    } else {
-      showToast(`Status pesanan berhasil diperbarui: ${nextStatus}`);
+      if (customNotificationMessage) {
+        showToast(customNotificationMessage);
+      } else {
+        showToast(`Status pesanan berhasil diperbarui: ${nextStatus}`);
+      }
+    } catch (err) {
+      console.error('Gagal update status pesanan:', err);
+      showToast('Gagal memperbarui status pesanan.');
     }
   };
 
   // Retry kirim notifikasi WA ke sif aktif (FR-35, FR-51)
-  const handleRetryWhatsApp = (order: Order) => {
-    const currentSettings = getStoreSettings();
-    const updated = orders.map((o) => {
-      if (o.id === order.id) {
-        const isSuccess = currentSettings.waConnected;
-        return {
-          ...o,
-          recipientShiftId: currentSettings.recipientShiftId || o.recipientShiftId,
-          notification: (isSuccess ? 'SENT' : 'FAILED') as Order['notification'],
-          attempts: (o.attempts || 1) + 1,
-        };
+  const handleRetryWhatsApp = async (order: Order) => {
+    try {
+      const updated = await orderService.retryWhatsApp(order.id);
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+      if (selectedOrder?.id === order.id) {
+        setSelectedOrder(updated);
       }
-      return o;
-    });
-
-    setOrders(updated);
-    saveOrders(updated);
-
-    if (selectedOrder?.id === order.id) {
-      const found = updated.find((it) => it.id === order.id) || null;
-      setSelectedOrder(found);
-    }
-
-    if (currentSettings.waConnected) {
-      showToast('Notifikasi WhatsApp berhasil dikirim ulang ke sif aktif.');
-    } else {
-      showToast('Pengiriman ulang gagal: simulasi koneksi WAHA sedang terputus.');
+      if (updated.notification === 'SENT') {
+        showToast('Notifikasi WhatsApp berhasil dikirim ulang ke sif aktif.');
+      } else {
+        showToast('Pengiriman ulang gagal: simulasi koneksi WAHA sedang terputus.');
+      }
+    } catch (err) {
+      console.error('Gagal retry WA:', err);
+      showToast('Gagal mengirim ulang notifikasi WhatsApp.');
     }
   };
 
@@ -178,45 +142,23 @@ export default function AdminAntreanPage() {
   };
 
   // Konfirmasi pembatalan order
-  const handleConfirmCancel = (e: React.FormEvent) => {
+  const handleConfirmCancel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder || !cancelReason.trim()) return;
 
-    const updated = orders.map((o) => {
-      if (o.id === selectedOrder.id) {
-        return {
-          ...o,
-          fulfillment: 'CANCELLED' as const,
-          cancelReason: cancelReason.trim(),
-          refund: {
-            status: 'PENDING' as const,
-            amount: o.total,
-            reason: cancelReason.trim(),
-          },
-        };
-      }
-      return o;
-    });
-
-    setOrders(updated);
-    saveOrders(updated);
-    setSelectedOrder((prev) =>
-      prev
-        ? {
-            ...prev,
-            fulfillment: 'CANCELLED',
-            cancelReason: cancelReason.trim(),
-            refund: {
-              status: 'PENDING',
-              amount: prev.total,
-              reason: cancelReason.trim(),
-            },
-          }
-        : null
-    );
-
-    setIsCancelModalOpen(false);
-    showToast('Pesanan dibatalkan. Status refund dicatat PENDING.');
+    try {
+      const updated = await orderService.cancelOrder(
+        selectedOrder.id,
+        cancelReason.trim()
+      );
+      setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? updated : o)));
+      setSelectedOrder(updated);
+      setIsCancelModalOpen(false);
+      showToast('Pesanan dibatalkan. Status refund dicatat PENDING.');
+    } catch (err) {
+      console.error('Gagal membatalkan pesanan:', err);
+      showToast('Gagal membatalkan pesanan.');
+    }
   };
 
   // Buka form catat refund
@@ -233,43 +175,24 @@ export default function AdminAntreanPage() {
   };
 
   // Simpan record refund manual
-  const handleSaveRefund = (e: React.FormEvent) => {
+  const handleSaveRefund = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
 
-    const updated = orders.map((o) => {
-      if (o.id === selectedOrder.id) {
-        return {
-          ...o,
-          refund: {
-            status: refundStatus,
-            amount: Number(refundAmount),
-            reason: refundReason.trim(),
-            confirmedAt: Date.now(),
-          },
-        };
-      }
-      return o;
-    });
-
-    setOrders(updated);
-    saveOrders(updated);
-    setSelectedOrder((prev) =>
-      prev
-        ? {
-            ...prev,
-            refund: {
-              status: refundStatus,
-              amount: Number(refundAmount),
-              reason: refundReason.trim(),
-              confirmedAt: Date.now(),
-            },
-          }
-        : null
-    );
-
-    setIsRefundModalOpen(false);
-    showToast('Pencatatan refund manual berhasil disimpan.');
+    try {
+      const updated = await orderService.recordRefund(selectedOrder.id, {
+        status: refundStatus,
+        amount: Number(refundAmount),
+        reason: refundReason.trim(),
+      });
+      setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? updated : o)));
+      setSelectedOrder(updated);
+      setIsRefundModalOpen(false);
+      showToast('Pencatatan refund manual berhasil disimpan.');
+    } catch (err) {
+      console.error('Gagal menyimpan refund:', err);
+      showToast('Gagal menyimpan refund.');
+    }
   };
 
   // Salin draft chat siap ke pelanggan (FR-48)
@@ -326,9 +249,9 @@ export default function AdminAntreanPage() {
       phone: '6281234500001',
     };
 
-  const handleReloadSeeds = () => {
-    seedDemoOrders();
-    loadData();
+  const handleReloadSeeds = async () => {
+    await orderService.seedDemoOrders();
+    await loadData();
     showToast('6 pesanan demo dapur berhasil dimuat ulang.');
   };
 
@@ -390,11 +313,15 @@ export default function AdminAntreanPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={loadData}
+              onClick={refresh}
               title={`Pembaruan terakhir ${lastUpdated} WIB`}
               className="bg-white hover:bg-[#f5f2ed] border-[#e9e5df] text-[#242321] rounded-full"
             >
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-[#77736d]" />
+              <RefreshCw
+                className={`w-3.5 h-3.5 mr-1.5 text-[#77736d] ${
+                  isPolling ? 'animate-spin' : ''
+                }`}
+              />
               <span>Refresh Cepat ({lastUpdated || 'WIB'})</span>
             </Button>
           </div>

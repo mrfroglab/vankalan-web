@@ -64,6 +64,7 @@ export interface Order {
   refund?: RefundRecord;
   attempts?: number;
   completedAt?: number;
+  snapToken?: string;
 }
 
 export interface Shift {
@@ -79,3 +80,30 @@ export interface StoreSettings {
   recipientShiftId: string; // id penjaga yang sedang bertugas
   waConnected: boolean;
 }
+
+export interface CreateOrderPayload {
+  name: string;
+  phone: string;
+  mode: 'asap' | 'scheduled';
+  pickup: number;
+  estimate: number;
+  items: OrderItem[];
+  total: number;
+  note?: string;
+  recipientShiftId?: string;
+}
+
+export interface CreateOrderResult {
+  order: Order;
+  snapToken?: string;
+  redirectUrl?: string;
+}
+
+export interface ApiResponse<T> {
+  success?: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export * from './midtrans';
