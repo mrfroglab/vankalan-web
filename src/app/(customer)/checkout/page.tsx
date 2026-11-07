@@ -117,20 +117,19 @@ export default function CheckoutPage() {
 
       const order = result.order;
 
-      // Jika snapToken tersedia, jalankan Midtrans Snap SDK
+      // snapToken hanya ada bila server membuat transaksi Midtrans. Browser TIDAK menandai
+      // lunas: status PAID datang dari webhook server; halaman order memantau perubahannya.
       if (result.snapToken) {
         const snapTriggered = await triggerSnapPayment(result.snapToken, {
-          onSuccess: async () => {
-            await orderService.updateOrderPayment(order.id, 'PAID');
+          onSuccess: () => {
             clearCart();
             router.push(`/order/${order.token}`);
           },
-          onPending: async () => {
-            await orderService.updateOrderPayment(order.id, 'PENDING');
+          onPending: () => {
+            clearCart();
             router.push(`/order/${order.token}`);
           },
-          onError: async () => {
-            await orderService.updateOrderPayment(order.id, 'FAILED');
+          onError: () => {
             router.push(`/order/${order.token}`);
           },
           onClose: () => {
@@ -151,7 +150,7 @@ export default function CheckoutPage() {
     } catch (err) {
       console.error(err);
       setFormError(
-        err instanceof ApiError && err.statusCode >= 400 && err.statusCode < 500
+        err instanceof ApiError && err.statusCode >= 400
           ? err.message
           : 'Terjadi gangguan saat memproses pesanan. Silakan coba lagi.'
       );

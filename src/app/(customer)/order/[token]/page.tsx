@@ -8,6 +8,7 @@ import { formatRupiah, formatDateTimeWIB, formatTimeWIB } from '@/lib/constants'
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { orderService } from '@/services/orders';
+import { ApiError } from '@/services/client';
 import { useAutoPolling } from '@/hooks/useAutoPolling';
 import { triggerSnapPayment } from '@/lib/midtrans';
 import { FoodlyHeader } from '@/components/customer/FoodlyHeader';
@@ -37,6 +38,7 @@ function OrderTrackingContent() {
   const [copied, setCopied] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const loadCurrentOrder = useCallback(async () => {
     try {
@@ -70,26 +72,32 @@ function OrderTrackingContent() {
   };
 
   const handleRetryPaymentClick = async () => {
-    if (order?.snapToken) {
-      const snapTriggered = await triggerSnapPayment(order.snapToken, {
-        onSuccess: async () => {
-          await orderService.updateOrderPayment(order.id, 'PAID');
-          await loadCurrentOrder();
-        },
-        onPending: async () => {
-          await orderService.updateOrderPayment(order.id, 'PENDING');
-          await loadCurrentOrder();
-        },
-        onError: async () => {
-          await orderService.updateOrderPayment(order.id, 'FAILED');
-          await loadCurrentOrder();
-        },
-        onClose: async () => {
-          await loadCurrentOrder();
-        },
-      });
-
-      if (snapTriggered) return;
+    if (!order) return;
+    setPaymentError(null);
+    // Snap hanya dibuka di browser; status lunas tetap datang dari webhook server,
+    // jadi setiap callback cukup memuat ulang pesanan.
+    const reload = () => {
+      void loadCurrentOrder();
+    };
+    try {
+      const start = await orderService.startPayment(token);
+      const snapToken = start?.snapToken ?? order.snapToken;
+      if (snapToken) {
+        const snapTriggered = await triggerSnapPayment(snapToken, {
+          onSuccess: reload,
+          onPending: reload,
+          onError: reload,
+          onClose: reload,
+        });
+        if (snapTriggered) return;
+      }
+    } catch (err) {
+      console.warn('Gagal memulai pembayaran:', err);
+      // 503 = Midtrans belum dikonfigurasi (dev): lanjut ke modal simulasi yang dijaga server.
+      if (err instanceof ApiError && err.statusCode !== 503) {
+        setPaymentError(err.message);
+        return;
+      }
     }
 
     setIsPaymentModalOpen(true);
@@ -243,6 +251,12 @@ function OrderTrackingContent() {
                 </p>
               </div>
             </div>
+
+            {paymentError && (
+              <p role="alert" className="text-xs font-semibold text-[#91251c]">
+                {paymentError}
+              </p>
+            )}
 
             <button
               type="button"

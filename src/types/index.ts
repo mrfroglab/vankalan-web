@@ -65,6 +65,8 @@ export interface Order {
   attempts?: number;
   completedAt?: number;
   snapToken?: string;
+  /** Pembayaran masuk terlambat; penjaga perlu konfirmasi waktu ambil ke pelanggan. */
+  needsTimeConfirmation?: boolean;
 }
 
 export interface Shift {

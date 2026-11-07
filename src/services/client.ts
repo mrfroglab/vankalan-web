@@ -58,7 +58,11 @@ export async function apiRequest<T>(
     throw new ApiError(errorMsg, 0, normalizedPath, networkError);
   }
 
-  if (response.status === 401 && typeof window !== 'undefined') {
+  if (
+    response.status === 401 &&
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/admin')
+  ) {
     // Sesi admin berakhir: kembali ke login alih-alih diam-diam memakai data lokal.
     const next = encodeURIComponent(window.location.pathname);
     // Reload penuh disengaja (di luar komponen React): membersihkan state klien lama.

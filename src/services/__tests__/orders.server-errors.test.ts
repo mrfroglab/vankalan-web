@@ -36,16 +36,36 @@ describe('orderService.createOrder dengan backend aktif', () => {
     expect(localStorage.getItem('pv_orders_v2')).toBeNull();
   });
 
-  it('tetap fallback ke localStorage saat server error 5xx', async () => {
-    vi.stubGlobal('fetch', reply(500, { error: 'boom' }));
-    const res = await orderService.createOrder(payload);
-    expect(res.order.payment).toBe('PENDING');
-    expect(res.snapToken).toBeUndefined();
+  it('juga meneruskan error 5xx (mis. gagal memulai pembayaran): tidak membuat order palsu', async () => {
+    vi.stubGlobal('fetch', reply(502, { success: false, error: 'Gagal menghubungi layanan pembayaran.' }));
+    const err = await orderService.createOrder(payload).catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.statusCode).toBe(502);
+    expect(localStorage.getItem('pv_orders_v2')).toBeNull();
   });
 
-  it('tetap fallback saat jaringan putus', async () => {
+  it('tetap fallback ke localStorage hanya saat jaringan putus', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')));
     const res = await orderService.createOrder(payload);
     expect(res.order.total).toBe(10000);
+  });
+});
+
+describe('orderService.startPayment', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('null saat backend tidak aktif; memanggil endpoint /pay saat aktif', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', '');
+    expect(await orderService.startPayment('tok')).toBeNull();
+
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://api.test');
+    const f = reply(200, { snapToken: 's', redirectUrl: 'u' });
+    vi.stubGlobal('fetch', f);
+    expect(await orderService.startPayment('a b')).toEqual({ snapToken: 's', redirectUrl: 'u' });
+    expect(f.mock.calls[0][0]).toBe('http://api.test/api/orders/token/a%20b/pay');
+    expect(f.mock.calls[0][1]).toMatchObject({ method: 'POST' });
   });
 });

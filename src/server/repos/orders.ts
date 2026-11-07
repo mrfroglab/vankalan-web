@@ -67,6 +67,7 @@ function toOrder(o: DbOrder, items: DbOrderItem[], refund?: DbRefund): Order {
     attempts: o.attempts,
     ...(o.completedAt ? { completedAt: ms(o.completedAt) } : {}),
     ...(o.snapToken ? { snapToken: o.snapToken } : {}),
+    ...(o.needsTimeConfirmation ? { needsTimeConfirmation: true } : {}),
   };
 }
 

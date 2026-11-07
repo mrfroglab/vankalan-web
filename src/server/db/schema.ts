@@ -104,6 +104,8 @@ export const orders = pgTable(
     cancelReason: text('cancel_reason'),
     attempts: integer('attempts').notNull().default(0),
     snapToken: text('snap_token'),
+    /** Pembayaran masuk terlambat sehingga waktu ambil terjadwal tak lagi cukup; penjaga perlu menghubungi pelanggan. */
+    needsTimeConfirmation: boolean('needs_time_confirmation').notNull().default(false),
   },
   (t) => [
     uniqueIndex('orders_token_uq').on(t.token),
@@ -135,6 +137,56 @@ export const orderItems = pgTable(
   ]
 );
 
+/** Satu baris per percobaan pembayaran (order_id Midtrans unik per percobaan). */
+export const paymentTransactions = pgTable(
+  'payment_transactions',
+  {
+    id: serial('id').primaryKey(),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    attempt: integer('attempt').notNull(),
+    /** order_id yang dikirim ke Midtrans: `${nomor order}-${attempt}`. */
+    midtransOrderId: text('midtrans_order_id').notNull(),
+    /** Status ternormalisasi: PENDING | PAID | FAILED | EXPIRED. */
+    status: text('status').notNull().default('PENDING'),
+    grossAmount: integer('gross_amount').notNull(),
+    snapToken: text('snap_token'),
+    redirectUrl: text('redirect_url'),
+    midtransTransactionId: text('midtrans_transaction_id'),
+    paymentType: text('payment_type'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('payment_tx_midtrans_order_uq').on(t.midtransOrderId),
+    uniqueIndex('payment_tx_order_attempt_uq').on(t.orderId, t.attempt),
+    index('payment_tx_status_idx').on(t.status),
+  ]
+);
+
+/** Log append-only setiap notifikasi/cek status gateway (audit & investigasi). */
+export const paymentEvents = pgTable(
+  'payment_events',
+  {
+    id: serial('id').primaryKey(),
+    midtransOrderId: text('midtrans_order_id').notNull(),
+    orderId: text('order_id'),
+    source: text('source').notNull(), // webhook | status_api | timeout
+    transactionStatus: text('transaction_status'),
+    fraudStatus: text('fraud_status'),
+    statusCode: text('status_code'),
+    grossAmount: text('gross_amount'),
+    /** applied | noop | ignored | amount_mismatch | unknown_order | duplicate_payment | late_after_cancel */
+    result: text('result').notNull(),
+    raw: jsonb('raw'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('payment_events_order_idx').on(t.midtransOrderId)]
+);
+
 /** Catatan refund manual; satu baris per order, terpisah dari status pembayaran. */
 export const refunds = pgTable('refunds', {
   orderId: text('order_id')
@@ -160,3 +212,4 @@ export type DbMenuItem = typeof menuItems.$inferSelect;
 export type DbOrder = typeof orders.$inferSelect;
 export type DbOrderItem = typeof orderItems.$inferSelect;
 export type DbRefund = typeof refunds.$inferSelect;
+export type DbPaymentTransaction = typeof paymentTransactions.$inferSelect;

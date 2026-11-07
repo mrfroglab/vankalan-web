@@ -488,6 +488,17 @@ export default function AdminAntreanPage() {
                         <span>Ambil: {formatTimeWIB(order.pickup)} WIB</span>
                       </div>
 
+                      {order.needsTimeConfirmation &&
+                        order.fulfillment !== 'COMPLETED' &&
+                        order.fulfillment !== 'CANCELLED' && (
+                          <span
+                            className="inline-flex items-center bg-[#fde7e4] border border-[#f7c5be] px-3 py-1.5 rounded-full text-xs font-bold text-[#91251c]"
+                            title="Pembayaran masuk terlambat; waktu ambil terjadwal mungkin tidak terkejar. Hubungi pelanggan."
+                          >
+                            Perlu konfirmasi waktu
+                          </span>
+                        )}
+
                       {/* Shortcut Chat WhatsApp Pelanggan */}
                       <a
                         href={`https://wa.me/${order.phone}`}
