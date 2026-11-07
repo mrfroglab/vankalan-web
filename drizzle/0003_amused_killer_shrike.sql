@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "pii_redacted_at" timestamp with time zone;

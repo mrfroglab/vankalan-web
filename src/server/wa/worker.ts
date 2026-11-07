@@ -1,6 +1,6 @@
 /**
- * Pekerja latar belakang (satu per proses server): memproses antrean WA yang jatuh tempo dan
- * merekonsiliasi pembayaran PENDING secara berkala (PRD FR-27, FR-34).
+ * Pekerja latar belakang (satu per proses server): memproses antrean WA yang jatuh tempo,
+ * merekonsiliasi pembayaran PENDING (PRD FR-27, FR-34), dan menjalankan retensi data berkala.
  * Aman dijalankan di beberapa instance: klaim tugas memakai FOR UPDATE SKIP LOCKED + lease.
  *
  * Env: WA_WORKER_ENABLED=false untuk mematikan; WA_WORKER_INTERVAL_MS (default 10000).
@@ -9,9 +9,11 @@
 import { getDb } from '../db';
 import { getMidtransConfig } from '../payments/midtrans';
 import { reconcilePending } from '../payments/service';
+import { purgeExpiredData } from '../retention';
 import { processDueJobs } from './queue';
 
 const RECONCILE_EVERY_MS = 2 * 60 * 1000;
+const PURGE_EVERY_MS = 6 * 60 * 60 * 1000; // retensi data: idempoten, cukup beberapa kali sehari
 
 type WorkerGlobal = typeof globalThis & { __pvWorker?: ReturnType<typeof setInterval> };
 
@@ -26,6 +28,7 @@ export function startWorker(): void {
 
   let running = false;
   let ticks = 0;
+  let lastPurgeAt = 0;
   g.__pvWorker = setInterval(async () => {
     if (running) return; // jangan menumpuk bila tick sebelumnya lambat
     running = true;
@@ -35,6 +38,11 @@ export function startWorker(): void {
       if (++ticks % reconcileEveryTicks === 0) {
         const cfg = getMidtransConfig();
         if (cfg) await reconcilePending(db, cfg);
+      }
+      if (Date.now() - lastPurgeAt >= PURGE_EVERY_MS) {
+        lastPurgeAt = Date.now();
+        const r = await purgeExpiredData(db);
+        if (r.deletedUnpaid || r.redacted || r.eventsPruned) console.log('[worker] Retensi data:', r);
       }
     } catch (err) {
       console.error('[worker] Tick gagal:', err);

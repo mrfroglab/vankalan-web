@@ -3,6 +3,7 @@ import { HttpError, handle, json } from '@/server/http';
 import { getMidtransConfig } from '@/server/payments/midtrans';
 import { resumePayment } from '@/server/payments/service';
 import { getOrderByToken } from '@/server/repos/orders';
+import { isOrderLinkExpired } from '@/server/retention';
 
 /**
  * Mulai/lanjutkan pembayaran order milik pelanggan (kredensial = token privat).
@@ -16,6 +17,9 @@ export const POST = handle(async (_req: Request, ctx: RouteContext<'/api/orders/
   const db = getDb();
   const order = await getOrderByToken(db, token);
   if (!order) throw new HttpError(404, 'Pesanan tidak ditemukan.');
+  if (isOrderLinkExpired(order)) {
+    throw new HttpError(410, 'Tautan pesanan sudah kedaluwarsa. Buat pesanan baru.');
+  }
   const start = await resumePayment(db, cfg, order.id, { appUrl: process.env.NEXT_PUBLIC_APP_URL });
   return json(start);
 });

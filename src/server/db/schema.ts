@@ -106,6 +106,8 @@ export const orders = pgTable(
     snapToken: text('snap_token'),
     /** Pembayaran masuk terlambat sehingga waktu ambil terjadwal tak lagi cukup; penjaga perlu menghubungi pelanggan. */
     needsTimeConfirmation: boolean('needs_time_confirmation').notNull().default(false),
+    /** Waktu data pribadi pelanggan (nama, WA, catatan) dianonimkan oleh kebijakan retensi. */
+    piiRedactedAt: timestamp('pii_redacted_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('orders_token_uq').on(t.token),
