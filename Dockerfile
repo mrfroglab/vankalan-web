@@ -23,6 +23,18 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Variabel NEXT_PUBLIC_* di-inline ke bundle saat build (klien DAN server), jadi harus
+# diberikan di sini; mengisinya di environment container saat runtime tidak berpengaruh.
+# NEXT_PUBLIC_API_URL kosong = mode prototipe (localStorage); "/" = backend satu origin.
+ARG NEXT_PUBLIC_API_URL=""
+ARG NEXT_PUBLIC_APP_URL=""
+ARG NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=""
+ARG NEXT_PUBLIC_MIDTRANS_SNAP_URL=""
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
+    NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=$NEXT_PUBLIC_MIDTRANS_CLIENT_KEY \
+    NEXT_PUBLIC_MIDTRANS_SNAP_URL=$NEXT_PUBLIC_MIDTRANS_SNAP_URL
+
 RUN pnpm build
 
 # Production image, copy all the files and run next
