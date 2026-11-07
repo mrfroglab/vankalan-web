@@ -15,7 +15,7 @@ import {
   CreateOrderResult,
 } from '@/types';
 import * as localStore from '@/lib/store';
-import { isBackendConfigured, apiRequest } from './client';
+import { isBackendConfigured, apiRequest, ApiError } from './client';
 
 export const orderService = {
   async getOrders(): Promise<Order[]> {
@@ -88,6 +88,11 @@ export const orderService = {
           return response;
         }
       } catch (err) {
+        // Penolakan server (harga berubah, toko tutup, validasi, dst.) harus sampai ke
+        // pelanggan; jangan diam-diam membuat order palsu di localStorage.
+        if (err instanceof ApiError && err.statusCode >= 400 && err.statusCode < 500) {
+          throw err;
+        }
         console.warn('[orderService] Backend createOrder failed, using fallback:', err);
       }
     }
