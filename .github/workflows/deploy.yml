@@ -11,8 +11,13 @@ permissions:
   packages: write
 
 jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
   build:
     name: Build & Push Docker Image
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -47,6 +52,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push migrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: true
+          tags: ghcr.io/mrfroglab/vankalan-web:migrator
+          cache-from: type=gha
+
   deploy:
     name: Deploy to Thinkpad Server
     needs: build
@@ -59,6 +73,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::Secret DATABASE_URL belum diatur; migrasi dilewati."
+            exit 0
+          fi
+          docker pull ghcr.io/mrfroglab/vankalan-web:migrator
+          docker run --rm --network host -e DATABASE_URL ghcr.io/mrfroglab/vankalan-web:migrator
 
       - name: Deploy with Docker Compose
         run: |

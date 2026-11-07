@@ -9,6 +9,12 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 RUN pnpm install --frozen-lockfile
 
+# One-off migration runner: docker run --rm -e DATABASE_URL=... <image>:migrator
+FROM deps AS migrator
+COPY drizzle.config.ts ./
+COPY drizzle ./drizzle
+CMD ["pnpm", "exec", "drizzle-kit", "migrate"]
+
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
