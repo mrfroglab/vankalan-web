@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { settingsService } from '@/services/settings';
+import { apiRequest, isBackendConfigured } from '@/services/client';
 import { StoreSettings, Shift } from '@/types';
 import {
   Utensils,
@@ -21,6 +22,8 @@ export function AdminHeader() {
   const router = useRouter();
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
+  // Kondisi sesi WhatsApp sebenarnya di WAHA (FR-36); null = tidak diketahui/tidak relevan.
+  const [waSession, setWaSession] = useState<{ ok: boolean; label: string } | null>(null);
 
   const loadData = async () => {
     try {
@@ -34,6 +37,32 @@ export function AdminHeader() {
       console.warn('Gagal memuat settings/shifts di AdminHeader', e);
     }
   };
+
+  useEffect(() => {
+    if (!isBackendConfigured()) return;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const s = await apiRequest<
+          | { configured: false }
+          | { configured: true; reachable: true; status: string; needsQr: boolean }
+          | { configured: true; reachable: false; error: string }
+        >('/api/wa/status');
+        if (cancelled || !s.configured) return;
+        if (!s.reachable) setWaSession({ ok: false, label: 'WAHA tidak terjangkau' });
+        else if (s.needsQr) setWaSession({ ok: false, label: 'Perlu scan QR ulang' });
+        else setWaSession({ ok: s.status === 'WORKING', label: s.status === 'WORKING' ? 'Sesi WA aktif' : `Sesi WA: ${s.status}` });
+      } catch {
+        if (!cancelled) setWaSession(null);
+      }
+    };
+    check();
+    const id = setInterval(check, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -147,6 +176,20 @@ export function AdminHeader() {
               Status WAHA: {settings?.waConnected ? 'Terhubung' : 'Terputus'}
             </span>
           </div>
+
+          {/* Kondisi sesi WhatsApp nyata di WAHA */}
+          {waSession && (
+            <div
+              role={waSession.ok ? undefined : 'alert'}
+              className={`min-h-[36px] px-3.5 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border ${
+                waSession.ok
+                  ? 'bg-[#f5f2ed] border-[#e9e5df] text-[#1c4d25]'
+                  : 'bg-[#fde7e4] border-[#f7c5be] text-[#91251c]'
+              }`}
+            >
+              <span>{waSession.label}</span>
+            </div>
+          )}
 
           {/* Button Tampilan Pelanggan */}
           <Link

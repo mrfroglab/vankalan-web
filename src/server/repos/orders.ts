@@ -4,6 +4,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type {
   CreateOrderPayload,
+  NotificationDetail,
   Order,
   OrderFulfillmentStatus,
   OrderItem,
@@ -12,10 +13,12 @@ import type {
 import { HttpError } from '../http';
 import type { Db } from '../db';
 import {
+  notificationJobs,
   orderCounters,
   orderItems,
   orders,
   refunds,
+  type DbNotificationJob,
   type DbOrder,
   type DbOrderItem,
   type DbRefund,
@@ -25,7 +28,20 @@ import { getSettings, listMenu, listShifts } from './settings';
 
 const ms = (d: Date | null | undefined) => (d ? d.getTime() : undefined);
 
-function toOrder(o: DbOrder, items: DbOrderItem[], refund?: DbRefund): Order {
+function toDetail(j: DbNotificationJob): NotificationDetail {
+  return {
+    jobStatus: j.status as NotificationDetail['jobStatus'],
+    ...(j.recipientName ? { recipientName: j.recipientName } : {}),
+    ...(j.recipientPhone ? { recipientPhone: j.recipientPhone } : {}),
+    attempts: j.attempts,
+    maxAttempts: j.maxAttempts,
+    ...(j.lastError ? { lastError: j.lastError } : {}),
+    ...(j.status === 'QUEUED' && j.attempts > 0 ? { nextAttemptAt: j.nextAttemptAt.getTime() } : {}),
+    ...(j.sentAt ? { sentAt: j.sentAt.getTime() } : {}),
+  };
+}
+
+function toOrder(o: DbOrder, items: DbOrderItem[], refund?: DbRefund, job?: DbNotificationJob): Order {
   return {
     id: o.id,
     token: o.token,
@@ -68,21 +84,28 @@ function toOrder(o: DbOrder, items: DbOrderItem[], refund?: DbRefund): Order {
     ...(o.completedAt ? { completedAt: ms(o.completedAt) } : {}),
     ...(o.snapToken ? { snapToken: o.snapToken } : {}),
     ...(o.needsTimeConfirmation ? { needsTimeConfirmation: true } : {}),
+    ...(job ? { notificationDetail: toDetail(job) } : {}),
   };
 }
 
 async function hydrate(db: Db, rows: DbOrder[]): Promise<Order[]> {
   if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id);
-  const [items, refundRows] = await Promise.all([
+  const [items, refundRows, jobRows] = await Promise.all([
     db.select().from(orderItems).where(inArray(orderItems.orderId, ids)),
     db.select().from(refunds).where(inArray(refunds.orderId, ids)),
+    db
+      .select()
+      .from(notificationJobs)
+      .where(inArray(notificationJobs.orderId, ids))
+      .orderBy(desc(notificationJobs.id)),
   ]);
   return rows.map((o) =>
     toOrder(
       o,
       items.filter((i) => i.orderId === o.id),
-      refundRows.find((r) => r.orderId === o.id)
+      refundRows.find((r) => r.orderId === o.id),
+      jobRows.find((j) => j.orderId === o.id) // terbaru (urut id menurun)
     )
   );
 }
@@ -284,23 +307,6 @@ export async function recordRefund(
     .insert(refunds)
     .values({ orderId: id, ...values })
     .onConflictDoUpdate({ target: refunds.orderId, set: values });
-  return mustGet(db, id);
-}
-
-export async function setNotification(
-  db: Db,
-  id: string,
-  status: Order['notification'],
-  recipientShiftId?: string
-): Promise<Order> {
-  await db
-    .update(orders)
-    .set({
-      notificationStatus: status,
-      attempts: sql`${orders.attempts} + 1`,
-      ...(recipientShiftId ? { recipientShiftId } : {}),
-    })
-    .where(eq(orders.id, id));
   return mustGet(db, id);
 }
 

@@ -187,6 +187,46 @@ export const paymentEvents = pgTable(
   (t) => [index('payment_events_order_idx').on(t.midtransOrderId)]
 );
 
+/**
+ * Antrean tugas notifikasi WhatsApp ke penjaga (PRD FR-33/34). Bertahan setelah restart.
+ * Status: QUEUED (menunggu/ menunggu retry) | SENDING | SENT | FAILED (retry habis, perlu
+ * tindakan manual) | UNKNOWN (hasil tak jelas; diperiksa ke riwayat WA sebelum retry) | CANCELLED.
+ */
+export const notificationJobs = pgTable(
+  'notification_jobs',
+  {
+    id: serial('id').primaryKey(),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    /** NEW_ORDER (otomatis saat PAID, maksimal satu per order) | RESEND (kirim ulang manual). */
+    kind: text('kind').notNull().$type<'NEW_ORDER' | 'RESEND'>(),
+    status: text('status').notNull().default('QUEUED'),
+    // Snapshot penerima saat tugas dibuat (pelacakan serah terima sif).
+    recipientShiftId: text('recipient_shift_id'),
+    recipientName: text('recipient_name'),
+    recipientPhone: text('recipient_phone'),
+    attempts: integer('attempts').notNull().default(0),
+    maxAttempts: integer('max_attempts').notNull().default(4),
+    verifyAttempts: integer('verify_attempts').notNull().default(0),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).notNull().defaultNow(),
+    /** Lease pekerja; lewat dari ini saat SENDING = proses mati di tengah kirim (hasil tak diketahui). */
+    lockedUntil: timestamp('locked_until', { withTimezone: true }),
+    lastError: text('last_error'),
+    providerMessageId: text('provider_message_id'),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('notification_jobs_new_order_uq')
+      .on(t.orderId)
+      .where(sql`${t.kind} = 'NEW_ORDER'`),
+    index('notification_jobs_due_idx').on(t.status, t.nextAttemptAt),
+    index('notification_jobs_order_idx').on(t.orderId),
+  ]
+);
+
 /** Catatan refund manual; satu baris per order, terpisah dari status pembayaran. */
 export const refunds = pgTable('refunds', {
   orderId: text('order_id')
@@ -213,3 +253,4 @@ export type DbOrder = typeof orders.$inferSelect;
 export type DbOrderItem = typeof orderItems.$inferSelect;
 export type DbRefund = typeof refunds.$inferSelect;
 export type DbPaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type DbNotificationJob = typeof notificationJobs.$inferSelect;

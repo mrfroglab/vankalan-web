@@ -67,6 +67,20 @@ export interface Order {
   snapToken?: string;
   /** Pembayaran masuk terlambat; penjaga perlu konfirmasi waktu ambil ke pelanggan. */
   needsTimeConfirmation?: boolean;
+  /** Ringkasan tugas notifikasi WA terbaru (penerima, percobaan, error); diisi server. */
+  notificationDetail?: NotificationDetail;
+}
+
+export interface NotificationDetail {
+  jobStatus: 'QUEUED' | 'SENDING' | 'SENT' | 'FAILED' | 'UNKNOWN' | 'CANCELLED';
+  recipientName?: string;
+  recipientPhone?: string;
+  attempts: number;
+  maxAttempts: number;
+  lastError?: string;
+  /** Waktu percobaan otomatis berikutnya (epoch ms) bila masih ada retry terjadwal. */
+  nextAttemptAt?: number;
+  sentAt?: number;
 }
 
 export interface Shift {
