@@ -3,6 +3,7 @@
  * tervalidasi Zod, dan penanganan error terpusat.
  */
 
+import { unstable_rethrow } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { ZodError, type ZodType } from 'zod';
 
@@ -63,6 +64,8 @@ export function handle<A extends unknown[]>(
     try {
       return await fn(...args);
     } catch (err) {
+      // Error internal Next (mis. prerender abort dari connection()) harus diteruskan.
+      unstable_rethrow(err);
       return errorResponse(err);
     }
   };

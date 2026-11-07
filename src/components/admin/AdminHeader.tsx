@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { settingsService } from '@/services/settings';
 import { StoreSettings, Shift } from '@/types';
 import {
@@ -13,10 +13,12 @@ import {
   ArrowLeft,
   Wifi,
   WifiOff,
+  LogOut,
 } from 'lucide-react';
 
 export function AdminHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
 
@@ -48,6 +50,15 @@ export function AdminHeader() {
       window.removeEventListener('pv_storage_update', handleUpdate);
     };
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      router.replace('/admin/login');
+      router.refresh();
+    }
+  };
 
   const activeShift =
     shifts.find((s) => s.id === settings?.recipientShiftId) ||
@@ -144,6 +155,17 @@ export function AdminHeader() {
           >
             <span>Tampilan Pelanggan</span>
           </Link>
+
+          {/* Keluar */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="min-h-[44px] px-4 py-2 rounded-full bg-white hover:bg-[#f5f2ed] border border-[#e9e5df] text-[#68645e] hover:text-[#242321] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            aria-label="Keluar dari admin"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Keluar</span>
+          </button>
         </div>
       </div>
 

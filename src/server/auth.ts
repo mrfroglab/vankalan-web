@@ -1,24 +1,48 @@
 /**
  * Penjaga akses endpoint admin.
  *
- * STATUS: placeholder sampai autentikasi admin sungguhan dibuat (langkah berikutnya).
- * - Non-production: diizinkan agar UI admin bisa dikembangkan.
- * - Production: SELALU ditolak (503) sampai auth diimplementasikan, supaya endpoint
- *   tulis tidak pernah terbuka ke publik tanpa sengaja.
- *
- * Semua route admin memanggil requireAdmin(); saat auth siap, cukup ganti isi fungsi ini.
+ * - Auth terkonfigurasi (ADMIN_PASSWORD + SESSION_SECRET): wajib cookie sesi valid, jika
+ *   tidak 401. Permintaan yang mengubah data juga harus berasal dari origin yang sama.
+ * - Belum terkonfigurasi: non-production diizinkan (pengembangan lokal); production
+ *   ditolak 503 (fail closed) agar endpoint tulis tidak pernah terbuka tanpa sengaja.
  */
 
 import { HttpError } from './http';
+import { SESSION_COOKIE, isAuthConfigured, readCookie, verifySessionToken } from './session';
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+function assertSameOrigin(request: Request): void {
+  if (SAFE_METHODS.has(request.method)) return;
+  const origin = request.headers.get('origin');
+  if (!origin) return; // klien non-browser; cookie SameSite=Strict sudah melindungi browser
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    throw new HttpError(403, 'Origin permintaan tidak valid.');
+  }
+  if (host && originHost !== host) {
+    throw new HttpError(403, 'Permintaan lintas-origin ditolak.');
+  }
+}
 
 export function requireAdmin(request: Request): void {
-  void request; // dipakai saat auth sungguhan (cookie/header) diimplementasikan
-  if (process.env.NODE_ENV === 'production') {
-    throw new HttpError(
-      503,
-      'Autentikasi admin belum dikonfigurasi; endpoint admin dinonaktifkan di production.'
-    );
+  if (!isAuthConfigured()) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new HttpError(
+        503,
+        'Autentikasi admin belum dikonfigurasi (ADMIN_PASSWORD dan SESSION_SECRET); endpoint admin dinonaktifkan.'
+      );
+    }
+    return;
   }
+  const token = readCookie(request.headers.get('cookie'), SESSION_COOKIE);
+  if (!verifySessionToken(token)) {
+    throw new HttpError(401, 'Sesi admin tidak valid atau sudah berakhir. Silakan masuk kembali.');
+  }
+  assertSameOrigin(request);
 }
 
 /**
