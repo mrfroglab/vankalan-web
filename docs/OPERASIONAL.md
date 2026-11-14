@@ -41,6 +41,18 @@ Tanpa `ADMIN_PASSWORD` + `SESSION_SECRET` (≥ 32 karakter) seluruh area admin d
 
 **WAHA:** satu sesi pengirim, engine WEBJS, dengan **volume tetap** untuk sesi supaya login WhatsApp bertahan setelah restart
 container. Dashboard WAHA tidak boleh dapat diakses publik. Pada pemakaian pertama scan QR dari dashboard WAHA.
+Di server sudah terpasang sebagai service `waha` (container `vankalan-waha`) di stack vankalan: hanya di jaringan
+`vankalan-internal` bersama `app`, dashboard di `http://127.0.0.1:3008/dashboard` (localhost server saja), kredensial
+dashboard dan API key di `/opt/stacks/apps/vankalan/waha.env` (`chmod 600`; `WAHA_API_KEY` di `.env` harus sama),
+sesi tersimpan di `data/waha-sessions`. Pakai **nomor WhatsApp khusus warung** sebagai pengirim, bukan nomor pribadi.
+Dari laptop lain: `ssh -L 3008:127.0.0.1:3008 <server>` lalu buka `http://localhost:3008/dashboard`.
+
+**Preflight** (key Midtrans diterima? sesi WA aktif? secret admin terisi?) sebelum tes atau rilis:
+
+```bash
+docker run --rm --network vankalan-internal --env-file /opt/stacks/apps/vankalan/.env \
+  -v "$PWD/scripts:/s:ro" node:22-alpine node /s/check-integrations.mjs [--send-test 0812xxxx]
+```
 
 **Database:** buat database kosong, lalu `pnpm db:migrate` (otomatis lewat deploy bila `DATABASE_URL` secret ada).
 `pnpm db:seed` **hanya** untuk database kosong: ia menimpa menu, kategori, sif, dan pengaturan dengan data contoh. Setelah itu
@@ -79,8 +91,8 @@ Retry otomatis untuk pesan yang gagal tetap menuju penerima awal; pindah ke penj
 
 | Gangguan | Yang terjadi otomatis | Tindakan penjaga/pengelola |
 |---|---|---|
-| **WAHA mati / sesi WA terputus** | Order & pembayaran tetap tersimpan. Notifikasi di-retry 30 dtk → 2 mnt → 5 mnt, lalu `FAILED`. Header admin menampilkan "WAHA tidak terjangkau" / "Perlu scan QR ulang". | Pantau dashboard sebagai jalur cadangan. Perbaiki WAHA/scan QR; lalu *Kirim Ulang* order yang `FAILED`. **Bila tidak ada yang bisa memantau dashboard, tutup pemesanan online secara manual.** Tombol "WA terputus" di Pengaturan menjeda pengiriman (tugas tetap antre, percobaan tidak terpakai). |
-| **Notifikasi `UNKNOWN`** (timeout, hasil tak jelas) | Tidak di-retry buta. Setelah jeda, riwayat chat WAHA diperiksa untuk nomor order: ada → `SENT`; tidak ada → dikirim ulang. | Jika verifikasi otomatis gagal 3x, status tetap `UNKNOWN`: cek WhatsApp penerima, baru *Kirim Ulang* bila belum ada. Duplikasi tidak dijamin nol (tidak ada exactly-once); nomor order di pesan membantu mengenali pesan ganda. |
+| **WAHA mati / sesi WA terputus** | Order & pembayaran tetap tersimpan. Sebelum kirim, status sesi dicek: bila tidak `WORKING` (mis. `SCAN_QR_CODE`), pengiriman langsung dianggap gagal-pasti tanpa memanggil `sendText` (diuji dengan WAHA asli, 2026-11-14). Notifikasi di-retry 30 dtk → 2 mnt → 5 mnt, lalu `FAILED`. Header admin menampilkan "WAHA tidak terjangkau" / "Perlu scan QR ulang". | Pantau dashboard sebagai jalur cadangan. Perbaiki WAHA/scan QR; lalu *Kirim Ulang* order yang `FAILED`. **Bila tidak ada yang bisa memantau dashboard, tutup pemesanan online secara manual.** Tombol "WA terputus" di Pengaturan menjeda pengiriman (tugas tetap antre, percobaan tidak terpakai). |
+| **Notifikasi `UNKNOWN`** (timeout, hasil tak jelas) | Tidak di-retry buta. Setelah jeda, riwayat chat WAHA diperiksa untuk nomor order: ada → `SENT`; tidak ada → dikirim ulang. Selama sesi WA tidak aktif, verifikasi ditunda tanpa menghabiskan jatah 3x. | Jika verifikasi otomatis gagal 3x, status tetap `UNKNOWN`: cek WhatsApp penerima, baru *Kirim Ulang* bila belum ada. Duplikasi tidak dijamin nol (tidak ada exactly-once); nomor order di pesan membantu mengenali pesan ganda. |
 | **Webhook Midtrans terlambat/hilang** | Rekonsiliasi: saat pelanggan membuka halaman order (maks 1x/30 dtk), tiap 2 menit oleh pekerja, dan lewat `POST /api/payments/reconcile`. | Tidak perlu tindakan. Jangan minta pelanggan bayar lagi; sistem mengecek status resmi sebelum membuat percobaan bayar baru. |
 | **Midtrans tidak terjangkau saat checkout** | Order `FAILED`, pelanggan melihat pesan gagal memulai pembayaran. | Minta pelanggan mencoba lagi. Tidak ada order palsu di sisi dapur. |
 | **Pelanggan membayar tapi menutup halaman** | Webhook tetap memproses; order muncul di dapur. | Pelanggan membuka tautan/riwayat order di perangkatnya. |
@@ -136,6 +148,19 @@ DATABASE_URL=postgresql://... pnpm db:backup backups          # KEEP=14 cadangan
 DATABASE_URL=postgresql://... pnpm db:restore-check backups/warmindo-YYYYMMDD-HHMMSS.dump
 ```
 
+**Di server produksi** DB hanya ada di jaringan Docker (`vankalan-db` di `gateway-net`, tanpa port ke host), jadi alat
+PostgreSQL dijalankan lewat container di jaringan itu. `DATABASE_URL` bergaya Prisma (`?schema=public`) dirapikan otomatis:
+
+```bash
+cd vankalan-web
+set -a; . /opt/stacks/apps/vankalan/.env; set +a
+PG_NETWORK=gateway-net pnpm db:backup /opt/stacks/backup/vankalan
+PG_NETWORK=gateway-net pnpm db:restore-check /opt/stacks/backup/vankalan/warmindo-YYYYMMDD-HHMMSS.dump
+# Sebelum cutover (DB masih berisi tabel backend Express lama): tambahkan REQUIRE_APP_TABLES=0
+```
+
+Cadangan pertama + uji restore DB produksi: **berhasil** 2026-11-14 (`/opt/stacks/backup/vankalan/`, skema lama).
+
 **(usulan)** Jadwalkan `db:backup` harian lewat cron di server (mis. 02:00) dan salin hasilnya ke lokasi di **luar** server
 database. Pengguna di `DATABASE_URL` harus boleh `CREATE DATABASE` untuk `db:restore-check`; selisih jumlah baris hanya
 peringatan (data hidup berubah setelah cadangan). Lokasi, retensi cadangan, dan jadwal final: TBD-08.
@@ -165,24 +190,26 @@ Penghapusan/anonimisasi **tidak dapat dibatalkan** selain dengan memulihkan cada
 |---|---|---|
 | TBD-01 | Daftar menu, harga, foto final | Isi katalog produksi lewat dashboard (jangan `db:seed` ulang). |
 | TBD-02 | Akun Midtrans, kanal, durasi kedaluwarsa | `MIDTRANS_*`, `MIDTRANS_EXPIRY_MINUTES` (default 15). |
-| TBD-03 | Hosting web/database | `DATABASE_URL`, jaringan runner migrasi (`--network host`). |
+| ~~TBD-03~~ | Hosting web/database | **Terjawab:** Thinkpad (`/opt/stacks/apps/vankalan`), DB `vankalan-db` di `gateway-net`. Migrasi deploy: GitHub Variable `MIGRATION_NETWORK=gateway-net`. |
 | TBD-05 | Akun admin bersama vs per penjaga | Saat ini satu `ADMIN_PASSWORD` bersama; per penjaga butuh perubahan di `src/server/session.ts` + login. |
 | TBD-06 | Kebijakan refund/no-show | SOP bagian 2; belum ada batas/tenggat otomatis. |
 | TBD-07 | Aturan pembayaran terlambat, interval jam ambil | Penanda "Perlu konfirmasi waktu" sudah ada; aturan lain belum. |
 | TBD-08 | Retensi, masa berlaku tautan, backup | Bagian 6 dan 7 (semua default usulan). |
 | TBD-10 | SOP serah terima & penutupan online saat WA mati | Bagian 3 (usulan). |
 
+Lembar keputusan untuk pemilik warung (bahasa sederhana, dengan rekomendasi): [`KEPUTUSAN-PEMILIK.md`](./KEPUTUSAN-PEMILIK.md).
+
 ## 9. Checklist kesiapan produksi (PRD 14.5)
 
 | Item | Status |
 |---|---|
-| Alur end-to-end di sandbox | Diuji dengan Midtrans/WAHA **palsu** di Postgres asli (webhook, retry, restart, timeout). **Belum** dengan Midtrans sandbox dan WAHA sungguhan. |
-| Transaksi produksi nominal kecil | Belum. |
-| Diuji di dua ukuran layar HP dan koneksi representatif | Belum (manual). |
+| Alur end-to-end di sandbox | **Sebagian** (2026-11-14). WAHA asli (v2026.10.1, WEBJS) terpasang di server; endpoint dicocokkan dengan OpenAPI-nya; alur order → PAID → antrean WA diuji ke WAHA asli (sesi belum login dan container mati). **Sisa:** scan QR lalu tes kirim sungguhan, dan Midtrans sandbox (butuh key). Jalankan `scripts/check-integrations.mjs` dulu. |
+| Transaksi produksi nominal kecil | Belum (butuh akun Midtrans produksi + cutover, bagian 10). |
+| Diuji di dua ukuran layar HP dan koneksi representatif | **Otomatis lulus** (2026-11-14): Chrome mobile 360×740 dan 412×915, jaringan 4G dan 3G lambat + CPU 4x; menu → tambah → checkout → order → admin antrean, tanpa scroll horizontal. Menu siap dipakai ±1 dtk (4G) / ±3,8 dtk (3G lambat). Ditemukan & diperbaiki: header melebarkan halaman di layar 360px. **Sisa:** coba sekali di HP sungguhan. |
 | API key/token rahasia tidak muncul di bundle browser | **Terverifikasi** (2026-11-08): build dengan nilai khas untuk `DATABASE_URL`, `MIDTRANS_SERVER_KEY`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `WAHA_API_KEY` → 0 berkas di `.next/static` dan `.next/server`; hanya client key publik (`NEXT_PUBLIC_*`) yang ada di bundle klien. Ulangi bila menambah variabel baru. |
-| Gangguan WAHA, internet, webhook terlambat diuji | Diuji otomatis dan e2e dengan simulasi; belum dengan gangguan nyata. |
-| Backup dan satu percobaan restore | Skrip siap dan teruji lokal; **jalankan pada database produksi** sebelum rilis. |
-| Simulasi pergantian sif dan order bermasalah bersama Aa Iis | Belum (manual). |
+| Gangguan WAHA, internet, webhook terlambat diuji | **WAHA: diuji nyata** (sesi belum login → gagal-pasti + retry; container dimatikan → `ECONNREFUSED` + retry; restart → sesi aktif lagi). Uji ini menemukan bug: WAHA asli menahan ~10 dtk sebelum menolak sehingga semua order jadi `UNKNOWN`; sudah diperbaiki. Webhook terlambat & internet putus: masih simulasi (butuh Midtrans sandbox). |
+| Backup dan satu percobaan restore | **Berhasil pada DB produksi** (2026-11-14, skema lama). Gladi migrasi cutover pada salinan DB produksi juga berhasil. Ulangi `db:restore-check` setelah cutover (skema baru). |
+| Simulasi pergantian sif dan order bermasalah bersama Aa Iis | Belum (manual). Naskah: [`SIMULASI-SIF.md`](./SIMULASI-SIF.md). |
 | Keputusan terbuka yang menghambat produksi ditutup | Lihat bagian 8. |
 
 **Hal yang perlu diuji dengan layanan sungguhan sebelum rilis:** (1) pembayaran sandbox end-to-end termasuk webhook
@@ -190,3 +217,33 @@ terdaftar di dashboard; (2) bentuk respons `sendText` dan riwayat chat pada WAHA
 `UNKNOWN` bergantung pada endpoint riwayat — bila tidak terbaca, sistem aman: status tetap `UNKNOWN` dan penjaga memutuskan);
 (3) host produksi Midtrans (`app.midtrans.com`, `api.midtrans.com`) dapat di-override lewat `MIDTRANS_SNAP_API_URL` dan
 `MIDTRANS_CORE_API_URL` bila berbeda.
+
+## 10. Cutover produksi (backend Express lama → backend Next.js)
+
+Produksi saat ini masih versi lama: `vankalan-app` (frontend lama) + `vankalan-api` (Express/Prisma), dan Caddy
+mengarahkan `/api/*` ke `vankalan-api`. Backend baru ada di route `/api/*` aplikasi Next.js ini (termasuk webhook
+Midtrans). Tabel keduanya tidak bentrok (PascalCase vs snake_case), tetapi **data lama tidak dipindahkan**: 8 menu dan
+2 order uji di tabel lama; menu final diisi ulang lewat dashboard (TBD-01).
+
+**Merge ke `main` = deploy otomatis.** Siapkan semua ini dulu, baru merge:
+
+1. **GitHub** (`mrfroglab/vankalan-web` → Settings → Secrets and variables → Actions):
+   - Secret `DATABASE_URL` = isi `DATABASE_URL` dari `/opt/stacks/apps/vankalan/.env`, tanpa menampilkannya:
+     `grep '^DATABASE_URL=' /opt/stacks/apps/vankalan/.env | cut -d= -f2- | tr -d '"' | gh secret set DATABASE_URL -R mrfroglab/vankalan-web`
+   - Variables: `MIGRATION_NETWORK=gateway-net`, `NEXT_PUBLIC_API_URL=/`, `NEXT_PUBLIC_APP_URL=https://<domain final>`,
+     `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`, `NEXT_PUBLIC_MIDTRANS_SNAP_URL` (sandbox: `https://app.sandbox.midtrans.com/snap/snap.js`).
+2. **Server** `/opt/stacks/apps/vankalan/.env`: isi `MIDTRANS_SERVER_KEY` (sudah ada `ADMIN_PASSWORD`, `SESSION_SECRET`,
+   `WAHA_*`, `MIDTRANS_IS_PRODUCTION=false`, `MIDTRANS_EXPIRY_MINUTES=15`). Jangan set `ALLOW_PAYMENT_SIMULATION`.
+3. **WAHA**: sesi `default` sudah di-scan QR (status `WORKING`). Preflight harus lolos (bagian 1).
+4. **Midtrans dashboard**: Notification URL = `https://<domain final>/api/payments/midtrans/notification`.
+5. **Backup** tepat sebelum merge (bagian 6, `REQUIRE_APP_TABLES=0`).
+6. **Merge PR** → tunggu workflow *CI/CD Pipeline* hijau (migrasi jalan lewat `gateway-net`, app di-recreate).
+7. **Caddy** (setelah app baru jalan), sesuai SOP: backup `Caddyfile`, hapus blok `handle /api/*` → `vankalan-api` pada domain
+   vankalan sehingga semua path ke `vankalan-app:3000`, lalu `caddy validate` + `caddy reload`.
+8. **Matikan backend lama**: `docker compose -f /opt/stacks/apps/vankalan/docker-compose.yml stop api`
+   (hapus service `api` dari compose setelah beberapa hari stabil).
+9. **Verifikasi**: buka situs di HP, login `/admin`, isi menu & sif (nomor WA penjaga asli), buat order sandbox sampai
+   lunas dan WA masuk ke penjaga, lalu `db:restore-check` (tanpa `REQUIRE_APP_TABLES=0`).
+
+**Rollback:** kembalikan `Caddyfile.bak` + reload, `docker compose start api`, dan deploy ulang image lama
+(`ghcr.io/mrfroglab/vankalan-web:sha-<commit lama>` sebagai `latest`). Tabel baru boleh dibiarkan; tidak mengganggu backend lama.
