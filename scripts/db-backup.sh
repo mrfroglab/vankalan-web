@@ -10,6 +10,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/lib-pg.sh"
 
 : "${DATABASE_URL:?DATABASE_URL belum diatur}"
+DATABASE_URL="$(pg_url "$DATABASE_URL")"
 OUT_DIR="${1:-backups}"
 KEEP="${KEEP:-14}"
 
