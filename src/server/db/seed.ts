@@ -5,6 +5,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
+import { normalizeDatabaseUrl } from './url';
 import type { Db } from './index';
 import { seedDefaults } from '../repos/defaults';
 import { replaceOrdersWithSeed } from '../repos/orders';
@@ -13,7 +14,7 @@ import { createSeedOrders } from '@/lib/store';
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL belum diatur.');
-  const client = postgres(url, { max: 1 });
+  const client = postgres(normalizeDatabaseUrl(url), { max: 1 });
   const db = drizzle(client, { schema }) as unknown as Db;
   try {
     await seedDefaults(db);

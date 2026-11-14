@@ -12,6 +12,7 @@ RUN pnpm install --frozen-lockfile
 # One-off migration runner: docker run --rm -e DATABASE_URL=... <image>:migrator
 FROM deps AS migrator
 COPY drizzle.config.ts ./
+COPY src/server/db/url.ts ./src/server/db/url.ts
 COPY drizzle ./drizzle
 CMD ["pnpm", "exec", "drizzle-kit", "migrate"]
 

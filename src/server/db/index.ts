@@ -7,6 +7,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import postgres from 'postgres';
 import * as schema from './schema';
+import { normalizeDatabaseUrl } from './url';
 
 export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
 
@@ -18,7 +19,7 @@ export function getDb(): Db {
   if (!url) {
     throw new Error('DATABASE_URL belum dikonfigurasi.');
   }
-  const client = postgres(url, { max: 10, prepare: false });
+  const client = postgres(normalizeDatabaseUrl(url), { max: 10, prepare: false });
   cached = drizzle(client, { schema }) as unknown as Db;
   return cached;
 }
