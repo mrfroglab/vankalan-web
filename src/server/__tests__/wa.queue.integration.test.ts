@@ -198,6 +198,42 @@ describe('antrean notifikasi WA', () => {
     expect(sends).toHaveLength(0);
   });
 
+  it('sesi WA belum login (SCAN_QR_CODE): FAILED pasti + retry otomatis, bukan UNKNOWN; terkirim setelah scan QR', async () => {
+    sessionStatus = 'SCAN_QR_CODE';
+    const o = await paidOrder();
+    await enqueueNewOrder(db, o.id);
+    const t0 = Date.now();
+    await processDueJobs(db, { now: t0 });
+    let j = (await jobOf(o.id))[0];
+    expect(j.status).toBe('QUEUED'); // dijadwalkan ulang, bukan UNKNOWN
+    expect(j.lastError).toContain('SCAN_QR_CODE');
+    expect(sends).toHaveLength(0);
+    sessionStatus = 'WORKING'; // penjaga scan QR
+    await processDueJobs(db, { now: t0 + 31 * SEC });
+    j = (await jobOf(o.id))[0];
+    expect(j.status).toBe('SENT');
+    expect(sends).toHaveLength(1);
+  });
+
+  it('UNKNOWN saat sesi WA mati: verifikasi ditunda tanpa menghabiskan jatah, lanjut setelah sesi aktif', async () => {
+    sendMode = 'timeout';
+    const o = await paidOrder();
+    await enqueueNewOrder(db, o.id);
+    const t0 = Date.now();
+    await processDueJobs(db, { now: t0 });
+    sessionStatus = 'SCAN_QR_CODE';
+    for (let i = 1; i <= 5; i++) await processDueJobs(db, { now: t0 + i * 130 * SEC });
+    let j = (await jobOf(o.id))[0];
+    expect(j).toMatchObject({ status: 'UNKNOWN', verifyAttempts: 0 });
+    expect(j.lastError).toContain('menunggu sesi WhatsApp aktif');
+    sessionStatus = 'WORKING';
+    history = [{ body: `No. order: ${o.number}`, fromMe: true, timestamp: (t0 + 5 * SEC) / 1000 }];
+    await processDueJobs(db, { now: t0 + 6 * 130 * SEC });
+    j = (await jobOf(o.id))[0];
+    expect(j.status).toBe('SENT');
+    expect(sends).toHaveLength(0);
+  });
+
   it('proses mati di tengah kirim (lease habis): jadi UNKNOWN, tidak dikirim ulang buta', async () => {
     const o = await paidOrder();
     const job = (await enqueueNewOrder(db, o.id))!;

@@ -22,7 +22,7 @@ import type { Db } from '../db';
 import { notificationJobs, orders, type DbNotificationJob } from '../db/schema';
 import { getOrderById } from '../repos/orders';
 import { getSettings, listShifts } from '../repos/settings';
-import { getWahaConfig, sendWhatsAppText, wasMessageSent, type SendResult } from './waha';
+import { getSessionState, getWahaConfig, sendWhatsAppText, wasMessageSent, type SendResult } from './waha';
 
 const LEASE_MS = 2 * 60 * 1000;
 /** Jeda sebelum riwayat WA diperiksa untuk tugas UNKNOWN (beri waktu tersinkron). WA_VERIFY_DELAY_SECONDS. */
@@ -290,6 +290,17 @@ async function verifyUnknown(db: Db, job: DbNotificationJob, now: number) {
   const cfg = getWahaConfig();
   try {
     if (!cfg || !job.recipientPhone) throw new Error('WAHA belum dikonfigurasi');
+    // Riwayat chat tidak bisa dibaca selama sesi tidak WORKING (WAHA menahan lalu menolak).
+    // Tunda tanpa menghabiskan jatah verifikasi; dicoba lagi setelah sesi aktif kembali.
+    const session = await getSessionState(cfg);
+    if (session.reachable && session.status !== 'WORKING' && session.status !== 'UNKNOWN') {
+      return update(db, job.id, {
+        status: 'UNKNOWN',
+        lockedUntil: null,
+        nextAttemptAt: new Date(now + verifyDelayMs()),
+        lastError: `${(job.lastError ?? 'Hasil tidak diketahui').replace(/ \(menunggu sesi WhatsApp aktif.*\)$/, '')} (menunggu sesi WhatsApp aktif untuk verifikasi; status ${session.status})`,
+      });
+    }
     const found = await wasMessageSent(cfg, job.recipientPhone, order!.number, job.createdAt.getTime() - 60_000);
     if (found) {
       return update(db, job.id, {

@@ -15,11 +15,13 @@ describe('sendWhatsAppText: klasifikasi hasil', () => {
   const send = () => sendWhatsAppText(cfg, '6281234500001', 'halo');
 
   it('2xx = SENT, id pesan dibaca defensif (string/objek)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(res(201, { id: 'true_628@c.us_ABC' })));
+    // Response baru per panggilan (pre-check sesi juga membaca body).
+    const always = (status: number, body: unknown) => vi.fn().mockImplementation(() => Promise.resolve(res(status, body)));
+    vi.stubGlobal('fetch', always(201, { id: 'true_628@c.us_ABC' }));
     expect(await send()).toEqual({ kind: 'SENT', messageId: 'true_628@c.us_ABC' });
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(res(201, { id: { _serialized: 'X1' } })));
+    vi.stubGlobal('fetch', always(201, { id: { _serialized: 'X1' } }));
     expect(await send()).toEqual({ kind: 'SENT', messageId: 'X1' });
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(res(200, 'bukan json')));
+    vi.stubGlobal('fetch', always(200, 'bukan json'));
     expect(await send()).toEqual({ kind: 'SENT', messageId: undefined });
   });
 
@@ -27,7 +29,7 @@ describe('sendWhatsAppText: klasifikasi hasil', () => {
     const f = vi.fn().mockResolvedValue(res(201, {}));
     vi.stubGlobal('fetch', f);
     await send();
-    const [url, init] = f.mock.calls[0];
+    const [url, init] = f.mock.calls.find(([u]) => String(u).endsWith('/api/sendText'))!;
     expect(url).toBe('http://waha.test/api/sendText');
     expect(JSON.parse(init.body)).toEqual({ session: 'default', chatId: '6281234500001@c.us', text: 'halo' });
     expect(init.headers['X-Api-Key']).toBe('secret');
@@ -51,6 +53,38 @@ describe('sendWhatsAppText: klasifikasi hasil', () => {
     expect((await send()).kind).toBe('UNKNOWN');
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(netErr('ECONNRESET')));
     expect((await send()).kind).toBe('UNKNOWN');
+  });
+
+  it('sesi jelas tidak WORKING = FAILED tanpa memanggil sendText (WAHA asli menahan ~10 dtk lalu 422)', async () => {
+    for (const status of ['SCAN_QR_CODE', 'STARTING', 'STOPPED', 'FAILED']) {
+      const f = vi.fn().mockResolvedValue(res(200, { name: 'default', status }));
+      vi.stubGlobal('fetch', f);
+      expect(await send()).toMatchObject({ kind: 'FAILED', error: expect.stringContaining(status) });
+      expect(f.mock.calls.some(([u]) => String(u).endsWith('/api/sendText'))).toBe(false);
+    }
+  });
+
+  it('status sesi tak terbaca (non-2xx/timeout) tidak menghalangi kirim', async () => {
+    const f = vi.fn().mockImplementation((u: string) =>
+      Promise.resolve(String(u).includes('/api/sessions/') ? res(500) : res(201, { id: 'A' }))
+    );
+    vi.stubGlobal('fetch', f);
+    expect(await send()).toEqual({ kind: 'SENT', messageId: 'A' });
+    const g = vi.fn().mockImplementation((u: string) =>
+      String(u).includes('/api/sessions/')
+        ? Promise.reject(Object.assign(new Error('t'), { name: 'TimeoutError' }))
+        : Promise.resolve(res(201, { id: 'B' }))
+    );
+    vi.stubGlobal('fetch', g);
+    expect(await send()).toEqual({ kind: 'SENT', messageId: 'B' });
+  });
+
+  it('timeout default lebih panjang dari jeda tunggu WAHA (~10 dtk)', async () => {
+    vi.stubEnv('WAHA_BASE_URL', 'http://waha.test');
+    vi.stubEnv('WAHA_TIMEOUT_MS', '');
+    const { getWahaConfig } = await import('../wa/waha');
+    expect(getWahaConfig()!.timeoutMs).toBeGreaterThan(10_000);
+    vi.unstubAllEnvs();
   });
 
   it('tanpa konfigurasi = FAILED', async () => {

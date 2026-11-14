@@ -27,7 +27,9 @@ export function getWahaConfig(): WahaConfig | null {
     baseUrl,
     session: process.env.WAHA_SESSION?.trim() || 'default',
     apiKey: process.env.WAHA_API_KEY?.trim() || undefined,
-    timeoutMs: Number.isInteger(timeout) && timeout >= 1000 ? timeout : 10_000,
+    // WAHA asli menahan sendText ~10 dtk menunggu sesi WORKING sebelum menjawab 422; timeout
+    // harus lebih panjang dari itu supaya penolakan pasti tidak terbaca sebagai UNKNOWN.
+    timeoutMs: Number.isInteger(timeout) && timeout >= 1000 ? timeout : 20_000,
   };
 }
 
@@ -68,6 +70,19 @@ export async function sendWhatsAppText(
 ): Promise<SendResult> {
   if (!cfg) return { kind: 'FAILED', error: 'WAHA belum dikonfigurasi (WAHA_BASE_URL).' };
 
+  // Cek sesi dulu (cepat): bila jelas tidak WORKING, sendText belum dipanggil sama sekali,
+  // jadi hasilnya pasti FAILED dan aman di-retry. Status yang tidak terbaca tidak menghalangi kirim.
+  const session = await getSessionState(cfg);
+  if (session.reachable && session.status !== 'WORKING' && session.status !== 'UNKNOWN') {
+    return {
+      kind: 'FAILED',
+      error: `Sesi WhatsApp tidak aktif (status ${session.status})${session.needsQr ? '; scan QR ulang di dashboard WAHA' : ''}.`,
+    };
+  }
+  if (!session.reachable && session.code && NEVER_CONNECTED.has(session.code)) {
+    return { kind: 'FAILED', error: `WAHA tidak dapat dihubungi (${session.code}).` };
+  }
+
   let res: Response;
   try {
     res = await fetch(`${cfg.baseUrl}/api/sendText`, {
@@ -103,7 +118,7 @@ export async function sendWhatsAppText(
 
 export type SessionState =
   | { reachable: true; status: string; needsQr: boolean }
-  | { reachable: false; error: string };
+  | { reachable: false; error: string; code?: string };
 
 /** Status sesi WA (FR-36): SCAN_QR_CODE / FAILED berarti perlu scan QR ulang di dashboard WAHA. */
 export async function getSessionState(cfg: WahaConfig): Promise<SessionState> {
@@ -117,7 +132,7 @@ export async function getSessionState(cfg: WahaConfig): Promise<SessionState> {
     const status = String(data.status ?? 'UNKNOWN');
     return { reachable: true, status, needsQr: status === 'SCAN_QR_CODE' || status === 'FAILED' };
   } catch (err) {
-    return { reachable: false, error: (err as Error).message ?? 'WAHA tidak dapat dihubungi' };
+    return { reachable: false, error: (err as Error).message ?? 'WAHA tidak dapat dihubungi', code: errorCode(err) };
   }
 }
 
