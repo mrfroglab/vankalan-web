@@ -12,7 +12,7 @@ import { setDbForTesting, type Db } from '../db';
 import { paymentEvents, paymentTransactions } from '../db/schema';
 import { computeSignature, getMidtransConfig, type MidtransStatusPayload } from '../payments/midtrans';
 import { reconcileOrder, reconcilePending, resumePayment, startPayment } from '../payments/service';
-import { applyGatewayStatus, reserveAttempt } from '../repos/payments';
+import { applyGatewayStatus, midtransOrderIdFor, reserveAttempt } from '../repos/payments';
 import { cancelOrder, createOrder, getOrderById } from '../repos/orders';
 import { makeTestDb } from './helpers';
 import * as notification from '@/app/api/payments/midtrans/notification/route';
@@ -74,7 +74,7 @@ async function newOrder(over: Partial<CreateOrderPayload> = {}) {
   const order = await createOrder(db, orderPayload(over));
   const cfg = getMidtransConfig()!;
   await startPayment(db, cfg, order);
-  return { order, mid: `${order.number}-1`, cfg };
+  return { order, mid: midtransOrderIdFor(order, 1), cfg };
 }
 const refetch = async (id: string) => (await getOrderById(db, id))!;
 const events = async (mid: string) => db.select().from(paymentEvents).where(eq(paymentEvents.midtransOrderId, mid));
@@ -101,7 +101,7 @@ afterEach(() => {
 describe('memulai pembayaran', () => {
   it('membuat percobaan 1 dengan order_id unik, menyimpan token, dan memakai ulang token yang masih berlaku', async () => {
     const { order, mid, cfg } = await newOrder();
-    expect(mid).toMatch(/^PV-\d{8}-\d{4}-1$/);
+    expect(mid).toMatch(/^PV-\d{8}-\d{4}-1-[A-Za-z0-9]{6}$/);
     const o = await refetch(order.id);
     expect(o.snapToken).toBe(`snap-${mid}`);
     expect(o.payment).toBe('PENDING');
@@ -243,9 +243,9 @@ describe('pemulihan pembayaran & kasus tepi', () => {
     const { order, mid, cfg } = await newOrder();
     await post(notif(mid, 'deny'));
     const retry = await resumePayment(db, cfg, order.id);
-    expect(retry.snapToken).toBe(`snap-${order.number}-2`);
+    expect(retry.snapToken).toBe(`snap-${midtransOrderIdFor(order, 2)}`);
     expect((await refetch(order.id)).payment).toBe('PENDING');
-    await post(notif(`${order.number}-2`, 'settlement'));
+    await post(notif(midtransOrderIdFor(order, 2), 'settlement'));
     expect((await refetch(order.id)).payment).toBe('PAID');
   });
 
