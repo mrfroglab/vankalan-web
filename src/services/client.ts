@@ -58,6 +58,18 @@ export async function apiRequest<T>(
     throw new ApiError(errorMsg, 0, normalizedPath, networkError);
   }
 
+  if (
+    response.status === 401 &&
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/admin')
+  ) {
+    // Sesi admin berakhir: kembali ke login alih-alih diam-diam memakai data lokal.
+    const next = encodeURIComponent(window.location.pathname);
+    // Reload penuh disengaja (di luar komponen React): membersihkan state klien lama.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.href = `/admin/login?next=${next}`;
+  }
+
   if (!response.ok) {
     let errorMessage = `HTTP error ${response.status}: ${response.statusText}`;
     let errorData: unknown = null;

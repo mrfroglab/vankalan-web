@@ -8,6 +8,7 @@ import { orderService } from '@/services/orders';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Modal } from '@/components/ui/Modal';
 import { formatTimeWIB } from '@/lib/constants';
+import { HandoverSummary, needsHandover, openPaidOrders, runHandover } from '@/lib/handover';
 import {
   Plus,
   Phone,
@@ -18,6 +19,7 @@ import {
   CheckCircle2,
   Clock,
   UserCheck,
+  Send,
 } from 'lucide-react';
 
 export default function AdminSifPage() {
@@ -25,6 +27,11 @@ export default function AdminSifPage() {
   const [activeShiftId, setActiveShiftId] = useState<string>('s1');
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Serah terima: konfirmasi setelah mengganti sif + hasil pengiriman ke penjaga pengganti
+  const [handoverPrompt, setHandoverPrompt] = useState<Shift | null>(null);
+  const [isHandingOver, setIsHandingOver] = useState<boolean>(false);
+  const [handoverResult, setHandoverResult] = useState<HandoverSummary | null>(null);
 
   // State Modal Tambah / Edit Penjaga
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -50,10 +57,7 @@ export default function AdminSifPage() {
       setActiveShiftId(settings.recipientShiftId || s[0]?.id || 's1');
 
       // Pesanan lunas yang belum selesai diserahkan
-      const unfulfilled = orders.filter(
-        (o) => o.payment === 'PAID' && ['NEW', 'PREPARING', 'READY'].includes(o.fulfillment)
-      );
-      setPendingOrders(unfulfilled);
+      setPendingOrders(openPaidOrders(orders));
     } catch (e) {
       console.warn('Gagal memuat data di AdminSifPage:', e);
     }
@@ -82,6 +86,25 @@ export default function AdminSifPage() {
     setActiveShiftId(shiftId);
     if (shift) {
       showToast(`Sif aktif berhasil dialihkan ke ${shift.name}.`);
+      // Pengiriman ke penjaga pengganti harus eksplisit: tawarkan, jangan kirim otomatis.
+      if (pendingOrders.some((o) => needsHandover(o, shiftId))) {
+        setHandoverResult(null);
+        setHandoverPrompt(shift);
+      }
+    }
+  };
+
+  const ordersToHandOver = pendingOrders.filter((o) => needsHandover(o, activeShiftId));
+  const activeShift = shifts.find((s) => s.id === activeShiftId);
+
+  const handleSendHandover = async () => {
+    setIsHandingOver(true);
+    try {
+      const summary = await runHandover(ordersToHandOver, (id) => orderService.retryWhatsApp(id));
+      setHandoverResult(summary);
+      await loadData();
+    } finally {
+      setIsHandingOver(false);
     }
   };
 
@@ -333,7 +356,49 @@ export default function AdminSifPage() {
                         <span>Pelanggan: <strong className="text-[#242321]">{o.name}</strong></span>
                         <span>{o.items.length} menu ({o.fulfillment})</span>
                       </div>
+
+                      <div className="text-[11px] text-[#68645e]">
+                        {needsHandover(o, activeShiftId) ? (
+                          <span className="text-[#91251c] font-semibold">
+                            Belum diberi tahu ke sif aktif
+                            {o.notificationDetail?.recipientName
+                              ? ` (terakhir: ${o.notificationDetail.recipientName}, ${o.notification})`
+                              : ''}
+                          </span>
+                        ) : (
+                          <span>Notifikasi terkirim ke sif aktif.</span>
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+              )}
+
+              {ordersToHandOver.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleSendHandover}
+                  disabled={isHandingOver}
+                  className="w-full min-h-[44px] px-4 py-2 bg-[#f5c943] hover:bg-[#e8b82b] disabled:opacity-60 text-[#242321] font-bold text-xs rounded-full shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>
+                    {isHandingOver
+                      ? 'Mengirim...'
+                      : `Kirim ${ordersToHandOver.length} pesanan ke ${activeShift?.name ?? 'sif aktif'}`}
+                  </span>
+                </button>
+              )}
+
+              {handoverResult && (
+                <div role="status" className="p-3 bg-white rounded-2xl border border-[#e9e5df] text-xs space-y-1">
+                  <p className="font-bold text-[#242321]">
+                    {handoverResult.sent} dari {handoverResult.total} pesanan terkirim ke sif aktif.
+                  </p>
+                  {handoverResult.unresolved.map((u) => (
+                    <p key={u.orderId} className="text-[#91251c]">
+                      {u.number}: {u.reason}
+                    </p>
                   ))}
                 </div>
               )}
@@ -350,6 +415,43 @@ export default function AdminSifPage() {
             </div>
           </div>
         </div>
+
+        {/* Konfirmasi serah terima setelah ganti sif */}
+        <Modal
+          isOpen={handoverPrompt !== null}
+          onClose={() => setHandoverPrompt(null)}
+          title="Serah Terima Pesanan Aktif"
+        >
+          <div className="space-y-4 text-sm text-[#242321]">
+            <p>
+              Ada <strong>{pendingOrders.length} pesanan lunas</strong> yang belum selesai. Kirim
+              rinciannya ke <strong>{handoverPrompt?.name}</strong> sekarang?
+            </p>
+            <p className="text-xs text-[#68645e]">
+              Pesan ditandai &quot;KIRIM ULANG&quot; supaya tidak dikira pesanan baru. Pesanan tidak
+              berubah dan pembayaran tidak terpengaruh.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#eeeae4]">
+              <button
+                type="button"
+                onClick={() => setHandoverPrompt(null)}
+                className="min-h-[42px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#68645e] border border-[#e9e5df] font-bold text-xs rounded-full cursor-pointer transition-colors"
+              >
+                Nanti
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setHandoverPrompt(null);
+                  await handleSendHandover();
+                }}
+                className="min-h-[42px] px-4 py-2 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs rounded-full cursor-pointer transition-colors"
+              >
+                Kirim Sekarang
+              </button>
+            </div>
+          </div>
+        </Modal>
 
         {/* Modal Tambah / Edit Penjaga */}
         <Modal

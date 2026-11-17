@@ -1,66 +1,63 @@
 import { Order, Shift } from '@/types';
-import { formatTimeWIB, formatRupiah } from '@/lib/constants';
+import { formatTimeWIB, formatRupiah, TIMEZONE } from '@/lib/constants';
 
-interface SendWhatsAppMessageParams {
-  toPhone: string;
-  body: string;
+function formatLongDateWIB(timestamp: number): string {
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: TIMEZONE,
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(timestamp));
 }
 
-export async function sendWhatsAppMessage({ toPhone, body }: SendWhatsAppMessageParams): Promise<boolean> {
-  const baseUrl = process.env.WAHA_BASE_URL;
-  const session = process.env.WAHA_SESSION || 'default';
-  const apiKey = process.env.WAHA_API_KEY;
-
-  if (!baseUrl) {
-    console.warn('[WAHA] Base URL belum dikonfigurasi, pesan batal dikirim.');
-    return false;
-  }
-
-  const chatId = toPhone.includes('@c.us') ? toPhone : `${toPhone}@c.us`;
-
-  try {
-    const response = await fetch(`${baseUrl}/api/sendText`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(apiKey ? { 'X-Api-Key': apiKey } : {}),
-      },
-      body: JSON.stringify({
-        session,
-        chatId,
-        text: body,
-      }),
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error('[WAHA] Gagal mengirim pesan WhatsApp:', error);
-    return false;
-  }
+export interface KitchenMessageOptions {
+  /** Pesan dikirim ulang manual (ditandai agar tidak dikira order baru). */
+  resend?: boolean;
+  adminUrl?: string;
 }
 
-export function buildKitchenOrderWhatsAppMessage(order: Order, shift: Shift): string {
-  const itemList = order.items
-    .map((item) => {
-      const parts = [`- ${item.qty}x ${item.name}`];
-      if (item.egg) parts.push('(Pakai Telur)');
-      if (item.temp) parts.push(`(${item.temp})`);
-      if (item.note) parts.push(`[Catatan: ${item.note}]`);
-      return parts.join(' ');
-    })
-    .join('\n');
+/**
+ * Pesan notifikasi untuk penjaga (format mengikuti PRD 8.3). Dipakai server (kirim) dan
+ * browser (pratinjau di admin), jadi harus murni. Nomor order selalu ada agar penjaga bisa
+ * mengenali pesan ganda bila pengiriman ulang terjadi.
+ */
+export function buildKitchenOrderWhatsAppMessage(
+  order: Order,
+  shift: Pick<Shift, 'name'>,
+  options: KitchenMessageOptions = {}
+): string {
+  const lines = order.items.map((item) => {
+    const parts = [`${item.qty}x ${item.name}`];
+    if (item.egg) parts.push('dengan telur');
+    if (item.temp) parts.push(item.temp.toLowerCase());
+    parts.push(formatRupiah(item.unit * item.qty));
+    let line = parts.join(' — ');
+    if (item.note) line += `\n   Catatan item: ${item.note}`;
+    return line;
+  });
 
-  return `🔔 *PESANAN BARU MASUK (${order.number})*
-
-Halo ${shift.name}, ada pesanan baru sudah lunas:
-Pemesan: *${order.name}* (${order.phone})
-Waktu Ambil: *${formatTimeWIB(order.pickup)}* (${order.mode === 'asap' ? 'Secepatnya' : 'Jadwal'})
-
-*Rincian Menu:*
-${itemList}
-
-Total: *${formatRupiah(order.total)}*
-Catatan Umum: ${order.note || '-'}
-
-Silakan siapkan sebelum waktu pengambilan.`;
+  const adminBase = (options.adminUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '');
+  const out = [
+    ...(options.resend ? ['[KIRIM ULANG — order yang sama, bukan pesanan baru]'] : []),
+    'PESANAN ONLINE — WARMINDO PUTRA VANGKALAN',
+    `No. order: ${order.number}`,
+    `Pembayaran: ${order.payment === 'PAID' ? 'LUNAS' : order.payment}`,
+    `Pelanggan: ${order.name}`,
+    `WA pelanggan: ${order.phone}`,
+    `Ambil: ${formatLongDateWIB(order.pickup)}, ${formatTimeWIB(order.pickup)} WIB (${
+      order.mode === 'asap' ? 'secepatnya' : 'terjadwal'
+    })`,
+    '',
+    ...lines,
+    `Catatan order: ${order.note || '-'}`,
+    `Total dibayar: ${formatRupiah(order.total)}`,
+    '',
+    ...(order.needsTimeConfirmation
+      ? ['PERHATIAN: pembayaran masuk terlambat, waktu ambil mungkin tidak terkejar. Hubungi pelanggan untuk konfirmasi.', '']
+      : []),
+    `Halo ${shift.name}, siapkan mendekati waktu ambil.`,
+    'Hubungi pelanggan secara manual ketika siap.',
+    ...(adminBase ? [`Detail admin: ${adminBase}/admin/antrean`] : []),
+  ];
+  return out.join('\n');
 }

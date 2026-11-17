@@ -33,6 +33,12 @@ describe('API Client Layer Abstraction', () => {
     expect(getBaseApiUrl()).toBe('http://localhost:4000');
   });
 
+  it('"/" mengaktifkan backend satu origin (path relatif tanpa mengunci domain)', () => {
+    process.env.NEXT_PUBLIC_API_URL = '/';
+    expect(isBackendConfigured()).toBe(true);
+    expect(getBaseApiUrl()).toBe('');
+  });
+
   it('instantiates ApiError with correct properties', () => {
     const error = new ApiError('Not found', 404, '/api/orders', { id: 'ord_123' });
     expect(error.name).toBe('ApiError');

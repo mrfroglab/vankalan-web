@@ -32,6 +32,10 @@ import {
   Clock,
 } from 'lucide-react';
 
+/** FAILED = pasti tidak terkirim; UNKNOWN = hasil tak jelas. Keduanya butuh perhatian penjaga. */
+const waNeedsAttention = (o: Pick<Order, 'notification'>) =>
+  o.notification === 'FAILED' || o.notification === 'UNKNOWN';
+
 export default function AdminAntreanPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [settings, setSettings] = useState<StoreSettings | null>(null);
@@ -125,8 +129,11 @@ export default function AdminAntreanPage() {
       }
       if (updated.notification === 'SENT') {
         showToast('Notifikasi WhatsApp berhasil dikirim ulang ke sif aktif.');
+      } else if (updated.notification === 'UNKNOWN') {
+        showToast('Hasil pengiriman belum pasti. Periksa WhatsApp sebelum mengirim ulang lagi.');
       } else {
-        showToast('Pengiriman ulang gagal: simulasi koneksi WAHA sedang terputus.');
+        const why = updated.notificationDetail?.lastError;
+        showToast(`Pengiriman ulang belum berhasil${why ? `: ${why}` : '. Periksa koneksi WAHA.'}`);
       }
     } catch (err) {
       console.error('Gagal retry WA:', err);
@@ -230,7 +237,7 @@ export default function AdminAntreanPage() {
       );
     }
     if (activeTab === 'WA_GAGAL') {
-      return o.notification === 'FAILED';
+      return waNeedsAttention(o);
     }
     if (activeTab === 'SELESAI') {
       return o.fulfillment === 'COMPLETED';
@@ -255,9 +262,7 @@ export default function AdminAntreanPage() {
     showToast('6 pesanan demo dapur berhasil dimuat ulang.');
   };
 
-  const countWaFailed = orders.filter(
-    (o) => o.notification === 'FAILED'
-  ).length;
+  const countWaFailed = orders.filter(waNeedsAttention).length;
 
   // Hitungan tab filter
   const tabCounts = {
@@ -411,7 +416,7 @@ export default function AdminAntreanPage() {
               const isReady = order.fulfillment === 'READY';
               const isDone = order.fulfillment === 'COMPLETED';
               const isCancelled = order.fulfillment === 'CANCELLED';
-              const isWaFailed = order.notification === 'FAILED';
+              const isWaFailed = waNeedsAttention(order);
 
               return (
                 <article
@@ -468,7 +473,7 @@ export default function AdminAntreanPage() {
                         {/* Status WA Gagal */}
                         {isWaFailed && (
                           <Badge variant="danger" size="sm">
-                            WA Gagal
+                            {order.notification === 'UNKNOWN' ? 'WA Belum Pasti' : 'WA Gagal'}
                           </Badge>
                         )}
                       </div>
@@ -487,6 +492,17 @@ export default function AdminAntreanPage() {
                         <Clock className="w-3.5 h-3.5 text-[#77736d]" />
                         <span>Ambil: {formatTimeWIB(order.pickup)} WIB</span>
                       </div>
+
+                      {order.needsTimeConfirmation &&
+                        order.fulfillment !== 'COMPLETED' &&
+                        order.fulfillment !== 'CANCELLED' && (
+                          <span
+                            className="inline-flex items-center bg-[#fde7e4] border border-[#f7c5be] px-3 py-1.5 rounded-full text-xs font-bold text-[#91251c]"
+                            title="Pembayaran masuk terlambat; waktu ambil terjadwal mungkin tidak terkejar. Hubungi pelanggan."
+                          >
+                            Perlu konfirmasi waktu
+                          </span>
+                        )}
 
                       {/* Shortcut Chat WhatsApp Pelanggan */}
                       <a
@@ -698,14 +714,40 @@ export default function AdminAntreanPage() {
                   <span className="text-[#68645e]">Status Notifikasi WA</span>
                   <strong
                     className={
-                      selectedOrder.notification === 'FAILED'
-                        ? 'text-[#91251c]'
-                        : 'text-[#1c4d25]'
+                      waNeedsAttention(selectedOrder) ? 'text-[#91251c]' : 'text-[#1c4d25]'
                     }
                   >
                     {selectedOrder.notification} (Percobaan: {selectedOrder.attempts || 1})
                   </strong>
                 </div>
+                {selectedOrder.notificationDetail && (
+                  <div className="text-xs text-[#68645e] bg-[#f5f2ed] border border-[#e9e5df] rounded-2xl p-3 space-y-1">
+                    {selectedOrder.notificationDetail.recipientName && (
+                      <p>
+                        Penerima:{' '}
+                        <strong className="text-[#242321]">
+                          {selectedOrder.notificationDetail.recipientName}
+                        </strong>{' '}
+                        ({selectedOrder.notificationDetail.recipientPhone})
+                      </p>
+                    )}
+                    {selectedOrder.notificationDetail.lastError && (
+                      <p className="text-[#91251c]">{selectedOrder.notificationDetail.lastError}</p>
+                    )}
+                    {selectedOrder.notificationDetail.nextAttemptAt && (
+                      <p>
+                        Percobaan otomatis berikutnya sekitar{' '}
+                        {formatTimeWIB(selectedOrder.notificationDetail.nextAttemptAt)} WIB.
+                      </p>
+                    )}
+                    {selectedOrder.notification === 'UNKNOWN' && (
+                      <p className="font-semibold text-[#242321]">
+                        Pesan mungkin sudah terkirim. Cek WhatsApp penerima dulu; sistem juga memeriksa
+                        riwayat otomatis sebelum mengirim ulang.
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-[#68645e]">Target Jam Ambil</span>
                   <strong className="text-[#242321]">
@@ -744,7 +786,7 @@ export default function AdminAntreanPage() {
                   </button>
                 </div>
 
-                {selectedOrder.notification === 'FAILED' && (
+                {waNeedsAttention(selectedOrder) && (
                   <Button
                     variant="outline"
                     size="sm"

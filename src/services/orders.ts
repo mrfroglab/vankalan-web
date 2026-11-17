@@ -15,7 +15,7 @@ import {
   CreateOrderResult,
 } from '@/types';
 import * as localStore from '@/lib/store';
-import { isBackendConfigured, apiRequest } from './client';
+import { isBackendConfigured, apiRequest, ApiError } from './client';
 
 export const orderService = {
   async getOrders(): Promise<Order[]> {
@@ -88,6 +88,14 @@ export const orderService = {
           return response;
         }
       } catch (err) {
+        // Penolakan server (harga berubah, toko tutup, validasi, dst.) harus sampai ke
+        // pelanggan; jangan diam-diam membuat order palsu di localStorage.
+        // Hanya jaringan putus (statusCode 0) yang boleh jatuh ke mode lokal; error HTTP
+        // (termasuk 5xx / gagal memulai pembayaran) harus terlihat, bukan jadi order palsu
+        // yang tidak pernah sampai ke dapur.
+        if (err instanceof ApiError && err.statusCode >= 400) {
+          throw err;
+        }
         console.warn('[orderService] Backend createOrder failed, using fallback:', err);
       }
     }
@@ -132,6 +140,18 @@ export const orderService = {
       order: newOrder,
       snapToken: undefined, // Signals fallback to simulation modal
     };
+  },
+
+  /**
+   * Mulai/lanjutkan pembayaran Midtrans untuk order yang belum lunas.
+   * Mengembalikan null bila backend tidak aktif (mode lokal/simulasi).
+   */
+  async startPayment(token: string): Promise<{ snapToken: string; redirectUrl: string } | null> {
+    if (!isBackendConfigured()) return null;
+    return apiRequest<{ snapToken: string; redirectUrl: string }>(
+      `/api/orders/token/${encodeURIComponent(token)}/pay`,
+      { method: 'POST' }
+    );
   },
 
   async updateOrderStatus(

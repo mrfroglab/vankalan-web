@@ -46,14 +46,14 @@ export function FoodlyHeader({
         {/* Sisi Kiri: Logo Brand & Identitas Responsif */}
         <Link
           href="/"
-          className="flex items-center gap-1.5 sm:gap-2 group min-h-[44px] cursor-pointer shrink"
+          className="flex items-center gap-1.5 sm:gap-2 group min-h-[44px] cursor-pointer min-w-0 flex-1 md:flex-initial"
           aria-label="Kembali ke beranda Warmindo Putra Vangkalan"
         >
           <span className="bg-[#d94b3d] text-white font-black text-xs px-2.5 py-1 rounded-full tracking-wider shrink-0 select-none">
             PV
           </span>
           <div className="flex flex-col min-w-0">
-            <span className="text-xs xs:text-sm sm:text-base font-bold text-[#242321] tracking-tight group-hover:text-[#68645e] transition-colors truncate max-w-[125px] xs:max-w-[180px] sm:max-w-none">
+            <span className="text-xs xs:text-sm sm:text-base font-bold text-[#242321] tracking-tight group-hover:text-[#68645e] transition-colors truncate">
               Warmindo Putra Vangkalan
             </span>
             <span className="hidden md:block text-[11px] text-[#68645e] leading-none">
@@ -135,7 +135,9 @@ export function FoodlyHeader({
               onClick={handleOrderClick}
               className="bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 min-h-[38px] sm:min-h-[42px] rounded-full transition-all active:scale-95 shadow-xs cursor-pointer flex items-center justify-center shrink-0"
             >
-              <span>Pesan Sekarang</span>
+              {/* Layar < 380px (HP kecil): header tidak muat dengan label penuh. */}
+              <span className="min-[380px]:hidden">Pesan</span>
+              <span className="hidden min-[380px]:inline">Pesan Sekarang</span>
             </button>
           ) : (
             <button
@@ -144,7 +146,8 @@ export function FoodlyHeader({
               aria-disabled="true"
               className="bg-neutral-100 border border-neutral-300 text-neutral-400 font-semibold text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 min-h-[38px] sm:min-h-[42px] rounded-full cursor-not-allowed flex items-center justify-center shrink-0 select-none"
             >
-              <span>Warmindo Tutup</span>
+              <span className="min-[380px]:hidden">Tutup</span>
+              <span className="hidden min-[380px]:inline">Warmindo Tutup</span>
             </button>
           )}
         </div>

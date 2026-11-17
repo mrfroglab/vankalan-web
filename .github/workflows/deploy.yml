@@ -11,8 +11,13 @@ permissions:
   packages: write
 
 jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
   build:
     name: Build & Push Docker Image
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -44,8 +49,23 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Variabel publik (bukan rahasia) diatur di GitHub: Settings > Secrets and variables > Actions > Variables
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=${{ vars.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY }}
+            NEXT_PUBLIC_MIDTRANS_SNAP_URL=${{ vars.NEXT_PUBLIC_MIDTRANS_SNAP_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Build and push migrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: true
+          tags: ghcr.io/mrfroglab/vankalan-web:migrator
+          cache-from: type=gha
 
   deploy:
     name: Deploy to Thinkpad Server
@@ -59,6 +79,20 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # DB produksi hanya ada di jaringan Docker (tanpa port ke host), mis. gateway-net
+          # dengan host "vankalan-db". Kosong = --network host (DB yang membuka port ke host).
+          MIGRATION_NETWORK: ${{ vars.MIGRATION_NETWORK }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::Secret DATABASE_URL belum diatur; migrasi dilewati."
+            exit 0
+          fi
+          docker pull ghcr.io/mrfroglab/vankalan-web:migrator
+          docker run --rm --network "${MIGRATION_NETWORK:-host}" -e DATABASE_URL ghcr.io/mrfroglab/vankalan-web:migrator
 
       - name: Deploy with Docker Compose
         run: |
