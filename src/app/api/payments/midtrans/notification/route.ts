@@ -27,7 +27,7 @@ export const POST = handle(async (request: Request) => {
   if (!cfg) throw new HttpError(503, 'Pembayaran online belum dikonfigurasi.');
 
   const payload = await parseBody(request, notificationSchema);
-  if (!verifySignature(payload, cfg.serverKey)) {
+  if (!verifySignature(payload, cfg.signatureKey)) {
     throw new HttpError(403, 'Signature tidak valid.');
   }
 

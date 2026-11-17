@@ -80,6 +80,7 @@ Contoh lengkap dan komentar ada di [`.env.example`](.env.example).
 | `NEXT_PUBLIC_APP_URL` | ya (*build*) | URL publik app (tautan Snap `finish`, tautan admin di pesan WA). **Di-inline saat build.** |
 | `ADMIN_PASSWORD`, `SESSION_SECRET` | production | Kata sandi admin bersama; kunci sesi ≥ 32 karakter (`openssl rand -base64 48`). |
 | `MIDTRANS_SERVER_KEY` | pembayaran | Kosong = mode simulasi dev. Tambah `MIDTRANS_IS_PRODUCTION`, `MIDTRANS_EXPIRY_MINUTES`. |
+| `MIDTRANS_SIGNATURE_KEY` | pembayaran | Akun Midtrans baru: "Signature Secret Key" untuk verifikasi webhook. Kosong = pakai server key (akun lama). |
 | `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`, `NEXT_PUBLIC_MIDTRANS_SNAP_URL` | pembayaran (*build*) | Dipakai Snap.js di browser. **Di-inline saat build.** |
 | `WAHA_BASE_URL`, `WAHA_SESSION`, `WAHA_API_KEY` | notifikasi WA | Kosong = notifikasi ditandai gagal dan di-retry. |
 | `WA_RETRY_DELAYS_SECONDS`, `WAHA_TIMEOUT_MS`, `WA_VERIFY_DELAY_SECONDS`, `WA_WORKER_*` | opsional | Kebijakan retry & pekerja. |

@@ -308,6 +308,34 @@ describe('pemulihan pembayaran & kasus tepi', () => {
   });
 });
 
+describe('akun Midtrans baru: server key ber-scope + Signature Secret Key terpisah', () => {
+  const SIG = 'Mid-server-signature-test';
+  const signed = (order_id: string, transaction_status: string) => {
+    const base = { order_id, status_code: '200', gross_amount: '24000.00', transaction_status };
+    return { ...base, signature_key: computeSignature(base, SIG) } as MidtransStatusPayload;
+  };
+
+  it('webhook dan Status API diverifikasi dengan MIDTRANS_SIGNATURE_KEY, Snap tetap memakai server key', async () => {
+    vi.stubEnv('MIDTRANS_SIGNATURE_KEY', SIG);
+    const { order, mid, cfg } = await newOrder(); // fakeFetch memastikan Snap memakai server key
+    expect(cfg.signatureKey).toBe(SIG);
+    // Signature dengan server key (gaya akun lama) ditolak bila signature key diatur.
+    expect((await post(notif(mid, 'settlement'))).status).toBe(403);
+    expect((await post(signed(mid, 'settlement'))).status).toBe(200);
+    expect((await refetch(order.id)).payment).toBe('PAID');
+
+    const second = await newOrder();
+    statusReplies[second.mid] = signed(second.mid, 'settlement');
+    const r = await reconcileOrder(db, cfg, second.order.id);
+    expect(r[0]).toMatchObject({ result: 'applied', becamePaid: true });
+  });
+
+  it('tanpa MIDTRANS_SIGNATURE_KEY: signature memakai server key (akun lama)', async () => {
+    const { cfg } = await newOrder();
+    expect(cfg.signatureKey).toBe(KEY);
+  });
+});
+
 describe('rekonsiliasi', () => {
   it('menerapkan status resmi dari Status API saat webhook hilang', async () => {
     const { order, mid, cfg } = await newOrder();

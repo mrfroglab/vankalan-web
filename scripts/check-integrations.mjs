@@ -51,11 +51,14 @@ async function checkMidtrans() {
     return;
   }
   console.log(`  mode  ${isProd ? 'PRODUCTION' : 'SANDBOX'}`);
-  // Kunci sandbox lama berawalan "SB-"; dipakai hanya sebagai peringatan karena format bisa berubah.
+  // Kunci berawalan "SB-" pasti sandbox. Akun baru (2026) bisa punya kunci sandbox TANPA "SB-",
+  // jadi ketiadaan "SB-" tidak dipakai untuk menebak production.
   if (serverKey.startsWith('SB-') && isProd) warn('Server key tampak kunci SANDBOX, tetapi MIDTRANS_IS_PRODUCTION=true.');
-  if (!serverKey.startsWith('SB-') && !isProd && serverKey.startsWith('Mid-')) warn('Server key tampak kunci PRODUCTION, tetapi mode sandbox.');
   if (!clientKey) warn('NEXT_PUBLIC_MIDTRANS_CLIENT_KEY tidak ada di env ini (ditanam saat build lewat GitHub Variables).');
-  else if (clientKey.startsWith('SB-') !== serverKey.startsWith('SB-')) warn('Client key dan server key tampak dari environment berbeda (sandbox vs production).');
+  // Akun baru: server key ber-scope untuk API, "Signature Secret Key" (Access Keys > General Credentials)
+  // untuk signature notifikasi. Tanpa ini semua webhook ditolak 403 dan pembayaran tak pernah lunas.
+  if (v('MIDTRANS_SIGNATURE_KEY')) ok('MIDTRANS_SIGNATURE_KEY terisi');
+  else warn('MIDTRANS_SIGNATURE_KEY kosong: signature diverifikasi dengan server key. Akun Midtrans baru WAJIB mengisinya (Signature Secret Key).');
   const snapJs = v('NEXT_PUBLIC_MIDTRANS_SNAP_URL');
   if (snapJs && snapJs.includes('sandbox') === isProd) warn(`NEXT_PUBLIC_MIDTRANS_SNAP_URL (${snapJs}) tidak cocok dengan mode ${isProd ? 'production' : 'sandbox'}.`);
 

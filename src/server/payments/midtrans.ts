@@ -1,7 +1,10 @@
 /**
  * Klien server untuk Midtrans (Snap + Status API).
  * Diperiksa terhadap docs.midtrans.com:
- * - signature_key = SHA512(order_id + status_code + gross_amount + ServerKey)
+ * - signature_key = SHA512(order_id + status_code + gross_amount + SignatureKey)
+ *   Akun Midtrans baru (dashboard 2026) memakai server key ber-scope untuk API dan
+ *   "Signature Secret Key" terpisah untuk signature; akun lama memakai server key untuk keduanya.
+ *   Diuji 2026-11-18 di sandbox: signature status API cocok dengan Signature Secret Key, bukan server key.
  * - Snap: POST {snap}/snap/v1/transactions, Basic auth (serverKey sebagai user, password kosong)
  * - Status: GET {core}/v2/{order_id}/status; 404 sampai pelanggan memilih metode bayar
  * - gross_amount di notifikasi berupa string desimal, mis. "14000.00"
@@ -13,6 +16,8 @@ import { HttpError } from '../http';
 
 export interface MidtransConfig {
   serverKey: string;
+  /** Kunci untuk memverifikasi signature_key (MIDTRANS_SIGNATURE_KEY, default = serverKey). */
+  signatureKey: string;
   isProduction: boolean;
   snapUrl: string;
   coreApiUrl: string;
@@ -27,6 +32,7 @@ export function getMidtransConfig(): MidtransConfig | null {
   const expiry = Number(process.env.MIDTRANS_EXPIRY_MINUTES);
   return {
     serverKey,
+    signatureKey: process.env.MIDTRANS_SIGNATURE_KEY?.trim() || serverKey,
     isProduction,
     snapUrl:
       process.env.MIDTRANS_SNAP_API_URL?.trim() ||
@@ -54,16 +60,16 @@ export interface MidtransStatusPayload {
 
 export function computeSignature(
   p: Pick<MidtransStatusPayload, 'order_id' | 'status_code' | 'gross_amount'>,
-  serverKey: string
+  signatureKey: string
 ): string {
   return createHash('sha512')
-    .update(`${p.order_id}${p.status_code}${p.gross_amount}${serverKey}`)
+    .update(`${p.order_id}${p.status_code}${p.gross_amount}${signatureKey}`)
     .digest('hex');
 }
 
-export function verifySignature(p: MidtransStatusPayload, serverKey: string): boolean {
+export function verifySignature(p: MidtransStatusPayload, signatureKey: string): boolean {
   if (typeof p.signature_key !== 'string') return false;
-  const expected = Buffer.from(computeSignature(p, serverKey));
+  const expected = Buffer.from(computeSignature(p, signatureKey));
   const given = Buffer.from(p.signature_key);
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
@@ -157,7 +163,7 @@ export async function fetchTransactionStatus(
   if (!res.ok || !data || typeof data.order_id !== 'string') {
     throw new Error(`Midtrans status API error (HTTP ${res.status})`);
   }
-  if (data.signature_key !== undefined && !verifySignature(data, cfg.serverKey)) {
+  if (data.signature_key !== undefined && !verifySignature(data, cfg.signatureKey)) {
     throw new Error('Signature respons status Midtrans tidak valid.');
   }
   return data;

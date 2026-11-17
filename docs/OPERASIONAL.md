@@ -24,6 +24,7 @@ environment:
   ADMIN_PASSWORD: <kata sandi bersama penjaga>
   SESSION_SECRET: <openssl rand -base64 48>
   MIDTRANS_SERVER_KEY: <server key production>
+  MIDTRANS_SIGNATURE_KEY: <Signature Secret Key>  # akun baru; lihat catatan di bawah
   MIDTRANS_IS_PRODUCTION: "true"
   MIDTRANS_EXPIRY_MINUTES: "15"             # TBD-02, sesuaikan
   WAHA_BASE_URL: http://waha:3000           # alamat WAHA dari sisi container
@@ -34,6 +35,14 @@ environment:
 ```
 
 Tanpa `ADMIN_PASSWORD` + `SESSION_SECRET` (≥ 32 karakter) seluruh area admin ditolak di production (fail closed).
+
+**Kunci Midtrans (akun baru, dashboard 2026):** di *Settings → Access Keys → General Credentials* ada tiga hal:
+(1) **Server Keys**: buat dengan *Generate server key*, izin minimal **Snap Checkout = Write** dan **Core API = Read**
+(lainnya None). Key hanya tampil **sekali** → `MIDTRANS_SERVER_KEY`. (2) **Signature Secret Key** → `MIDTRANS_SIGNATURE_KEY`;
+Midtrans menandatangani notifikasi dan respons status dengan key ini, **bukan** dengan server key ber-scope (diuji
+2026-11-18 di sandbox). Tanpa ini semua webhook ditolak 403. (3) **Client Key** → GitHub Variable
+`NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`. Kunci sandbox akun baru bisa tidak berawalan `SB-`. Lakukan untuk Sandbox dan
+Production secara terpisah (pilih *Environment* di kiri atas).
 
 **Midtrans Dashboard:** daftarkan *Payment Notification URL* =
 `https://<domain>/api/payments/midtrans/notification` (Settings → Payment → Notification URL). Midtrans menganggap respons
@@ -232,10 +241,12 @@ Midtrans). Tabel keduanya tidak bentrok (PascalCase vs snake_case), tetapi **dat
      `grep '^DATABASE_URL=' /opt/stacks/apps/vankalan/.env | cut -d= -f2- | tr -d '"' | gh secret set DATABASE_URL -R mrfroglab/vankalan-web`
    - Variables: `MIGRATION_NETWORK=gateway-net`, `NEXT_PUBLIC_API_URL=/`, `NEXT_PUBLIC_APP_URL=https://<domain final>`,
      `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`, `NEXT_PUBLIC_MIDTRANS_SNAP_URL` (sandbox: `https://app.sandbox.midtrans.com/snap/snap.js`).
-2. **Server** `/opt/stacks/apps/vankalan/.env`: isi `MIDTRANS_SERVER_KEY` (sudah ada `ADMIN_PASSWORD`, `SESSION_SECRET`,
+2. **Server** `/opt/stacks/apps/vankalan/.env`: `MIDTRANS_SERVER_KEY` dan `MIDTRANS_SIGNATURE_KEY` sandbox sudah terisi
+   (2026-11-18; sudah ada `ADMIN_PASSWORD`, `SESSION_SECRET`,
    `WAHA_*`, `MIDTRANS_IS_PRODUCTION=false`, `MIDTRANS_EXPIRY_MINUTES=15`). Jangan set `ALLOW_PAYMENT_SIMULATION`.
 3. **WAHA**: sesi `default` sudah di-scan QR (status `WORKING`). Preflight harus lolos (bagian 1).
 4. **Midtrans dashboard**: Notification URL = `https://<domain final>/api/payments/midtrans/notification`.
+   Sandbox sudah diisi `https://vankalan.hallojanu.me/...` (2026-11-18); ubah bila domain final berbeda.
 5. **Backup** tepat sebelum merge (bagian 6, `REQUIRE_APP_TABLES=0`).
 6. **Merge PR** → tunggu workflow *CI/CD Pipeline* hijau (migrasi jalan lewat `gateway-net`, app di-recreate).
 7. **Caddy** (setelah app baru jalan), sesuai SOP: backup `Caddyfile`, hapus blok `handle /api/*` → `vankalan-api` pada domain
