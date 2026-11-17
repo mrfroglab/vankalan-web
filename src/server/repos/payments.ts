@@ -18,6 +18,16 @@ import { parseGrossAmount, type MidtransStatusPayload } from '../payments/midtra
 
 export const MAX_PAYMENT_ATTEMPTS = 5;
 
+/**
+ * order_id untuk Midtrans: nomor order + percobaan + akhiran dari id order (acak per order).
+ * Nomor order (PV-YYYYMMDD-NNNN) hanya unik per database, sedangkan Midtrans menolak order_id
+ * yang pernah dipakai di akun yang sama (DB di-reset, staging/tes memakai akun yang sama).
+ */
+export function midtransOrderIdFor(order: { id: string; number: string }, attempt: number): string {
+  const suffix = order.id.replace(/^ord_/, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 6);
+  return `${order.number}-${attempt}-${suffix}`;
+}
+
 export type ApplyResultKind =
   | 'applied'
   | 'noop'
@@ -187,7 +197,7 @@ export async function reserveAttempt(
       .values({
         orderId: order.id,
         attempt,
-        midtransOrderId: `${order.number}-${attempt}`,
+        midtransOrderId: midtransOrderIdFor(order, attempt),
         grossAmount: order.total,
         createdAt: new Date(now),
         updatedAt: new Date(now),
