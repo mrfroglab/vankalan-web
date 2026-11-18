@@ -1,10 +1,14 @@
 'use client';
 
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { inputClass, textareaClass } from '@/components/ui/styles';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { Button } from '@/components/ui/Button';
+import { buttonClass } from '@/components/ui/Button';
 import { formatRupiah, formatTimeWIB } from '@/lib/constants';
 import { checkoutFormSchema } from '@/lib/validations/order';
 import { Order, OrderPaymentStatus } from '@/types';
@@ -177,7 +181,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="bg-[#f5f2ed] min-h-screen flex flex-col">
+    <div className="bg-canvas min-h-screen flex flex-col">
       <FoodlyHeader
         isOpen={isStoreOpen}
         estimateMinutes={estimateMinutes}
@@ -187,51 +191,29 @@ export default function CheckoutPage() {
 
       <main className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 flex-1 space-y-6">
         {/* Breadcrumb */}
-        <nav
-          aria-label="Breadcrumb"
-          className="text-[10px] text-[#918c84] uppercase tracking-wide font-medium flex items-center gap-1.5"
-        >
-          <Link href="/" className="hover:text-[#242321] transition-colors">
-            Beranda
-          </Link>
-          <span>/</span>
-          <span className="text-[#242321] font-semibold">Checkout Pesanan</span>
-        </nav>
+        <Breadcrumb items={[{ label: 'Beranda', href: '/' }, { label: 'Checkout' }]} />
 
         {items.length === 0 && !isPaymentModalOpen ? (
-          <div className="bg-white p-8 sm:p-12 rounded-2xl border border-[#e9e5df] text-center space-y-4 shadow-card my-6">
-            <div className="w-16 h-16 rounded-full bg-[#fbf9f5] border border-[#e9e5df] flex items-center justify-center mx-auto text-[#77736d]">
-              <ShoppingBag className="w-8 h-8" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold font-editorial text-[#242321]">
-              Keranjang Belanja Kosong
-            </h1>
-            <p className="text-xs sm:text-sm text-[#68645e] max-w-sm mx-auto leading-relaxed">
-              Belum ada sajian yang dipilih untuk checkout. Silakan pilih menu warmindo favoritmu terlebih dahulu.
-            </p>
-            <div className="pt-2 max-w-xs mx-auto">
-              <Link href="/">
-                <Button variant="gold" fullWidth size="lg" className="rounded-full font-bold">
-                  Kembali ke Menu
-                </Button>
+          <EmptyState
+            icon={ShoppingBag}
+            title="Keranjang masih kosong"
+            description="Belum ada menu yang dipilih. Pilih menu favoritmu dulu, lalu kembali ke sini."
+            action={
+              <Link href="/" className={buttonClass('gold', 'md')}>
+                Kembali ke Menu
               </Link>
-            </div>
-          </div>
+            }
+          />
         ) : (
           <>
-            {/* Tajuk Halaman Checkout */}
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
-                Checkout Pesanan
-              </h1>
-              <p className="text-xs sm:text-sm text-[#68645e] mt-1">
-                Lengkapi identitas pemesan dan tentukan estimasi waktu ambil di warung.
-              </p>
-            </div>
+            <PageHeader
+              title="Checkout Pesanan"
+              description="Lengkapi identitas pemesan dan tentukan waktu ambil di warung."
+            />
 
             {formError && (
               <div
-                className="p-4 bg-[#fde7e4] border border-[#f7c5be] rounded-2xl text-[#91251c] text-xs font-semibold animate-fade-in"
+                className="p-4 bg-danger-soft border border-danger-line rounded-2xl text-danger-ink text-xs font-semibold animate-fade-in"
                 role="alert"
               >
                 {formError}
@@ -240,14 +222,14 @@ export default function CheckoutPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Seksi 1: Data Pemesan */}
-              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] space-y-4 shadow-card">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-[#242321]">
+              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-line space-y-4 shadow-card">
+                <h2 className="text-2xs font-semibold uppercase tracking-wider text-muted">
                   1. Identitas Pemesan
                 </h2>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="customer-name" className="text-xs font-semibold text-[#242321]">
-                    Nama Lengkap / Panggilan <span className="text-[#d94b3d]">*</span>
+                  <label htmlFor="customer-name" className="text-xs font-semibold text-ink">
+                    Nama Lengkap / Panggilan <span className="text-danger">*</span>
                   </label>
                   <input
                     id="customer-name"
@@ -257,13 +239,13 @@ export default function CheckoutPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Contoh: Budi Santoso"
-                    className="w-full min-h-[46px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
+                    className={inputClass}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="customer-phone" className="text-xs font-semibold text-[#242321]">
-                    Nomor WhatsApp Aktif <span className="text-[#d94b3d]">*</span>
+                  <label htmlFor="customer-phone" className="text-xs font-semibold text-ink">
+                    Nomor WhatsApp Aktif <span className="text-danger">*</span>
                   </label>
                   <input
                     id="customer-phone"
@@ -272,17 +254,17 @@ export default function CheckoutPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Contoh: 081234567890"
-                    className="w-full min-h-[46px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
+                    className={inputClass}
                   />
-                  <p className="text-[11px] text-[#918c84]">
+                  <p className="text-2xs text-subtle">
                     Penjaga warung akan mengirim konfirmasi dan notifikasi pesanan siap via WhatsApp.
                   </p>
                 </div>
               </section>
 
               {/* Seksi 2: Waktu Pengambilan */}
-              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] space-y-4 shadow-card">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-[#242321]">
+              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-line space-y-4 shadow-card">
+                <h2 className="text-2xs font-semibold uppercase tracking-wider text-muted">
                   2. Waktu Pengambilan (Pickup)
                 </h2>
 
@@ -290,8 +272,8 @@ export default function CheckoutPage() {
                   <label
                     className={`flex flex-col p-4 border rounded-2xl cursor-pointer transition-all ${
                       mode === 'asap'
-                        ? 'border-[#f5c943] bg-[#fef8e8] shadow-xs'
-                        : 'border-[#e9e5df] bg-[#fbf9f5] hover:bg-white'
+                        ? 'border-gold bg-gold-tint shadow-xs'
+                        : 'border-line bg-surface-muted hover:bg-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -301,11 +283,11 @@ export default function CheckoutPage() {
                         value="asap"
                         checked={mode === 'asap'}
                         onChange={() => setMode('asap')}
-                        className="accent-[#f5c943] w-4 h-4"
+                        className="accent-gold w-4 h-4"
                       />
-                      <span className="font-bold text-sm text-[#242321]">Secepatnya</span>
+                      <span className="font-bold text-sm text-ink">Secepatnya</span>
                     </div>
-                    <span className="text-xs text-[#68645e] mt-1.5 pl-6 leading-relaxed">
+                    <span className="text-xs text-muted mt-1.5 pl-6 leading-relaxed">
                       Estimasi siap dalam ±{estimateMinutes} menit setelah lunas.
                     </span>
                   </label>
@@ -313,8 +295,8 @@ export default function CheckoutPage() {
                   <label
                     className={`flex flex-col p-4 border rounded-2xl cursor-pointer transition-all ${
                       mode === 'scheduled'
-                        ? 'border-[#f5c943] bg-[#fef8e8] shadow-xs'
-                        : 'border-[#e9e5df] bg-[#fbf9f5] hover:bg-white'
+                        ? 'border-gold bg-gold-tint shadow-xs'
+                        : 'border-line bg-surface-muted hover:bg-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -324,11 +306,11 @@ export default function CheckoutPage() {
                         value="scheduled"
                         checked={mode === 'scheduled'}
                         onChange={() => setMode('scheduled')}
-                        className="accent-[#f5c943] w-4 h-4"
+                        className="accent-gold w-4 h-4"
                       />
-                      <span className="font-bold text-sm text-[#242321]">Pilih Jam</span>
+                      <span className="font-bold text-sm text-ink">Pilih Jam</span>
                     </div>
-                    <span className="text-xs text-[#68645e] mt-1.5 pl-6 leading-relaxed">
+                    <span className="text-xs text-muted mt-1.5 pl-6 leading-relaxed">
                       Tentukan jam ambil khusus (maksimal 1 jam ke depan).
                     </span>
                   </label>
@@ -338,15 +320,15 @@ export default function CheckoutPage() {
                   <div className="space-y-1.5 pt-2 animate-fade-in">
                     <label
                       htmlFor="scheduled-time"
-                      className="text-xs font-semibold text-[#242321]"
+                      className="text-xs font-semibold text-ink"
                     >
-                      Pilih Jam Ambil (WIB) <span className="text-[#d94b3d]">*</span>
+                      Pilih Jam Ambil (WIB) <span className="text-danger">*</span>
                     </label>
                     <select
                       id="scheduled-time"
                       value={selectedPickupTime}
                       onChange={(e) => setSelectedPickupTime(e.target.value)}
-                      className="w-full min-h-[46px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors"
+                      className={inputClass}
                     >
                       <option value="">Pilih jam pengambilan...</option>
                       {scheduledTimeOptions.map((opt) => (
@@ -359,7 +341,7 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="space-y-1.5 pt-2">
-                  <label htmlFor="order-note" className="text-xs font-semibold text-[#242321]">
+                  <label htmlFor="order-note" className="text-xs font-semibold text-ink">
                     Catatan Khusus untuk Warung (Opsional)
                   </label>
                   <textarea
@@ -369,54 +351,54 @@ export default function CheckoutPage() {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Contoh: sambal dipisah ya mas, kuah jangan terlalu asin"
-                    className="w-full p-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl focus:outline-none focus:border-[#f5c943] text-[#242321] transition-colors resize-none"
+                    className={`${textareaClass} resize-none`}
                   />
                 </div>
               </section>
 
               {/* Seksi 3: Ringkasan Pesanan */}
-              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] space-y-4 shadow-card">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-[#242321]">
+              <section className="bg-white p-5 sm:p-6 rounded-2xl border border-line space-y-4 shadow-card">
+                <h2 className="text-2xs font-semibold uppercase tracking-wider text-muted">
                   3. Ringkasan Pesanan
                 </h2>
 
-                <div className="divide-y divide-[#eeeae4]">
+                <div className="divide-y divide-line-soft">
                   {items.map((it) => (
                     <div key={it.id} className="py-3 flex justify-between items-start text-xs">
                       <div>
-                        <span className="font-bold text-[#242321]">
+                        <span className="font-bold text-ink">
                           {it.qty}x {it.menuItem.name}
                         </span>
-                        <div className="text-[#68645e] space-x-1.5 mt-0.5">
+                        <div className="text-muted space-x-1.5 mt-0.5">
                           {it.temp && (
-                            <span className="bg-[#fbf9f5] px-1.5 py-0.5 rounded text-[11px] border border-[#e9e5df]">
+                            <span className="bg-surface-muted px-2 py-0.5 rounded-full text-2xs border border-line">
                               {it.temp}
                             </span>
                           )}
                           {it.egg && (
-                            <span className="bg-[#fbf9f5] px-1.5 py-0.5 rounded text-[11px] border border-[#e9e5df]">
+                            <span className="bg-surface-muted px-2 py-0.5 rounded-full text-2xs border border-line">
                               + Telur
                             </span>
                           )}
                           {it.note && <span>({it.note})</span>}
                         </div>
                       </div>
-                      <span className="font-bold text-[#242321]">
+                      <span className="font-bold text-ink">
                         {formatRupiah(it.unitPrice * it.qty)}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-3 border-t border-[#eeeae4] flex justify-between items-center text-sm font-bold text-[#242321]">
+                <div className="pt-3 border-t border-line-soft flex justify-between items-center text-sm font-bold text-ink">
                   <span>Total Tagihan</span>
-                  <span className="text-base sm:text-lg font-extrabold text-[#242321]">
+                  <span className="text-base sm:text-lg font-extrabold text-ink">
                     {formatRupiah(totalAmount)}
                   </span>
                 </div>
 
-                <div className="p-3.5 bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl flex items-center gap-2.5 text-xs text-[#68645e]">
-                  <ShieldCheck className="w-4 h-4 text-[#242321] shrink-0" />
+                <div className="p-3.5 bg-surface-muted border border-line rounded-2xl flex items-center gap-2.5 text-xs text-muted">
+                  <ShieldCheck className="w-4 h-4 text-ink shrink-0" />
                   <span>Biaya gateway ditanggung warung. Tidak ada tambahan biaya admin.</span>
                 </div>
               </section>
@@ -425,7 +407,7 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || !isStoreOpen}
-                className="w-full min-h-[48px] bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-sm sm:text-base py-3.5 px-6 rounded-full shadow-xs active:scale-95 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className={buttonClass('gold', 'lg', 'w-full justify-center')}
               >
                 {isSubmitting ? (
                   <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />

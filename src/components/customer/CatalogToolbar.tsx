@@ -1,5 +1,6 @@
 'use client';
 
+import { buttonClass } from '@/components/ui/Button';
 import React from 'react';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 
@@ -43,7 +44,7 @@ export function CatalogToolbar({
     >
       {/* Jumlah Item */}
       <div className="flex items-center gap-2">
-        <span className="text-xs sm:text-sm font-semibold text-[#242321]">
+        <span className="text-xs sm:text-sm font-semibold text-ink">
           {totalItems} Menu Tersedia
         </span>
       </div>
@@ -55,13 +56,13 @@ export function CatalogToolbar({
           <button
             type="button"
             onClick={handleOpenFilter}
-            className="lg:hidden flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#e9e5df] text-[#242321] hover:bg-[#f5f2ed] transition-colors cursor-pointer min-h-[38px]"
+            className={buttonClass('outline', 'sm', 'lg:hidden')}
             aria-label="Buka filter menu"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[#77736d]" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-icon" />
             <span>Filter</span>
             {activeFilterCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-[#f5c943] text-[#242321] text-[10px] font-bold flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-gold text-ink text-2xs font-bold flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
@@ -78,7 +79,7 @@ export function CatalogToolbar({
               id="catalog-sort"
               value={currentSort}
               onChange={(e) => onSortChange(e.target.value as SortOption)}
-              className="appearance-none bg-white border border-[#e9e5df] text-[#242321] text-xs font-medium rounded-full pl-3.5 pr-8 py-1.5 min-h-[38px] hover:border-[#918c84] focus:outline-none focus:border-[#f5c943] transition-colors cursor-pointer"
+              className="appearance-none bg-white border border-line text-ink text-xs font-medium rounded-full pl-3.5 pr-8 py-1.5 min-h-10 hover:border-subtle focus:outline-none focus:border-gold transition-colors cursor-pointer"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -86,7 +87,7 @@ export function CatalogToolbar({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-[#77736d] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-icon absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
       </div>

@@ -1,5 +1,8 @@
 'use client';
 
+import { inputClass, sectionTitleClass } from '@/components/ui/styles';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { buttonClass } from '@/components/ui/Button';
 import { demoToolsEnabled } from '@/services/client';
 import { makeSaveGuard } from '@/lib/saveGuard';
 import React, { useState, useEffect } from 'react';
@@ -125,64 +128,59 @@ export default function AdminPengaturanPage() {
         {toastMessage && (
           <div
             role="status"
-            className="p-3 px-4 bg-[#242321] text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
+            className="p-3 px-4 bg-ink text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
           >
-            <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
 
-        {/* Section Header */}
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] shadow-card">
-          <h2 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
-            Pengaturan Toko & WhatsApp
-          </h2>
-          <p className="text-xs sm:text-sm text-[#68645e] mt-1 leading-normal">
-            Konfigurasi status penerimaan pesanan online, durasi estimasi dapur, serta simulasi integrasi WhatsApp.
-          </p>
-        </div>
+        <PageHeader
+          title="Pengaturan Toko & WhatsApp"
+          description="Status pemesanan online, estimasi dapur, dan login WhatsApp notifikasi."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Kolom Kiri: Section 1 & Section 2 */}
           <div className="space-y-6">
             {/* Section 1: Status Pemesanan Online */}
-            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
+            <section className="bg-white border border-line rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
+                <div className="w-8 h-8 rounded-full bg-cream flex items-center justify-center text-ink">
                   <Store className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#242321]">
+                  <h3 className={sectionTitleClass}>
                     Status Pemesanan Online
                   </h3>
-                  <span className="text-xs text-[#68645e]">
+                  <span className="text-xs text-muted">
                     Kontrol ketersediaan checkout untuk pelanggan
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3">
+              <div className="p-4 bg-surface-muted rounded-2xl border border-line space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#242321]">
+                  <span className="text-xs font-bold text-ink">
                     Status Gerai:
                   </span>
                   <span
                     className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-xs inline-flex items-center gap-1.5 ${
                       isOpen
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
-                        : 'bg-[#d94b3d]/10 text-[#d94b3d] border border-[#d94b3d]/30'
+                        ? 'bg-success-soft text-success-ink border border-success-line/70'
+                        : 'bg-danger/10 text-danger border border-danger/30'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        isOpen ? 'bg-emerald-600 animate-pulse' : 'bg-[#d94b3d]'
+                        isOpen ? 'bg-success animate-pulse' : 'bg-danger'
                       }`}
                     />
                     <span>{isOpen ? 'Buka (Menerima Pesanan)' : 'Tutup Sementara'}</span>
                   </span>
                 </div>
 
-                <p className="text-xs text-[#68645e] leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   {isOpen
                     ? 'Pelanggan dapat melakukan checkout pesanan mandiri via web.'
                     : 'Checkout dibatasi sementara. Pelanggan hanya dapat melihat katalog menu tanpa menyelesaikan pesanan.'}
@@ -192,10 +190,10 @@ export default function AdminPengaturanPage() {
                   <button
                     type="button"
                     onClick={handleToggleOpen}
-                    className={`w-full min-h-[44px] px-4 py-2 text-xs sm:text-sm font-bold rounded-full transition-colors cursor-pointer inline-flex items-center justify-center gap-2 shadow-xs ${
+                    className={`w-full min-h-11 px-4 py-2 text-xs sm:text-sm font-bold rounded-full transition-colors cursor-pointer inline-flex items-center justify-center gap-2 shadow-xs ${
                       isOpen
-                        ? 'bg-[#d94b3d]/10 hover:bg-[#d94b3d]/20 text-[#d94b3d] border border-[#d94b3d]/30'
-                        : 'bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321]'
+                        ? 'bg-danger/10 hover:bg-danger/20 text-danger border border-danger/30'
+                        : 'bg-gold hover:bg-gold-hover text-ink'
                     }`}
                   >
                     <Power className="w-4 h-4" />
@@ -206,16 +204,16 @@ export default function AdminPengaturanPage() {
             </section>
 
             {/* Section 2: Operasional & Tarif Tambahan */}
-            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
+            <section className="bg-white border border-line rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
+                <div className="w-8 h-8 rounded-full bg-cream flex items-center justify-center text-ink">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#242321]">
+                  <h3 className={sectionTitleClass}>
                     Operasional & Tarif Tambahan
                   </h3>
-                  <span className="text-xs text-[#68645e]">
+                  <span className="text-xs text-muted">
                     Estimasi durasi memasak dan tarif varian telur
                   </span>
                 </div>
@@ -223,8 +221,8 @@ export default function AdminPengaturanPage() {
 
               <form onSubmit={handleSaveOperational} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#242321] flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#918c84]" />
+                  <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-subtle" />
                     <span>Estimasi Menit Persiapan Masak</span>
                   </label>
                   <input
@@ -235,16 +233,16 @@ export default function AdminPengaturanPage() {
                     required
                     value={estimate}
                     onChange={(e) => setEstimate(Number(e.target.value))}
-                    className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                    className={inputClass}
                   />
-                  <p className="text-[11px] text-[#68645e]">
+                  <p className="text-2xs text-muted">
                     Durasi ini digunakan sebagai acuan estimasi selesai saat pelanggan memilih opsi Secepatnya.
                   </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#242321] flex items-center gap-1.5">
-                    <Egg className="w-3.5 h-3.5 text-[#918c84]" />
+                  <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                    <Egg className="w-3.5 h-3.5 text-subtle" />
                     <span>Harga Tambahan Telur (Rp)</span>
                   </label>
                   <input
@@ -254,9 +252,9 @@ export default function AdminPengaturanPage() {
                     required
                     value={eggPrice}
                     onChange={(e) => setEggPrice(Number(e.target.value))}
-                    className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                    className={inputClass}
                   />
-                  <p className="text-[11px] text-[#68645e]">
+                  <p className="text-2xs text-muted">
                     Biaya tambahan flat yang dikenakan saat pelanggan memilih varian telur.
                   </p>
                 </div>
@@ -264,7 +262,7 @@ export default function AdminPengaturanPage() {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full min-h-[44px] px-5 py-2.5 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    className={buttonClass('gold', 'md', 'w-full justify-center')}
                   >
                     <span>Simpan Pengaturan Operasional</span>
                   </button>
@@ -279,47 +277,47 @@ export default function AdminPengaturanPage() {
             <WhatsAppLoginCard />
 
             {/* Section 3: Simulator Koneksi WAHA WhatsApp */}
-            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
+            <section className="bg-white border border-line rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
+                <div className="w-8 h-8 rounded-full bg-cream flex items-center justify-center text-ink">
                   {waConnected ? (
-                    <Wifi className="w-4 h-4 text-emerald-700" />
+                    <Wifi className="w-4 h-4 text-success" />
                   ) : (
-                    <WifiOff className="w-4 h-4 text-[#d94b3d]" />
+                    <WifiOff className="w-4 h-4 text-danger" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#242321]">
+                  <h3 className={sectionTitleClass}>
                     Simulator Koneksi WAHA WhatsApp
                   </h3>
-                  <span className="text-xs text-[#68645e]">
+                  <span className="text-xs text-muted">
                     Simulasi pengiriman notifikasi WhatsApp otomatis
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3">
+              <div className="p-4 bg-surface-muted rounded-2xl border border-line space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#242321]">
+                  <span className="text-xs font-bold text-ink">
                     Status Sesi WAHA:
                   </span>
                   <span
                     className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-xs inline-flex items-center gap-1.5 ${
                       waConnected
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
-                        : 'bg-[#d94b3d]/10 text-[#d94b3d] border border-[#d94b3d]/30'
+                        ? 'bg-success-soft text-success-ink border border-success-line/70'
+                        : 'bg-danger/10 text-danger border border-danger/30'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        waConnected ? 'bg-emerald-600' : 'bg-[#d94b3d]'
+                        waConnected ? 'bg-success' : 'bg-danger'
                       }`}
                     />
                     <span>{waConnected ? 'Terhubung Normal' : 'Simulasi Terputus'}</span>
                   </span>
                 </div>
 
-                <p className="text-xs text-[#68645e] leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   Saat status terhubung, pesanan yang telah lunas otomatis mengirim pesan notifikasi ke WhatsApp penjaga aktif. Ketika disimulasikan terputus, pesan akan masuk status Gagal dan memicu opsi Kirim Ulang Manual pada layar antrean.
                 </p>
 
@@ -327,10 +325,10 @@ export default function AdminPengaturanPage() {
                   <button
                     type="button"
                     onClick={handleToggleWa}
-                    className={`w-full min-h-[44px] px-4 py-2 text-xs sm:text-sm font-bold rounded-full transition-colors cursor-pointer inline-flex items-center justify-center gap-2 shadow-xs ${
+                    className={`w-full min-h-11 px-4 py-2 text-xs sm:text-sm font-bold rounded-full transition-colors cursor-pointer inline-flex items-center justify-center gap-2 shadow-xs ${
                       waConnected
-                        ? 'bg-white hover:bg-[#fbf9f5] text-[#d94b3d] border border-[#d94b3d]/40'
-                        : 'bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321]'
+                        ? 'bg-white hover:bg-surface-muted text-danger border border-danger/40'
+                        : 'bg-gold hover:bg-gold-hover text-ink'
                     }`}
                   >
                     {waConnected ? (
@@ -351,23 +349,23 @@ export default function AdminPengaturanPage() {
 
             {/* Section 4: Data Demo & Reset (hanya mode demo / development) */}
             {demoToolsEnabled() && (
-            <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
+            <section className="bg-white border border-line rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
-                  <Sparkles className="w-4 h-4 text-[#242321]" />
+                <div className="w-8 h-8 rounded-full bg-cream flex items-center justify-center text-ink">
+                  <Sparkles className="w-4 h-4 text-ink" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#242321]">
+                  <h3 className={sectionTitleClass}>
                     Data Demo & Reset
                   </h3>
-                  <span className="text-xs text-[#68645e]">
+                  <span className="text-xs text-muted">
                     Alat pengujian antrean dan pemulihan kondisi awal
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3">
-                <p className="text-xs text-[#68645e] leading-relaxed">
+              <div className="p-4 bg-surface-muted rounded-2xl border border-line space-y-3">
+                <p className="text-xs text-muted leading-relaxed">
                   Muat ulang 6 contoh skenario pesanan (pesanan baru, sedang dimasak, siap diambil, WA gagal, dan pembatalan dengan refund) untuk menguji seluruh alur kerja dapur.
                 </p>
 
@@ -375,23 +373,23 @@ export default function AdminPengaturanPage() {
                   <button
                     type="button"
                     onClick={handleSeedDemoOrders}
-                    className="w-full min-h-[44px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#242321] border border-[#e9e5df] font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                    className={buttonClass('outline', 'md', 'w-full justify-center')}
                   >
-                    <Sparkles className="w-4 h-4 text-[#f5c943]" />
+                    <Sparkles className="w-4 h-4 text-gold" />
                     <span>Muat 6 Pesanan Demo</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleResetDemo}
-                    className="w-full min-h-[44px] px-4 py-2 bg-white hover:bg-[#d94b3d]/10 text-[#d94b3d] border border-[#d94b3d]/30 font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                    className={buttonClass('danger', 'md', 'w-full justify-center')}
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span>Reset Total Seluruh Data</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[11px] text-[#918c84] pt-1">
+                <div className="flex items-center gap-1.5 text-2xs text-subtle pt-1">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                   <span>Reset total akan mengembalikan menu, antrean, dan sif ke setelan bawaan.</span>
                 </div>

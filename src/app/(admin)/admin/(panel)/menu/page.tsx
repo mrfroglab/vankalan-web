@@ -1,5 +1,8 @@
 'use client';
 
+import { inputClass, textareaClass, iconButtonClass } from '@/components/ui/styles';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { buttonClass } from '@/components/ui/Button';
 import { makeSaveGuard } from '@/lib/saveGuard';
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
@@ -249,44 +252,38 @@ export default function AdminMenuPage() {
         {toastMessage && (
           <div
             role="status"
-            className="p-3 px-4 bg-[#242321] text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
+            className="p-3 px-4 bg-ink text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
           >
-            <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
 
-        {/* Header Kelola Menu & Kategori */}
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
-              Kelola Menu & Kategori
-            </h2>
-            <p className="text-xs sm:text-sm text-[#68645e] mt-1 leading-normal">
-              Atur katalog hidangan, sesuaikan harga dasar, kelola opsi varian, dan pantau ketersediaan stok bahan baku.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <PageHeader
+          title="Kelola Menu & Kategori"
+          description="Atur katalog hidangan, harga dasar, opsi varian, dan ketersediaan menu."
+          actions={
+            <>
             <button
               type="button"
               onClick={() => setIsCatModalOpen(true)}
-              className="min-h-[44px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#242321] border border-[#e9e5df] font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+              className={buttonClass('outline', 'md')}
             >
-              <Tag className="w-4 h-4 text-[#68645e]" />
+              <Tag className="w-4 h-4 text-muted" />
               <span>Kelola Kategori</span>
             </button>
 
             <button
               type="button"
               onClick={openAddMenuModal}
-              className="min-h-[44px] px-5 py-2 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+              className={buttonClass('gold', 'md')}
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Menu Baru</span>
             </button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Filter Bar Kategori & Pencarian */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -310,18 +307,18 @@ export default function AdminMenuPage() {
                   role="tab"
                   aria-selected={isSelected}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`min-h-[40px] px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                  className={`min-h-10 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
                     isSelected
-                      ? 'bg-[#f5c943] text-[#242321] border border-[#f5c943] shadow-xs'
-                      : 'bg-white hover:bg-[#fbf9f5] text-[#68645e] hover:text-[#242321] border border-[#e9e5df]'
+                      ? 'bg-gold text-ink border border-gold shadow-xs'
+                      : 'bg-white hover:bg-surface-muted text-muted hover:text-ink border border-line'
                   }`}
                 >
                   <span>{cat}</span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
+                    className={`text-2xs px-1.5 py-0.2 rounded-full font-semibold ${
                       isSelected
-                        ? 'bg-[#242321] text-white'
-                        : 'bg-[#f1ede7] text-[#68645e]'
+                        ? 'bg-ink text-white'
+                        : 'bg-cream text-muted'
                     }`}
                   >
                     {count}
@@ -333,39 +330,39 @@ export default function AdminMenuPage() {
 
           {/* Kotak Pencarian Ringkas */}
           <div className="relative min-w-[240px]">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#918c84]" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-subtle" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama menu..."
-              className="w-full min-h-[40px] pl-9 pr-3.5 text-xs bg-white border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943]"
+              className={`${inputClass} pl-9`}
             />
           </div>
         </div>
 
         {/* Menu Grid */}
         {filteredMenu.length === 0 ? (
-          <div className="bg-white border border-[#e9e5df] rounded-2xl p-12 text-center shadow-card">
-            <p className="text-sm font-semibold text-[#242321]">
+          <div className="bg-white border border-line rounded-2xl p-12 text-center shadow-card">
+            <p className="text-sm font-semibold text-ink">
               Tidak ada menu yang sesuai dengan filter.
             </p>
-            <p className="text-xs text-[#68645e] mt-1">
+            <p className="text-xs text-muted mt-1">
               Coba ganti kata kunci pencarian atau pilih kategori lain.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
             {filteredMenu.map((m) => (
               <div
                 key={m.id}
-                className={`bg-white border border-[#e9e5df] rounded-2xl p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex flex-col justify-between group ${
-                  !m.available ? 'opacity-85 bg-[#fbf9f5]/70' : ''
+                className={`bg-white border border-line rounded-2xl p-4 sm:p-5 shadow-card hover:shadow-dropdown transition-all flex flex-col justify-between group ${
+                  !m.available ? 'opacity-85 bg-surface-muted/70' : ''
                 }`}
               >
                 <div>
                   {/* Thumbnail Gambar atau Fallback Ilustrasi */}
-                  <div className="relative w-full h-36 bg-[#fbf9f5] rounded-xl overflow-hidden flex items-center justify-center border border-[#eeeae4]/60 mb-3">
+                  <div className="relative w-full h-36 bg-surface-muted rounded-xl overflow-hidden flex items-center justify-center border border-line-soft/60 mb-3">
                     {m.image ? (
                       <Image
                         src={m.image}
@@ -381,17 +378,17 @@ export default function AdminMenuPage() {
                     {/* Status Badges di Sudut Atas */}
                     <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                       <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide shadow-xs ${
+                        className={`text-2xs font-bold px-2.5 py-0.5 rounded-full tracking-wide shadow-xs ${
                           m.available
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
-                            : 'bg-[#d94b3d] text-white'
+                            ? 'bg-success-soft text-success-ink border border-success-line/70'
+                            : 'bg-danger text-white'
                         }`}
                       >
                         {m.available ? 'Tersedia' : 'Habis'}
                       </span>
 
                       {m.popular && (
-                        <span className="bg-[#f8d84f] text-[#242321] text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide shadow-xs">
+                        <span className="bg-gold text-ink text-2xs font-bold px-2.5 py-0.5 rounded-full tracking-wide shadow-xs">
                           Populer
                         </span>
                       )}
@@ -400,13 +397,13 @@ export default function AdminMenuPage() {
 
                   {/* Kategori dan Judul */}
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#918c84]">
+                    <span className="text-2xs font-semibold uppercase tracking-wider text-muted">
                       {m.category}
                     </span>
-                    <h3 className="font-semibold text-sm sm:text-base text-[#242321] line-clamp-1 mt-0.5">
+                    <h3 className="font-semibold text-sm sm:text-base text-ink line-clamp-1 mt-0.5">
                       {m.name}
                     </h3>
-                    <p className="text-xs text-[#68645e] line-clamp-2 mt-1 leading-snug">
+                    <p className="text-xs text-muted line-clamp-2 mt-1 leading-snug">
                       {m.description || 'Pilihan hidangan lezat khas Warmindo Putra Vangkalan.'}
                     </p>
                   </div>
@@ -414,7 +411,7 @@ export default function AdminMenuPage() {
                   {/* Opsi Tambahan / Variasi */}
                   <div className="flex flex-wrap gap-1 mt-2.5">
                     {m.egg && (
-                      <span className="inline-flex items-center gap-1 bg-[#f1ede7] text-[#68645e] px-2 py-0.5 rounded text-[10px] font-medium border border-[#e9e5df]">
+                      <span className="inline-flex items-center gap-1 bg-cream text-muted px-2 py-0.5 rounded-full text-2xs font-medium border border-line">
                         <Egg className="w-2.5 h-2.5" />
                         <span>Opsi Telur</span>
                       </span>
@@ -423,10 +420,10 @@ export default function AdminMenuPage() {
                     {m.temperatures?.map((t) => (
                       <span
                         key={t}
-                        className="inline-flex items-center gap-1 bg-[#f1ede7] text-[#68645e] px-2 py-0.5 rounded text-[10px] font-medium border border-[#e9e5df]"
+                        className="inline-flex items-center gap-1 bg-cream text-muted px-2 py-0.5 rounded-full text-2xs font-medium border border-line"
                       >
                         {t === 'Panas' ? (
-                          <Flame className="w-2.5 h-2.5 text-amber-700" />
+                          <Flame className="w-2.5 h-2.5 text-gold-ink" />
                         ) : (
                           <Coffee className="w-2.5 h-2.5 text-blue-700" />
                         )}
@@ -437,11 +434,11 @@ export default function AdminMenuPage() {
 
                   {/* Harga Dasar */}
                   <div className="mt-3">
-                    <span className="text-base font-bold text-[#242321]">
+                    <span className="text-base font-bold text-ink">
                       {formatRupiah(m.price)}
                     </span>
                     {m.coldExtra ? (
-                      <span className="text-[11px] text-[#918c84] ml-1.5">
+                      <span className="text-2xs text-subtle ml-1.5">
                         (Dingin +{formatRupiah(m.coldExtra)})
                       </span>
                     ) : null}
@@ -449,26 +446,22 @@ export default function AdminMenuPage() {
                 </div>
 
                 {/* Baris Tombol Aksi */}
-                <div className="pt-3.5 mt-3.5 border-t border-[#eeeae4] flex items-center gap-2">
+                <div className="pt-3.5 mt-3.5 border-t border-line-soft flex items-center gap-2">
                   {/* Quick Toggle Ketersediaan Stok */}
                   <button
                     type="button"
                     onClick={() => handleToggleAvailable(m.id)}
-                    className={`flex-1 min-h-[38px] px-2.5 py-1.5 rounded-full text-xs font-bold border transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer ${
-                      m.available
-                        ? 'bg-white hover:bg-[#fbf9f5] text-[#242321] border-[#e9e5df]'
-                        : 'bg-[#d94b3d]/10 hover:bg-[#d94b3d]/20 text-[#d94b3d] border-[#d94b3d]/30'
-                    }`}
+                    className={buttonClass(m.available ? 'outline' : 'danger', 'sm', 'flex-1')}
                     title={m.available ? 'Ubah status ke Habis' : 'Ubah status ke Tersedia'}
                   >
                     {m.available ? (
                       <>
-                        <Eye className="w-3.5 h-3.5 text-emerald-700" />
+                        <Eye className="w-4 h-4 text-success" />
                         <span>Tersedia</span>
                       </>
                     ) : (
                       <>
-                        <EyeOff className="w-3.5 h-3.5" />
+                        <EyeOff className="w-4 h-4" />
                         <span>Habis</span>
                       </>
                     )}
@@ -478,21 +471,21 @@ export default function AdminMenuPage() {
                   <button
                     type="button"
                     onClick={() => openEditMenuModal(m)}
-                    className="min-h-[38px] px-3 py-1.5 rounded-full text-xs font-bold border border-[#e9e5df] bg-white hover:bg-[#fbf9f5] text-[#242321] inline-flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                    className={iconButtonClass}
                     title="Edit rincian menu"
+                    aria-label={`Edit ${m.name}`}
                   >
-                    <Edit2 className="w-3.5 h-3.5 text-[#68645e]" />
-                    <span>Edit</span>
+                    <Edit2 className="w-4 h-4" />
                   </button>
 
                   {/* Tombol Hapus */}
                   <button
                     type="button"
                     onClick={() => handleDeleteMenu(m.id)}
-                    className="w-[38px] h-[38px] rounded-full text-xs font-bold border border-[#e9e5df] hover:border-[#d94b3d]/30 bg-white hover:bg-[#d94b3d]/10 text-[#68645e] hover:text-[#d94b3d] inline-flex items-center justify-center cursor-pointer transition-colors shadow-xs"
+                    className={`${iconButtonClass} hover:!text-danger hover:!bg-danger-soft hover:border-danger-line`}
                     title="Hapus menu dari katalog"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -508,8 +501,8 @@ export default function AdminMenuPage() {
         >
           <form onSubmit={handleSaveMenu} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#242321]">
-                Nama Menu <span className="text-[#d94b3d]">*</span>
+              <label className="text-xs font-semibold text-ink">
+                Nama Menu <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -518,19 +511,19 @@ export default function AdminMenuPage() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Contoh: Indomie Goreng Spesial Telur"
-                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className={inputClass}
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#242321]">
-                  Kategori <span className="text-[#d94b3d]">*</span>
+                <label className="text-xs font-semibold text-ink">
+                  Kategori <span className="text-danger">*</span>
                 </label>
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943]"
+                  className={inputClass}
                 >
                   {categories.map((c) => (
                     <option key={c} value={c}>
@@ -541,8 +534,8 @@ export default function AdminMenuPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#242321]">
-                  Harga Dasar (Rp) <span className="text-[#d94b3d]">*</span>
+                <label className="text-xs font-semibold text-ink">
+                  Harga Dasar (Rp) <span className="text-danger">*</span>
                 </label>
                 <input
                   type="number"
@@ -551,29 +544,29 @@ export default function AdminMenuPage() {
                   required
                   value={formPrice}
                   onChange={(e) => setFormPrice(Number(e.target.value))}
-                  className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                  className={inputClass}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#242321]">Deskripsi</label>
+              <label className="text-xs font-semibold text-ink">Deskripsi</label>
               <textarea
                 rows={2}
                 maxLength={180}
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="Rasa gurih khas dengan taburan bawang goreng renyah..."
-                className="w-full p-3.5 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className={textareaClass}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#242321]">Jenis Ilustrasi Fallback</label>
+              <label className="text-xs font-semibold text-ink">Jenis Ilustrasi Fallback</label>
               <select
                 value={formKind}
                 onChange={(e) => setFormKind(e.target.value as MenuItem['kind'])}
-                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943]"
+                className={inputClass}
               >
                 <option value="noodle">Mi Goreng</option>
                 <option value="soup">Mi Kuah</option>
@@ -586,30 +579,30 @@ export default function AdminMenuPage() {
             </div>
 
             {/* Opsi & Variasi Menu */}
-            <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3 text-xs">
-              <p className="font-bold text-[#242321]">Opsi & Variasi Tambahan</p>
+            <div className="p-4 bg-surface-muted rounded-2xl border border-line space-y-3 text-xs">
+              <p className="font-bold text-ink">Opsi & Variasi Tambahan</p>
 
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={formEgg}
                   onChange={(e) => setFormEgg(e.target.checked)}
-                  className="w-4 h-4 accent-[#f5c943] rounded"
+                  className="w-4 h-4 accent-gold rounded"
                 />
-                <span className="font-medium text-[#242321]">
+                <span className="font-medium text-ink">
                   Tawarkan Opsi Tambah Telur (Rebus / Ceplok / Dadar)
                 </span>
               </label>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#eeeae4]">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-line-soft">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={formHot}
                     onChange={(e) => setFormHot(e.target.checked)}
-                    className="w-4 h-4 accent-[#f5c943] rounded"
+                    className="w-4 h-4 accent-gold rounded"
                   />
-                  <span className="font-medium text-[#242321]">Opsi Suhu Panas</span>
+                  <span className="font-medium text-ink">Opsi Suhu Panas</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -617,15 +610,15 @@ export default function AdminMenuPage() {
                     type="checkbox"
                     checked={formCold}
                     onChange={(e) => setFormCold(e.target.checked)}
-                    className="w-4 h-4 accent-[#f5c943] rounded"
+                    className="w-4 h-4 accent-gold rounded"
                   />
-                  <span className="font-medium text-[#242321]">Opsi Suhu Dingin</span>
+                  <span className="font-medium text-ink">Opsi Suhu Dingin</span>
                 </label>
               </div>
 
               {formCold && (
                 <div className="pt-2">
-                  <label className="text-[11px] font-semibold text-[#68645e] block mb-1">
+                  <label className="block text-xs font-semibold text-ink mb-1">
                     Biaya Tambahan Varian Dingin (Rp)
                   </label>
                   <input
@@ -634,20 +627,20 @@ export default function AdminMenuPage() {
                     step={500}
                     value={formColdExtra}
                     onChange={(e) => setFormColdExtra(Number(e.target.value))}
-                    className="w-full min-h-[38px] px-3.5 text-xs bg-white border border-[#e9e5df] rounded-full text-[#242321] focus:outline-none focus:border-[#f5c943]"
+                    className={inputClass}
                   />
                 </div>
               )}
 
-              <div className="pt-2 border-t border-[#eeeae4]">
+              <div className="pt-2 border-t border-line-soft">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={formPopular}
                     onChange={(e) => setFormPopular(e.target.checked)}
-                    className="w-4 h-4 accent-[#f5c943] rounded"
+                    className="w-4 h-4 accent-gold rounded"
                   />
-                  <span className="font-medium text-[#242321]">
+                  <span className="font-medium text-ink">
                     Tandai sebagai Favorit Warung (Badge Populer)
                   </span>
                 </label>
@@ -655,14 +648,14 @@ export default function AdminMenuPage() {
             </div>
 
             {/* Tombol Aksi Modal */}
-            <div className="flex items-center justify-between pt-3 border-t border-[#eeeae4]">
+            <div className="flex items-center justify-between pt-3 border-t border-line-soft">
               {editingItem ? (
                 <button
                   type="button"
                   onClick={() => handleDeleteMenu(editingItem.id)}
-                  className="min-h-[42px] px-4 py-2 bg-[#d94b3d]/10 hover:bg-[#d94b3d]/20 text-[#d94b3d] border border-[#d94b3d]/30 font-bold text-xs rounded-full inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className={buttonClass('danger', 'sm')}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                   <span>Hapus Menu</span>
                 </button>
               ) : (
@@ -673,13 +666,13 @@ export default function AdminMenuPage() {
                 <button
                   type="button"
                   onClick={() => setIsMenuModalOpen(false)}
-                  className="min-h-[42px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#68645e] border border-[#e9e5df] font-bold text-xs rounded-full cursor-pointer transition-colors"
+                  className={buttonClass('outline', 'sm')}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[42px] px-5 py-2 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm rounded-full shadow-xs cursor-pointer transition-colors"
+                  className={buttonClass('gold', 'md')}
                 >
                   Simpan Menu
                 </button>
@@ -703,17 +696,17 @@ export default function AdminMenuPage() {
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
                 placeholder="Nama kategori baru..."
-                className="flex-1 min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943]"
+                className={`${inputClass} flex-1`}
               />
               <button
                 type="submit"
-                className="min-h-[44px] px-5 py-2 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm rounded-full shadow-xs cursor-pointer transition-colors shrink-0"
+                className={buttonClass('gold', 'md', 'shrink-0')}
               >
                 Tambah
               </button>
             </form>
 
-            <div className="divide-y divide-[#eeeae4] border border-[#e9e5df] rounded-2xl bg-white overflow-hidden">
+            <div className="divide-y divide-line-soft border border-line rounded-2xl bg-white overflow-hidden">
               {categories.map((c) => {
                 const itemCount = menuList.filter((m) => m.category === c).length;
                 return (
@@ -722,15 +715,15 @@ export default function AdminMenuPage() {
                     className="px-4 py-3 flex items-center justify-between text-xs"
                   >
                     <div>
-                      <span className="font-bold text-[#242321]">{c}</span>
-                      <span className="text-[11px] text-[#918c84] ml-2">
+                      <span className="font-bold text-ink">{c}</span>
+                      <span className="text-2xs text-subtle ml-2">
                         ({itemCount} hidangan)
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleDeleteCategory(c)}
-                      className="text-[#d94b3d] hover:underline font-semibold cursor-pointer py-1 px-2"
+                      className="text-danger hover:underline font-semibold cursor-pointer py-1 px-2"
                     >
                       Hapus
                     </button>
@@ -739,11 +732,11 @@ export default function AdminMenuPage() {
               })}
             </div>
 
-            <div className="text-right pt-2 border-t border-[#eeeae4]">
+            <div className="text-right pt-2 border-t border-line-soft">
               <button
                 type="button"
                 onClick={() => setIsCatModalOpen(false)}
-                className="min-h-[40px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#68645e] border border-[#e9e5df] font-bold text-xs rounded-full cursor-pointer transition-colors"
+                className={buttonClass('outline', 'sm')}
               >
                 Tutup
               </button>

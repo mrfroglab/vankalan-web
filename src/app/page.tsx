@@ -1,5 +1,6 @@
 'use client';
 
+import { buttonClass } from '@/components/ui/Button';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { MenuItem } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -240,7 +241,7 @@ export default function HomePage() {
   })();
 
   return (
-    <div className="min-h-screen bg-[#f5f2ed] flex flex-col text-[#242321]">
+    <div className="min-h-screen bg-canvas flex flex-col text-ink">
       {/* 1. Header Navigasi Khas Foodly */}
       <FoodlyHeader
         isOpen={isStoreOpen}
@@ -302,20 +303,20 @@ export default function HomePage() {
               />
             ) : filteredMenu.length === 0 ? (
               /* Kondisi Hasil Kosong */
-              <div className="bg-white rounded-2xl border border-[#e9e5df] p-8 sm:p-12 text-center shadow-card">
-                <div className="w-14 h-14 rounded-full bg-[#f5f2ed] border border-[#e9e5df] flex items-center justify-center mx-auto mb-3.5 text-[#77736d]">
+              <div className="bg-white rounded-2xl border border-line p-8 sm:p-12 text-center shadow-card">
+                <div className="w-14 h-14 rounded-full bg-canvas border border-line flex items-center justify-center mx-auto mb-3.5 text-icon">
                   <ChefHat className="w-7 h-7" aria-hidden="true" />
                 </div>
-                <h3 className="font-bold text-sm sm:text-base text-[#242321] mb-1">
+                <h3 className="font-bold text-sm sm:text-base text-ink mb-1">
                   Menu tidak ditemukan
                 </h3>
-                <p className="text-xs sm:text-sm text-[#68645e] max-w-sm mx-auto mb-5 leading-relaxed">
+                <p className="text-xs sm:text-sm text-muted max-w-sm mx-auto mb-5 leading-relaxed">
                   Tidak ada sajian yang sesuai dengan kriteria pencarian atau filter yang dipilih. Silakan coba kata kunci lain.
                 </p>
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] transition-all cursor-pointer shadow-xs active:scale-95 min-h-[44px]"
+                  className={buttonClass('gold', 'sm')}
                 >
                   <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Reset Semua Filter</span>

@@ -193,3 +193,9 @@ export const INITIAL_MENU: MenuItem[] = [
     mealTime: ['Snacks', 'Makan Malam'],
   },
 ];
+
+/** Nomor HP untuk tampilan: 6281234500001 -> 0812-3450-0001. Data tetap disimpan apa adanya. */
+export function formatPhone(phone: string): string {
+  const local = phone.replace(/\D/g, '').replace(/^62/, '0');
+  return local.replace(/^(\d{4})(\d{4})(\d+)$/, '$1-$2-$3');
+}

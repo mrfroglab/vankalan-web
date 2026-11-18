@@ -1,5 +1,6 @@
 'use client';
 
+import { inputClass } from '@/components/ui/styles';
 import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock } from 'lucide-react';
@@ -49,25 +50,25 @@ function LoginForm() {
   };
 
   return (
-    <div className="bg-[#f5f2ed] min-h-screen flex items-center justify-center px-4 py-8">
+    <div className="bg-canvas min-h-screen flex items-center justify-center px-4 py-8">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-sm bg-white p-6 rounded-2xl border border-[#e9e5df] shadow-card space-y-4"
+        className="w-full max-w-sm bg-white p-6 rounded-2xl border border-line shadow-card space-y-4"
       >
         <div className="flex items-center gap-3">
-          <span className="bg-[#d94b3d] text-white font-black text-xs px-2.5 py-1 rounded-full tracking-wider select-none">
+          <span className="bg-danger text-white font-black text-xs px-2.5 py-1 rounded-full tracking-wider select-none">
             PV
           </span>
-          <h1 className="text-base font-bold text-[#242321]">Masuk Dapur Admin</h1>
+          <h1 className="text-base font-bold text-ink">Masuk Dapur Admin</h1>
         </div>
 
         {configured === false && (
-          <p role="alert" className="text-xs p-3 rounded-2xl bg-[#fde7e4] text-[#91251c] font-semibold">
+          <p role="alert" className="text-xs p-3 rounded-2xl bg-danger-soft text-danger-ink font-semibold">
             Login admin belum dikonfigurasi di server (ADMIN_PASSWORD dan SESSION_SECRET).
           </p>
         )}
 
-        <label className="block text-xs font-semibold text-[#68645e]" htmlFor="admin-password">
+        <label className="block text-xs font-semibold text-ink" htmlFor="admin-password">
           Kata sandi
           <input
             id="admin-password"
@@ -77,12 +78,12 @@ function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 w-full min-h-[44px] px-4 rounded-full border border-[#e9e5df] bg-[#f5f2ed] text-sm text-[#242321] focus:outline-none focus:ring-2 focus:ring-[#297838]"
+            className={`${inputClass} mt-1.5`}
           />
         </label>
 
         {error && (
-          <p role="alert" className="text-xs font-semibold text-[#91251c]">
+          <p role="alert" className="text-xs font-semibold text-danger-ink">
             {error}
           </p>
         )}

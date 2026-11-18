@@ -22,12 +22,12 @@ export function FloatingCartBar({ onOpenCart }: FloatingCartBarProps) {
       <button
         type="button"
         onClick={onOpenCart}
-        className="w-full min-h-[56px] px-5 py-3 rounded-2xl bg-[#242321] text-white shadow-dropdown hover:bg-[#383633] flex items-center justify-between gap-3 transition-all duration-200 active:scale-[0.98] cursor-pointer border border-[#383633]"
+        className="w-full min-h-[56px] px-5 py-3 rounded-2xl bg-ink text-white shadow-dropdown hover:bg-ink-hover flex items-center justify-between gap-3 transition-all duration-200 active:scale-[0.98] cursor-pointer border border-ink-hover"
       >
         <div className="flex items-center gap-3">
           <div className="relative">
             <ShoppingBag className="w-6 h-6 text-white" aria-hidden="true" />
-            <span className="absolute -top-1.5 -right-2 bg-[#f5c943] text-[#242321] text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#242321]">
+            <span className="absolute -top-1.5 -right-2 bg-gold text-ink text-2xs font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-ink">
               {totalItems}
             </span>
           </div>
@@ -41,7 +41,7 @@ export function FloatingCartBar({ onOpenCart }: FloatingCartBarProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs font-bold bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] px-3.5 py-1.5 rounded-full transition-colors">
+        <div className="flex items-center gap-1.5 text-xs font-bold bg-gold hover:bg-gold-hover text-ink px-3.5 py-1.5 rounded-full transition-colors">
           <span>Lihat</span>
           <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { buttonClass } from '@/components/ui/Button';
 import React from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
@@ -23,20 +24,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     >
       {items.length === 0 ? (
         <div className="py-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-[#f5f2ed] border border-[#e9e5df] flex items-center justify-center mx-auto mb-4 text-[#242321]">
-            <ShoppingBag className="w-8 h-8 text-[#77736d]" aria-hidden="true" />
+          <div className="w-16 h-16 rounded-full bg-canvas border border-line flex items-center justify-center mx-auto mb-4 text-ink">
+            <ShoppingBag className="w-8 h-8 text-icon" aria-hidden="true" />
           </div>
-          <h3 className="font-bold text-base text-[#242321] mb-1">
+          <h3 className="font-bold text-base text-ink mb-1">
             Keranjangmu masih kosong
           </h3>
-          <p className="text-xs sm:text-sm text-[#68645e] max-w-xs mx-auto">
+          <p className="text-xs sm:text-sm text-muted max-w-xs mx-auto">
             Pilih mi instan atau minuman favoritmu untuk mulai memesan.
           </p>
           <div className="mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] px-6 py-2.5 rounded-full bg-white border border-[#e9e5df] text-[#242321] font-semibold text-xs sm:text-sm hover:bg-[#f5f2ed] transition-colors cursor-pointer"
+              className={buttonClass('outline', 'md')}
             >
               Lihat Menu
             </button>
@@ -44,58 +45,58 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="divide-y divide-[#eeeae4]">
+          <div className="divide-y divide-line-soft">
             {items.map((item) => (
               <div key={item.id} className="py-3.5 first:pt-0 last:pb-0">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <h4 className="font-bold text-sm text-[#242321]">
+                    <h4 className="font-bold text-sm text-ink">
                       {item.menuItem.name}
                     </h4>
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {item.egg ? (
-                        <span className="text-[11px] bg-[#f5f2ed] text-[#242321] border border-[#e9e5df] px-2.5 py-0.5 rounded-full font-medium">
+                        <span className="text-2xs bg-canvas text-ink border border-line px-2.5 py-0.5 rounded-full font-medium">
                           + Telur
                         </span>
                       ) : null}
                       {item.temp ? (
-                        <span className="text-[11px] bg-neutral-100 text-[#242321] border border-[#e9e5df] px-2.5 py-0.5 rounded-full font-medium">
+                        <span className="text-2xs bg-cream text-ink border border-line px-2.5 py-0.5 rounded-full font-medium">
                           {item.temp}
                         </span>
                       ) : null}
                     </div>
                     {item.note ? (
-                      <p className="text-xs text-[#68645e] mt-1 italic">
+                      <p className="text-xs text-muted mt-1 italic">
                         Catatan: &ldquo;{item.note}&rdquo;
                       </p>
                     ) : null}
-                    <div className="text-xs font-bold text-[#242321] mt-1.5">
+                    <div className="text-xs font-bold text-ink mt-1.5">
                       {formatRupiah(item.unitPrice)}
                     </div>
                   </div>
 
                   {/* Quantity Stepper */}
-                  <div className="flex items-center gap-1 bg-white border border-[#e9e5df] rounded-full p-1 shrink-0">
+                  <div className="flex items-center gap-1 bg-white border border-line rounded-full p-1 shrink-0">
                     <button
                       type="button"
                       onClick={() => updateQty(item.id, item.qty - 1)}
                       aria-label="Kurangi jumlah"
-                      className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-full text-ink hover:bg-canvas cursor-pointer transition-colors"
                     >
                       {item.qty === 1 ? (
-                        <Trash2 className="w-4 h-4 text-[#d94b3d]" />
+                        <Trash2 className="w-4 h-4 text-danger" />
                       ) : (
                         <Minus className="w-4 h-4" />
                       )}
                     </button>
-                    <span className="w-6 text-center font-bold text-sm text-[#242321]">
+                    <span className="w-6 text-center font-bold text-sm text-ink">
                       {item.qty}
                     </span>
                     <button
                       type="button"
                       onClick={() => updateQty(item.id, item.qty + 1)}
                       aria-label="Tambah jumlah"
-                      className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-full text-ink hover:bg-canvas cursor-pointer transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -106,10 +107,10 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           </div>
 
           {/* Subtotal & Tindakan */}
-          <div className="pt-4 border-t border-[#e9e5df] space-y-3">
+          <div className="pt-4 border-t border-line space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#68645e]">Total Pembayaran</span>
-              <strong className="text-lg font-extrabold text-[#242321]">
+              <span className="text-sm text-muted">Total Pembayaran</span>
+              <strong className="text-lg font-extrabold text-ink">
                 {formatRupiah(totalAmount)}
               </strong>
             </div>
@@ -118,7 +119,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <Link href="/checkout" onClick={onClose} className="block w-full">
                 <button
                   type="button"
-                  className="w-full min-h-[48px] bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold py-3.5 px-5 rounded-full shadow-xs active:scale-95 transition-all text-sm flex items-center justify-center cursor-pointer"
+                  className={buttonClass('gold', 'lg', 'w-full justify-center')}
                 >
                   Lanjut ke Pembayaran ({formatRupiah(totalAmount)})
                 </button>
@@ -129,11 +130,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   type="button"
                   disabled
                   aria-disabled="true"
-                  className="w-full min-h-[48px] bg-neutral-100 border border-neutral-300 text-neutral-400 font-semibold py-3.5 px-5 rounded-full text-sm flex items-center justify-center cursor-not-allowed select-none"
+                  className="w-full min-h-12 bg-cream border border-line-strong text-subtle font-semibold py-3.5 px-5 rounded-full text-sm flex items-center justify-center cursor-not-allowed select-none"
                 >
                   Warmindo Tutup Sementara
                 </button>
-                <p className="text-[11px] text-center text-[#8c5a14]">
+                <p className="text-2xs text-center text-gold-ink">
                   Pesanan online saat ini ditutup. Anda tetap dapat menyimpan keranjang ini.
                 </p>
               </div>
@@ -142,7 +143,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <button
               type="button"
               onClick={clearCart}
-              className="w-full text-center text-xs text-[#68645e] hover:text-[#d94b3d] py-2 cursor-pointer transition-colors min-h-[36px] flex items-center justify-center"
+              className="w-full text-center text-xs text-muted hover:text-danger py-2 cursor-pointer transition-colors min-h-10 flex items-center justify-center"
             >
               Kosongkan Keranjang
             </button>

@@ -1,5 +1,7 @@
 'use client';
 
+import { sectionTitleClass } from '@/components/ui/styles';
+import { buttonClass } from '@/components/ui/Button';
 import React, { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, Loader2, LogOut, MessageCircle, RotateCcw, Smartphone } from 'lucide-react';
 import { apiRequest, isBackendConfigured } from '@/services/client';
@@ -87,40 +89,40 @@ export function WhatsAppLoginCard() {
   return (
     <section
       id="whatsapp"
-      className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4 scroll-mt-24"
+      className="bg-white border border-line rounded-2xl p-5 shadow-card space-y-4 scroll-mt-24"
     >
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
-          <MessageCircle className={`w-4 h-4 ${working ? 'text-emerald-700' : 'text-[#d94b3d]'}`} />
+        <div className="w-8 h-8 rounded-full bg-cream flex items-center justify-center text-ink">
+          <MessageCircle className={`w-4 h-4 ${working ? 'text-success' : 'text-danger'}`} />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-[#242321]">Login WhatsApp Notifikasi</h3>
-          <span className="text-xs text-[#68645e]">Nomor WA yang mengirim pesanan ke penjaga</span>
+          <h3 className={sectionTitleClass}>Login WhatsApp Notifikasi</h3>
+          <span className="text-xs text-muted">Nomor WA yang mengirim pesanan ke penjaga</span>
         </div>
       </div>
 
-      <div className="p-4 bg-[#fbf9f5] rounded-2xl border border-[#e9e5df] space-y-3">
+      <div className="p-4 bg-surface-muted rounded-2xl border border-line space-y-3">
         {!state && (
-          <p className="text-xs text-[#68645e] flex items-center gap-2">
+          <p className="text-xs text-muted flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Memeriksa sesi WhatsApp…
           </p>
         )}
 
         {working && state?.configured && state.reachable && (
           <div className="space-y-3">
-            <p className="text-sm font-bold text-emerald-800 flex items-center gap-2">
+            <p className="text-sm font-bold text-success-ink flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 shrink-0" /> WhatsApp terhubung
             </p>
             {state.account && (
-              <p className="text-xs text-[#68645e]">
-                Sebagai <b className="text-[#242321]">{state.account.name || 'tanpa nama'}</b> (+{state.account.id})
+              <p className="text-xs text-muted">
+                Sebagai <b className="text-ink">{state.account.name || 'tanpa nama'}</b> (+{state.account.id})
               </p>
             )}
             <button
               type="button"
               disabled={busy}
               onClick={() => act('logout')}
-              className="w-full min-h-[44px] px-4 py-2 bg-white hover:bg-[#d94b3d]/10 text-[#d94b3d] border border-[#d94b3d]/30 font-bold text-xs sm:text-sm rounded-full inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+              className={buttonClass('danger', 'md', 'w-full justify-center')}
             >
               <LogOut className="w-4 h-4" /> Keluar / Ganti Nomor
             </button>
@@ -129,9 +131,9 @@ export function WhatsAppLoginCard() {
 
         {scanning && (
           <div className="space-y-3">
-            <div className="mx-auto w-full max-w-[264px] aspect-square bg-white rounded-xl border border-[#e9e5df] p-2 flex items-center justify-center">
+            <div className="mx-auto w-full max-w-[264px] aspect-square bg-white rounded-xl border border-line p-2 flex items-center justify-center">
               {qrFailed ? (
-                <span className="text-xs text-[#68645e] flex items-center gap-2">
+                <span className="text-xs text-muted flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" /> Menyiapkan QR…
                 </span>
               ) : (
@@ -144,14 +146,14 @@ export function WhatsAppLoginCard() {
                 />
               )}
             </div>
-            <ol className="text-xs text-[#4a4743] space-y-1 list-decimal pl-4 leading-relaxed">
+            <ol className="text-xs text-ink-soft space-y-1 list-decimal pl-4 leading-relaxed">
               <li>Buka WhatsApp di HP nomor warung.</li>
               <li>
                 Ketuk <b>⋮</b> / <b>Setelan</b> → <b>Perangkat tertaut</b> → <b>Tautkan perangkat</b>.
               </li>
               <li>Arahkan kamera ke QR ini. Status berubah sendiri begitu berhasil.</li>
             </ol>
-            <p className="text-[11px] text-[#918c84] flex items-start gap-1.5">
+            <p className="text-2xs text-subtle flex items-start gap-1.5">
               <Smartphone className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               Buka halaman ini di laptop/tablet/HP lain: QR tidak bisa discan dari layar HP itu sendiri.
             </p>
@@ -159,17 +161,17 @@ export function WhatsAppLoginCard() {
         )}
 
         {starting && (
-          <p className="text-xs text-[#68645e] flex items-center gap-2">
+          <p className="text-xs text-muted flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Sesi sedang disiapkan, QR muncul sebentar lagi…
           </p>
         )}
 
         {status && !working && !scanning && !starting && (
-          <p className="text-xs text-[#91251c]">Sesi WhatsApp: {status}.</p>
+          <p className="text-xs text-danger-ink">Sesi WhatsApp: {status}.</p>
         )}
-        {unreachable && <p className="text-xs text-[#91251c]">WAHA tidak terjangkau: {unreachable}</p>}
+        {unreachable && <p className="text-xs text-danger-ink">WAHA tidak terjangkau: {unreachable}</p>}
         {error && (
-          <p role="alert" className="text-xs text-[#91251c]">
+          <p role="alert" className="text-xs text-danger-ink">
             {error}
           </p>
         )}
@@ -179,7 +181,7 @@ export function WhatsAppLoginCard() {
             type="button"
             disabled={busy}
             onClick={() => act(canStart && status !== 'FAILED' ? 'start' : 'restart')}
-            className="w-full min-h-[44px] px-4 py-2 bg-white hover:bg-[#f5f2ed] text-[#242321] border border-[#e9e5df] font-bold text-xs sm:text-sm rounded-full inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+            className={buttonClass('outline', 'md', 'w-full justify-center')}
           >
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
             {canStart && status !== 'FAILED' ? 'Mulai Sesi WhatsApp' : 'Muat Ulang QR / Sesi'}
