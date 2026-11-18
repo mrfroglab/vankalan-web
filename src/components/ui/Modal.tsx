@@ -54,22 +54,22 @@ export function Modal({
     >
       <div
         ref={dialogRef}
-        className={`w-full max-w-lg bg-white border border-[#e9e5df] shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[85dvh] overflow-hidden animate-slide-up-sheet sm:animate-scale-in ${
+        className={`w-full max-w-lg bg-white border border-line shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[85dvh] overflow-hidden animate-slide-up-sheet sm:animate-scale-in ${
           asBottomSheetOnMobile
             ? 'rounded-t-2xl sm:rounded-2xl'
             : 'rounded-2xl m-4'
         }`}
       >
         {/* Header Modal */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#e9e5df] shrink-0 bg-white">
-          <h2 id="modal-title" className="text-base sm:text-lg font-bold text-[#242321]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0 bg-white">
+          <h2 id="modal-title" className="text-base sm:text-lg font-bold text-ink">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Tutup jendela dialog"
-            className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-[#f5f2ed] transition-colors text-[#68645e] hover:text-[#242321] cursor-pointer"
+            className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-canvas transition-colors text-muted hover:text-ink cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

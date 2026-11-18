@@ -23,10 +23,10 @@ export function CategoryFilter({
             key={cat}
             type="button"
             onClick={() => onSelect(cat)}
-            className={`min-h-[44px] px-4 py-2 text-xs sm:text-sm font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
+            className={`min-h-11 px-4 py-2 text-xs sm:text-sm font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
               isSelected
-                ? 'bg-brand-green text-white border-brand-green shadow-xs'
-                : 'bg-white text-ink border-border-line hover:bg-soft-green'
+                ? 'bg-ink text-white border-ink shadow-xs'
+                : 'bg-white text-ink border-line hover:bg-cream'
             }`}
           >
             {cat}

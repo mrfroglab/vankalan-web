@@ -1,75 +1,63 @@
 @import "tailwindcss";
 
-:root {
-  /* design.md color tokens */
-  --color-warm-canvas: #f5f2ed;
-  --color-footer-cream: #f1ede7;
-  --color-white: #ffffff;
-  --color-soft-border: #e9e5df;
-  --color-muted-divider: #eeeae4;
-  --color-primary-ink: #242321;
-  --color-secondary-ink: #68645e;
-  --color-muted-gray: #918c84;
-  --color-foodly-gold: #f5c943;
+/*
+ * Token desain tunggal. Pakai kelas semantik (bg-canvas, text-muted, border-line, bg-gold, ...),
+ * jangan warna hex langsung di komponen.
+ */
+@theme {
+  /* Permukaan */
+  --color-canvas: #f5f2ed;
+  --color-cream: #f1ede7;
+  --color-surface-muted: #fbf9f5;
+
+  /* Garis */
+  --color-line: #e9e5df;
+  --color-line-soft: #eeeae4;
+  --color-line-strong: #d9d4cc;
+
+  /* Teks & ikon */
+  --color-ink: #242321;
+  --color-ink-hover: #383633;
+  --color-ink-soft: #4a4743;
+  --color-muted: #68645e;
+  --color-icon: #77736d;
+  --color-subtle: #918c84;
+  --color-faint: #b8b2a9;
+
+  /* Aksen utama */
+  --color-gold: #f5c943;
   --color-gold-hover: #e8b82b;
-  --color-sale-gold: #f8d84f;
-  --color-rating-gold: #e9b82f;
-  --color-discount-red: #d94b3d;
-  --color-icon-gray: #77736d;
+  --color-gold-ink: #7a5410;
+  --color-gold-soft: #fdf3d6;
+  --color-gold-tint: #fef8e8;
+  --color-gold-line: #f4d5a7;
+  --color-rating: #e9b82f;
 
-  /* Backward compatible theme mappings */
-  --background: #f5f2ed;
-  --foreground: #242321;
-  --paper: #f5f2ed;
-  --ink: #242321;
-  --brand-green: #242321;
-  --brand-green-hover: #383633;
-  --brand-orange: #f5c943;
-  --brand-orange-hover: #e8b82b;
-  --soft-green: #f1ede7;
-  --border-line: #e9e5df;
-  --text-muted: #68645e;
-  --danger-red: #d94b3d;
-  --warning-amber: #e9b82f;
-}
+  /* Status */
+  --color-success: #297838;
+  --color-success-ink: #1c4d25;
+  --color-success-soft: #e2edd8;
+  --color-success-line: #c5dcba;
+  --color-danger: #d94b3d;
+  --color-danger-ink: #91251c;
+  --color-danger-soft: #fde7e4;
+  --color-danger-line: #f7c5be;
+  --color-info: #1e619d;
+  --color-info-ink: #1a4a75;
+  --color-info-soft: #e7f0fa;
+  --color-info-line: #c6def4;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-paper: var(--paper);
-  --color-ink: var(--ink);
-  --color-brand-green: var(--brand-green);
-  --color-brand-green-hover: var(--brand-green-hover);
-  --color-brand-orange: var(--brand-orange);
-  --color-brand-orange-hover: var(--brand-orange-hover);
-  --color-soft-green: var(--soft-green);
-  --color-border-line: var(--border-line);
-  --color-text-muted: var(--text-muted);
-  --color-danger-red: var(--danger-red);
-  --color-warning-amber: var(--warning-amber);
-
-  /* Specific design tokens */
-  --color-warm-canvas: #f5f2ed;
-  --color-footer-cream: #f1ede7;
-  --color-soft-border: #e9e5df;
-  --color-muted-divider: #eeeae4;
-  --color-primary-ink: #242321;
-  --color-secondary-ink: #68645e;
-  --color-muted-gray: #918c84;
-  --color-foodly-gold: #f5c943;
-  --color-gold-hover: #e8b82b;
-  --color-sale-gold: #f8d84f;
-  --color-rating-gold: #e9b82f;
-  --color-discount-red: #d94b3d;
-  --color-icon-gray: #77736d;
+  /* Skala huruf: satu ukuran mikro untuk label/lencana */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
 
   --shadow-card: 0 1px 2px rgba(40, 32, 20, 0.025);
   --shadow-dropdown: 0 4px 14px rgba(40, 32, 20, 0.08);
 }
 
 body {
-  background: var(--color-warm-canvas);
-  color: var(--color-primary-ink);
+  background: var(--color-canvas);
+  color: var(--color-ink);
   font-family: var(--font-geist-sans), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -80,7 +68,7 @@ body {
 
 /* Aksesibilitas: Indikator fokus yang jelas dan kontras */
 :focus-visible {
-  outline: 2px solid #f5c943;
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
@@ -131,7 +119,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #e9e5df 25%, #f1ede7 50%, #e9e5df 75%);
+  background: linear-gradient(90deg, var(--color-line) 25%, var(--color-cream) 50%, var(--color-line) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }

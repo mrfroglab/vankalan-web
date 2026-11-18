@@ -1,5 +1,9 @@
 'use client';
 
+import { FULFILLMENT_LABEL, NOTIFICATION_LABEL } from '@/lib/statusLabels';
+import { inputClass, iconButtonClass } from '@/components/ui/styles';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { buttonClass } from '@/components/ui/Button';
 import { makeSaveGuard } from '@/lib/saveGuard';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -7,7 +11,7 @@ import { Shift, Order } from '@/types';
 import { settingsService } from '@/services/settings';
 import { orderService } from '@/services/orders';
 import { Modal } from '@/components/ui/Modal';
-import { formatTimeWIB } from '@/lib/constants';
+import { formatTimeWIB, formatPhone } from '@/lib/constants';
 import { HandoverSummary, needsHandover, openPaidOrders, runHandover } from '@/lib/handover';
 import {
   Plus,
@@ -194,43 +198,33 @@ export default function AdminSifPage() {
         {toastMessage && (
           <div
             role="status"
-            className="p-3 px-4 bg-[#242321] text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
+            className="p-3 px-4 bg-ink text-white text-xs font-semibold rounded-full shadow-dropdown flex items-center gap-2 animate-fade-in"
           >
-            <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
 
-        {/* Section Header */}
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#e9e5df] shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold font-editorial text-[#242321]">
-              Penjaga & Manajemen Sif
-            </h2>
-            <p className="text-xs sm:text-sm text-[#68645e] mt-1 leading-normal">
-              Kelola daftar petugas jaga warung dan koordinasi serah terima pesanan aktif antar-sif.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={openAddModal}
-            className="min-h-[44px] px-5 py-2 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm rounded-full shadow-xs inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tambah Penjaga Baru</span>
-          </button>
-        </div>
+        <PageHeader
+          title="Penjaga & Sif"
+          description="Kelola petugas jaga warung dan serah terima pesanan aktif antar-sif."
+          actions={
+            <button type="button" onClick={openAddModal} className={buttonClass('gold', 'md')}>
+              <Plus className="w-4 h-4" />
+              Tambah Penjaga
+            </button>
+          }
+        />
 
         {/* Grid 2 Kolom: Sif Cards & Handover Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Kolom Kiri: Sif Cards (7/12) */}
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#918c84]">
+              <h3 className="text-2xs font-semibold uppercase tracking-wider text-muted">
                 Daftar Penjaga Terdaftar ({shifts.length})
               </h3>
-              <span className="text-[11px] text-[#68645e]">
+              <span className="text-2xs text-muted">
                 Notifikasi WhatsApp otomatis dikirim ke sif aktif
               </span>
             </div>
@@ -243,32 +237,32 @@ export default function AdminSifPage() {
                     key={s.id}
                     className={`bg-white border rounded-2xl p-5 shadow-card space-y-3 transition-all ${
                       isActive
-                        ? 'border-[#f5c943] ring-2 ring-[#f5c943]/30'
-                        : 'border-[#e9e5df] hover:border-[#918c84]/40'
+                        ? 'border-gold ring-2 ring-gold/30'
+                        : 'border-line hover:border-subtle/40'
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <strong className="text-base font-bold text-[#242321]">
+                          <strong className="text-base font-bold text-ink">
                             {s.name}
                           </strong>
 
                           {isActive ? (
-                            <span className="bg-[#f8d84f] text-[#242321] text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-700 animate-pulse" />
+                            <span className="bg-gold text-ink text-2xs font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                               <span>Sif Aktif</span>
                             </span>
                           ) : (
-                            <span className="bg-[#f1ede7] text-[#68645e] text-[10px] font-semibold px-2 py-0.5 rounded-full border border-[#e9e5df]">
+                            <span className="bg-cream text-muted text-2xs font-semibold px-2 py-0.5 rounded-full border border-line">
                               Standby
                             </span>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-xs text-[#68645e]">
-                          <Phone className="w-3.5 h-3.5 text-[#918c84]" />
-                          <span className="font-mono text-xs">{s.phone}</span>
+                        <div className="flex items-center gap-1.5 text-xs text-muted">
+                          <Phone className="w-3.5 h-3.5 text-subtle" />
+                          <span className="text-xs tabular-nums">{formatPhone(s.phone)}</span>
                         </div>
                       </div>
 
@@ -277,9 +271,9 @@ export default function AdminSifPage() {
                           <button
                             type="button"
                             onClick={() => handleActivateShift(s.id)}
-                            className="min-h-[38px] px-3.5 py-1.5 bg-white hover:bg-[#fbf9f5] border border-[#e9e5df] text-[#242321] font-bold text-xs rounded-full inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+                            className={buttonClass('outline', 'sm')}
                           >
-                            <UserCheck className="w-3.5 h-3.5 text-[#f5c943]" />
+                            <UserCheck className="w-3.5 h-3.5 text-gold" />
                             <span>Aktifkan Sif Ini</span>
                           </button>
                         ) : null}
@@ -287,7 +281,7 @@ export default function AdminSifPage() {
                         <button
                           type="button"
                           onClick={() => openEditModal(s)}
-                          className="w-9 h-9 rounded-full border border-[#e9e5df] hover:bg-[#fbf9f5] flex items-center justify-center text-[#68645e] hover:text-[#242321] cursor-pointer transition-colors shadow-xs"
+                          className={iconButtonClass}
                           title="Edit penjaga"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -297,7 +291,7 @@ export default function AdminSifPage() {
                           <button
                             type="button"
                             onClick={() => handleDeleteShift(s.id)}
-                            className="w-9 h-9 rounded-full border border-[#e9e5df] hover:border-[#d94b3d]/30 hover:bg-[#d94b3d]/10 flex items-center justify-center text-[#68645e] hover:text-[#d94b3d] cursor-pointer transition-colors shadow-xs"
+                            className={`${iconButtonClass} hover:!text-danger hover:!bg-danger-soft hover:border-danger-line`}
                             title="Hapus penjaga"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -314,31 +308,31 @@ export default function AdminSifPage() {
           {/* Kolom Kanan: Unfulfilled Handover Panel (5/12) */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#918c84]">
+              <h3 className="text-2xs font-semibold uppercase tracking-wider text-muted">
                 Serah Terima Sif
               </h3>
-              <span className="text-xs font-semibold text-[#68645e]">
+              <span className="text-xs font-semibold text-muted">
                 {pendingOrders.length} pesanan aktif
               </span>
             </div>
 
             {/* Warm alert box */}
-            <div className="bg-[#fbf9f5] border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
+            <div className="bg-surface-muted border border-line rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-[#242321]" />
-                <h4 className="text-sm font-bold text-[#242321]">
+                <Clock className="w-4 h-4 text-ink" />
+                <h4 className="text-sm font-bold text-ink">
                   Pemberitahuan Pergantian Sif
                 </h4>
               </div>
 
-              <p className="text-xs text-[#68645e] leading-relaxed">
+              <p className="text-xs text-muted leading-relaxed">
                 Pergantian sif tidak membatalkan order yang sedang berjalan. Pastikan penjaga yang baru mulai bertugas mengecek seluruh pesanan aktif berikut:
               </p>
 
               {pendingOrders.length === 0 ? (
-                <div className="py-8 px-4 text-center text-xs text-[#68645e] bg-white rounded-2xl border border-[#e9e5df]">
-                  <ShieldCheck className="w-8 h-8 text-emerald-600 mx-auto mb-2 opacity-80" />
-                  <strong className="block text-[#242321] font-bold">
+                <div className="py-8 px-4 text-center text-xs text-muted bg-white rounded-2xl border border-line">
+                  <ShieldCheck className="w-8 h-8 text-success mx-auto mb-2 opacity-80" />
+                  <strong className="block text-ink font-bold">
                     Dapur Bersih
                   </strong>
                   <span>Semua pesanan lunas telah selesai diserahkan ke pelanggan.</span>
@@ -348,28 +342,28 @@ export default function AdminSifPage() {
                   {pendingOrders.map((o) => (
                     <div
                       key={o.id}
-                      className="p-3 bg-white rounded-2xl border border-[#e9e5df] space-y-1.5 text-xs shadow-xs"
+                      className="p-3 bg-white rounded-2xl border border-line space-y-1.5 text-xs shadow-xs"
                     >
                       <div className="flex justify-between items-center">
-                        <strong className="font-mono text-xs font-bold text-[#242321]">
+                        <strong className="font-mono text-xs font-bold text-ink">
                           {o.number}
                         </strong>
-                        <span className="font-bold text-xs text-[#242321] bg-[#f1ede7] px-2 py-0.5 rounded-full">
+                        <span className="font-bold text-xs text-ink bg-cream px-2 py-0.5 rounded-full">
                           {formatTimeWIB(o.pickup)} WIB
                         </span>
                       </div>
 
-                      <div className="flex justify-between text-[#68645e] text-[11px]">
-                        <span>Pelanggan: <strong className="text-[#242321]">{o.name}</strong></span>
-                        <span>{o.items.length} menu ({o.fulfillment})</span>
+                      <div className="flex justify-between text-muted text-2xs">
+                        <span>Pelanggan: <strong className="text-ink">{o.name}</strong></span>
+                        <span>{o.items.length} menu · {FULFILLMENT_LABEL[o.fulfillment]}</span>
                       </div>
 
-                      <div className="text-[11px] text-[#68645e]">
+                      <div className="text-2xs text-muted">
                         {needsHandover(o, activeShiftId) ? (
-                          <span className="text-[#91251c] font-semibold">
+                          <span className="text-danger-ink font-semibold">
                             Belum diberi tahu ke sif aktif
                             {o.notificationDetail?.recipientName
-                              ? ` (terakhir: ${o.notificationDetail.recipientName}, ${o.notification})`
+                              ? ` (terakhir ke ${o.notificationDetail.recipientName}: ${NOTIFICATION_LABEL[o.notification].toLowerCase()})`
                               : ''}
                           </span>
                         ) : (
@@ -386,7 +380,7 @@ export default function AdminSifPage() {
                   type="button"
                   onClick={handleSendHandover}
                   disabled={isHandingOver}
-                  className="w-full min-h-[44px] px-4 py-2 bg-[#f5c943] hover:bg-[#e8b82b] disabled:opacity-60 text-[#242321] font-bold text-xs rounded-full shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  className={buttonClass('gold', 'sm', 'w-full justify-center')}
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>
@@ -398,12 +392,12 @@ export default function AdminSifPage() {
               )}
 
               {handoverResult && (
-                <div role="status" className="p-3 bg-white rounded-2xl border border-[#e9e5df] text-xs space-y-1">
-                  <p className="font-bold text-[#242321]">
+                <div role="status" className="p-3 bg-white rounded-2xl border border-line text-xs space-y-1">
+                  <p className="font-bold text-ink">
                     {handoverResult.sent} dari {handoverResult.total} pesanan terkirim ke sif aktif.
                   </p>
                   {handoverResult.unresolved.map((u) => (
-                    <p key={u.orderId} className="text-[#91251c]">
+                    <p key={u.orderId} className="text-danger-ink">
                       {u.number}: {u.reason}
                     </p>
                   ))}
@@ -413,7 +407,7 @@ export default function AdminSifPage() {
               <Link href="/admin/antrean" className="block pt-1">
                 <button
                   type="button"
-                  className="w-full min-h-[42px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#242321] border border-[#e9e5df] font-bold text-xs rounded-full shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  className={buttonClass('outline', 'sm', 'w-full justify-center')}
                 >
                   <span>Buka Antrean Dapur Lengkap</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -429,20 +423,20 @@ export default function AdminSifPage() {
           onClose={() => setHandoverPrompt(null)}
           title="Serah Terima Pesanan Aktif"
         >
-          <div className="space-y-4 text-sm text-[#242321]">
+          <div className="space-y-4 text-sm text-ink">
             <p>
               Ada <strong>{pendingOrders.length} pesanan lunas</strong> yang belum selesai. Kirim
               rinciannya ke <strong>{handoverPrompt?.name}</strong> sekarang?
             </p>
-            <p className="text-xs text-[#68645e]">
+            <p className="text-xs text-muted">
               Pesan ditandai &quot;KIRIM ULANG&quot; supaya tidak dikira pesanan baru. Pesanan tidak
               berubah dan pembayaran tidak terpengaruh.
             </p>
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#eeeae4]">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-line-soft">
               <button
                 type="button"
                 onClick={() => setHandoverPrompt(null)}
-                className="min-h-[42px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#68645e] border border-[#e9e5df] font-bold text-xs rounded-full cursor-pointer transition-colors"
+                className={buttonClass('outline', 'sm')}
               >
                 Nanti
               </button>
@@ -452,7 +446,7 @@ export default function AdminSifPage() {
                   setHandoverPrompt(null);
                   await handleSendHandover();
                 }}
-                className="min-h-[42px] px-4 py-2 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs rounded-full cursor-pointer transition-colors"
+                className={buttonClass('gold', 'sm')}
               >
                 Kirim Sekarang
               </button>
@@ -468,14 +462,14 @@ export default function AdminSifPage() {
         >
           <form onSubmit={handleSaveShift} className="space-y-4">
             {formError && (
-              <div className="p-3 bg-[#d94b3d]/10 border border-[#d94b3d]/30 rounded-2xl text-[#d94b3d] text-xs font-semibold">
+              <div className="p-3 bg-danger/10 border border-danger/30 rounded-2xl text-danger text-xs font-semibold">
                 {formError}
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#242321]">
-                Nama Penjaga <span className="text-[#d94b3d]">*</span>
+              <label className="text-xs font-semibold text-ink">
+                Nama Penjaga <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -484,13 +478,13 @@ export default function AdminSifPage() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Contoh: Aa Iis"
-                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className={inputClass}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#242321]">
-                Nomor WhatsApp <span className="text-[#d94b3d]">*</span>
+              <label className="text-xs font-semibold text-ink">
+                Nomor WhatsApp <span className="text-danger">*</span>
               </label>
               <input
                 type="tel"
@@ -498,19 +492,19 @@ export default function AdminSifPage() {
                 value={formPhone}
                 onChange={(e) => setFormPhone(e.target.value)}
                 placeholder="Contoh: 081234567890"
-                className="w-full min-h-[44px] px-4 text-sm bg-[#fbf9f5] border border-[#e9e5df] rounded-full text-[#242321] placeholder-[#918c84] focus:outline-none focus:border-[#f5c943] focus:ring-1 focus:ring-[#f5c943]"
+                className={inputClass}
               />
-              <p className="text-[11px] text-[#68645e]">
+              <p className="text-2xs text-muted">
                 Format nomor otomatis dinormalisasi menggunakan awalan kode negara 62.
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-[#eeeae4]">
+            <div className="flex items-center justify-between pt-3 border-t border-line-soft">
               {editingShift && editingShift.id !== activeShiftId ? (
                 <button
                   type="button"
                   onClick={() => handleDeleteShift(editingShift.id)}
-                  className="min-h-[42px] px-4 py-2 bg-[#d94b3d]/10 hover:bg-[#d94b3d]/20 text-[#d94b3d] border border-[#d94b3d]/30 font-bold text-xs rounded-full inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className={buttonClass('danger', 'sm')}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Hapus</span>
@@ -523,13 +517,13 @@ export default function AdminSifPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="min-h-[42px] px-4 py-2 bg-white hover:bg-[#fbf9f5] text-[#68645e] border border-[#e9e5df] font-bold text-xs rounded-full cursor-pointer transition-colors"
+                  className={buttonClass('outline', 'sm')}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[42px] px-5 py-2 bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold text-xs sm:text-sm rounded-full shadow-xs cursor-pointer transition-colors"
+                  className={buttonClass('gold', 'md')}
                 >
                   Simpan Penjaga
                 </button>

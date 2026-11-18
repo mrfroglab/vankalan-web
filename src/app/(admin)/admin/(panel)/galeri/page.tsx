@@ -1,5 +1,10 @@
 'use client';
 
+import { Tabs } from '@/components/ui/Tabs';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { sectionTitleClass, textareaClass } from '@/components/ui/styles';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { buttonClass } from '@/components/ui/Button';
 import React, { useCallback, useEffect, useState } from 'react';
 import { formatDateTimeWIB } from '@/lib/constants';
 import { galleryImageUrl, galleryService } from '@/services/gallery';
@@ -105,26 +110,23 @@ export default function AdminGaleriPage() {
         {toast && (
           <div
             role="status"
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 p-3 px-4 bg-[#242321] text-white text-sm font-semibold rounded-full shadow-lg flex items-center gap-2"
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 p-3 px-4 bg-ink text-white text-sm font-semibold rounded-full shadow-lg flex items-center gap-2"
           >
-            <CheckCircle2 className="w-4 h-4 text-[#f5c943] shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
             <span>{toast}</span>
           </div>
         )}
 
-        <div>
-          <h1 className="text-2xl font-bold font-editorial text-[#242321]">Galeri Kenangan</h1>
-          <p className="text-sm text-[#68645e] mt-1">
-            Foto kiriman pelanggan. Filter otomatis sudah menolak caption kasar, judi online, link, dan nomor HP;
-            sisanya kamu yang memutuskan.
-          </p>
-        </div>
+        <PageHeader
+          title="Galeri Kenangan"
+          description="Foto kiriman pelanggan. Filter otomatis sudah menolak caption kasar, judi online, link, dan nomor HP; sisanya kamu yang memutuskan."
+        />
 
         {/* Aturan galeri */}
-        <section className="bg-white rounded-2xl border border-[#e9e5df] p-4 sm:p-5 shadow-card space-y-4">
-          <h2 className="text-base font-bold text-[#242321]">Aturan Galeri</h2>
+        <section className="bg-white rounded-2xl border border-line p-4 sm:p-5 shadow-card space-y-4">
+          <h2 className={sectionTitleClass}>Aturan Galeri</h2>
           {!settings ? (
-            <p className="text-sm text-[#918c84]">Memuat pengaturan...</p>
+            <p className="text-sm text-subtle">Memuat pengaturan...</p>
           ) : (
             <>
               <Toggle
@@ -142,8 +144,8 @@ export default function AdminGaleriPage() {
                 onChange={(v) => saveSettings({ autoApprove: v })}
               />
               <label className="block space-y-1">
-                <span className="text-sm font-semibold text-[#242321]">Kata terlarang tambahan</span>
-                <span className="block text-xs text-[#77736d]">
+                <span className="text-sm font-semibold text-ink">Kata terlarang tambahan</span>
+                <span className="block text-xs text-icon">
                   Pisahkan dengan koma. Kata kasar umum dan istilah judi online sudah diblokir bawaan.
                 </span>
                 <textarea
@@ -151,14 +153,14 @@ export default function AdminGaleriPage() {
                   onChange={(e) => setWordsText(e.target.value)}
                   rows={2}
                   placeholder="mis. nama-warung-saingan, kata-tertentu"
-                  className="w-full px-3 py-2 rounded-xl border border-[#e9e5df] text-sm"
+                  className={textareaClass}
                 />
               </label>
               <button
                 type="button"
                 onClick={() => saveSettings({})}
                 disabled={isSavingSettings}
-                className="min-h-[40px] px-4 rounded-full bg-[#242321] text-white text-sm font-semibold cursor-pointer disabled:opacity-50"
+                className={buttonClass('gold', 'md', 'self-start')}
               >
                 Simpan kata terlarang
               </button>
@@ -166,60 +168,54 @@ export default function AdminGaleriPage() {
           )}
         </section>
 
-        {/* Tab */}
-        <div className="bg-white border border-[#e9e5df] p-1.5 rounded-full flex items-center gap-1.5 shadow-card w-fit">
-          {(
-            [
-              { id: 'PENDING', label: 'Menunggu' },
-              { id: 'APPROVED', label: 'Tampil' },
-            ] as const
-          ).map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={`min-h-[40px] px-4 rounded-full text-sm font-bold cursor-pointer ${
-                tab === t.id ? 'bg-[#f5c943] text-[#242321]' : 'text-[#68645e] hover:bg-[#f5f2ed]'
-              }`}
-            >
-              {t.label} ({counts[t.id]})
-            </button>
-          ))}
-        </div>
+        <Tabs
+          ariaLabel="Status foto galeri"
+          value={tab}
+          onChange={setTab}
+          items={[
+            { value: 'PENDING', label: 'Menunggu', count: counts.PENDING },
+            { value: 'APPROVED', label: 'Tampil', count: counts.APPROVED },
+          ]}
+        />
 
         {isLoading ? (
           <div className="py-16 text-center">
-            <Loader2 className="w-7 h-7 text-[#f5c943] animate-spin mx-auto" />
+            <Loader2 className="w-7 h-7 text-gold animate-spin mx-auto" />
           </div>
         ) : photos.length === 0 ? (
-          <div className="bg-white p-10 rounded-2xl border border-[#e9e5df] text-center text-sm text-[#68645e]">
-            <ImageOff className="w-8 h-8 mx-auto mb-2 text-[#918c84]" />
-            {tab === 'PENDING' ? 'Tidak ada foto yang menunggu.' : 'Belum ada foto yang tampil.'}
-          </div>
+          <EmptyState
+            icon={ImageOff}
+            title={tab === 'PENDING' ? 'Tidak ada foto menunggu' : 'Belum ada foto tampil'}
+            description={
+              tab === 'PENDING'
+                ? 'Foto kiriman pelanggan yang perlu kamu periksa akan muncul di sini.'
+                : 'Foto yang sudah kamu setujui akan tampil di halaman Galeri pelanggan.'
+            }
+          />
         ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {photos.map((p) => (
-              <li key={p.id} className="bg-white rounded-2xl border border-[#e9e5df] overflow-hidden shadow-card flex flex-col">
+              <li key={p.id} className="bg-white rounded-2xl border border-line overflow-hidden shadow-card flex flex-col">
                 <button type="button" onClick={() => setViewing(p)} className="block cursor-zoom-in">
                   {/* eslint-disable-next-line @next/next/no-img-element -- berkas dari API sendiri */}
                   <img
                     src={galleryImageUrl(p.id, 'thumb')}
                     alt={p.caption || 'Foto kiriman'}
-                    className="w-full h-56 object-cover bg-[#efebe4]"
+                    className="w-full h-56 object-cover bg-line-soft"
                   />
                 </button>
                 <div className="p-3 space-y-2 flex-1 flex flex-col">
                   {p.flags.length > 0 && (
                     <ul className="space-y-1">
                       {p.flags.map((f) => (
-                        <li key={f} className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 flex gap-1.5">
+                        <li key={f} className="text-xs text-gold-ink bg-gold-tint border border-gold-line rounded-lg px-2 py-1 flex gap-1.5">
                           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
                           {f}
                         </li>
                       ))}
                     </ul>
                   )}
-                  <p className="text-xs text-[#77736d]">
+                  <p className="text-xs text-icon">
                     {p.name || 'Tanpa nama'} · {formatDateTimeWIB(p.createdAt)}
                   </p>
                   {tab === 'PENDING' ? (
@@ -230,10 +226,10 @@ export default function AdminGaleriPage() {
                       rows={3}
                       aria-label="Caption (bisa dirapikan sebelum disetujui)"
                       placeholder="(tanpa caption)"
-                      className="w-full px-2 py-1.5 rounded-lg border border-[#e9e5df] text-sm resize-none"
+                      className={`${textareaClass} resize-none`}
                     />
                   ) : (
-                    <p className="text-sm text-[#242321] whitespace-pre-line">{p.caption || '(tanpa caption)'}</p>
+                    <p className="text-sm text-ink whitespace-pre-line">{p.caption || '(tanpa caption)'}</p>
                   )}
                   <div className="flex gap-2 mt-auto pt-1">
                     {tab === 'PENDING' ? (
@@ -299,8 +295,8 @@ function Toggle({
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-semibold text-[#242321]">{label}</p>
-        <p className="text-xs text-[#77736d] mt-0.5">{hint}</p>
+        <p className="text-sm font-semibold text-ink">{label}</p>
+        <p className="text-xs text-icon mt-0.5">{hint}</p>
       </div>
       <button
         type="button"
@@ -310,7 +306,7 @@ function Toggle({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={`relative shrink-0 w-12 h-7 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
-          checked ? 'bg-[#2f8f4e]' : 'bg-[#d9d4cc]'
+          checked ? 'bg-success' : 'bg-line-strong'
         }`}
       >
         <span
@@ -327,15 +323,15 @@ function ActionButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { tone: 'ok' | 'bad' | 'neutral' }) {
   const tones = {
-    ok: 'bg-[#2f8f4e] text-white hover:bg-[#287a43]',
-    bad: 'bg-white text-red-700 border border-red-200 hover:bg-red-50',
-    neutral: 'bg-white text-[#242321] border border-[#e9e5df] hover:bg-[#f5f2ed]',
+    ok: 'bg-success text-white hover:bg-success',
+    bad: 'bg-white text-danger-ink border border-danger-line hover:bg-danger-soft',
+    neutral: 'bg-white text-ink border border-line hover:bg-canvas',
   };
   return (
     <button
       type="button"
       {...props}
-      className={`flex-1 min-h-[40px] rounded-full text-sm font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 ${tones[tone]}`}
+      className={`flex-1 min-h-10 rounded-full text-sm font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 ${tones[tone]}`}
     >
       {children}
     </button>

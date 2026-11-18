@@ -1,5 +1,7 @@
 'use client';
 
+import { textareaClass } from '@/components/ui/styles';
+import { buttonClass } from '@/components/ui/Button';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { MenuItem } from '@/types';
@@ -68,7 +70,7 @@ export function CustomizeItemModal({
     <Modal isOpen={isOpen} onClose={onClose} title={item.name}>
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         {/* Foto / Ilustrasi Header */}
-        <div className="w-full h-36 bg-[#fbf9f5] rounded-2xl overflow-hidden flex items-center justify-center border border-[#eeeae4]/60 relative">
+        <div className="w-full h-36 bg-surface-muted rounded-2xl overflow-hidden flex items-center justify-center border border-line-soft/60 relative">
           {item.image ? (
             <Image
               src={item.image}
@@ -83,24 +85,24 @@ export function CustomizeItemModal({
         </div>
 
         <div>
-          <p className="text-xs sm:text-sm text-[#68645e] leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted leading-relaxed">
             {item.description}
           </p>
-          <div className="mt-2 text-base sm:text-lg font-extrabold text-[#242321]">
+          <div className="mt-2 text-base sm:text-lg font-extrabold text-ink">
             {formatRupiah(item.price)}
           </div>
         </div>
 
         {/* Opsi Tambahan Telur */}
         {hasEggOption && (
-          <div className="p-3.5 bg-white border border-[#e9e5df] rounded-2xl hover:border-[#f5c943] transition-colors">
+          <div className="p-3.5 bg-white border border-line rounded-2xl hover:border-gold transition-colors">
             <label className="flex items-center justify-between cursor-pointer select-none">
               <div className="flex items-center gap-3">
                 <span
                   className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${
                     withEgg
-                      ? 'border-[#f5c943] bg-[#f5c943] text-[#242321]'
-                      : 'border-[#e9e5df] bg-white'
+                      ? 'border-gold bg-gold text-ink'
+                      : 'border-line bg-white'
                   }`}
                   aria-hidden="true"
                 >
@@ -113,15 +115,15 @@ export function CustomizeItemModal({
                   className="sr-only"
                 />
                 <div>
-                  <span className="font-bold text-xs sm:text-sm text-[#242321] block">
+                  <span className="font-bold text-xs sm:text-sm text-ink block">
                     Tambah Telur Ceplok / Rebus
                   </span>
-                  <span className="text-[11px] text-[#68645e]">
+                  <span className="text-2xs text-muted">
                     Tulis permintaan matang atau setengah matang di catatan
                   </span>
                 </div>
               </div>
-              <span className="text-xs sm:text-sm font-bold text-[#242321] shrink-0">
+              <span className="text-xs sm:text-sm font-bold text-ink shrink-0">
                 +{formatRupiah(eggPrice)}
               </span>
             </label>
@@ -131,7 +133,7 @@ export function CustomizeItemModal({
         {/* Opsi Suhu Minuman */}
         {hasTempOption && (
           <div>
-            <label className="block text-[11px] font-bold text-[#68645e] uppercase tracking-wider mb-2">
+            <label className="text-2xs font-semibold uppercase tracking-wider text-muted block mb-2">
               Pilihan Suhu Minuman
             </label>
             <div className="grid grid-cols-2 gap-2.5">
@@ -143,15 +145,15 @@ export function CustomizeItemModal({
                     key={t}
                     type="button"
                     onClick={() => setSelectedTemp(t)}
-                    className={`min-h-[44px] px-3.5 py-2.5 rounded-full border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                    className={`min-h-11 px-3.5 py-2.5 rounded-full border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#f5c943] bg-[#f5c943]/20 text-[#242321] font-bold shadow-xs'
-                        : 'border-[#e9e5df] bg-white text-[#68645e] hover:bg-[#f5f2ed] hover:text-[#242321]'
+                        ? 'border-gold bg-gold/20 text-ink font-bold shadow-xs'
+                        : 'border-line bg-white text-muted hover:bg-canvas hover:text-ink'
                     }`}
                   >
                     <span>{t === 'Dingin' ? '🧊 Dingin (Es)' : '☕ Panas / Hangat'}</span>
                     {extra > 0 ? (
-                      <span className="text-xs font-normal text-[#68645e]">+{formatRupiah(extra)}</span>
+                      <span className="text-xs font-normal text-muted">+{formatRupiah(extra)}</span>
                     ) : null}
                   </button>
                 );
@@ -164,7 +166,7 @@ export function CustomizeItemModal({
         <div>
           <label
             htmlFor="special-note"
-            className="block text-[11px] font-bold text-[#68645e] uppercase tracking-wider mb-1.5"
+            className="text-2xs font-semibold uppercase tracking-wider text-muted block mb-1.5"
           >
             Catatan Khusus (Opsional)
           </label>
@@ -175,30 +177,30 @@ export function CustomizeItemModal({
             placeholder="Contoh: jangan pakai sawi, kuah dipisah, mi setengah matang..."
             rows={2}
             maxLength={150}
-            className="w-full p-3.5 text-xs sm:text-sm rounded-2xl border border-[#e9e5df] bg-white text-[#242321] placeholder:text-[#918c84] focus:outline-none focus:border-[#f5c943] transition-colors resize-none"
+            className={`${textareaClass} resize-none`}
           />
         </div>
 
         {/* Jumlah & Subtotal */}
-        <div className="pt-3 border-t border-[#eeeae4] flex items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-1.5 bg-white border border-[#e9e5df] rounded-full p-1">
+        <div className="pt-3 border-t border-line-soft flex items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5 bg-white border border-line rounded-full p-1">
             <button
               type="button"
               disabled={qty <= 1}
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               aria-label="Kurangi jumlah pesanan"
-              className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] disabled:opacity-30 cursor-pointer transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-ink hover:bg-canvas disabled:opacity-30 cursor-pointer transition-colors"
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="w-6 text-center font-bold text-sm text-[#242321]">
+            <span className="w-6 text-center font-bold text-sm text-ink">
               {qty}
             </span>
             <button
               type="button"
               onClick={() => setQty((q) => q + 1)}
               aria-label="Tambah jumlah pesanan"
-              className="w-9 h-9 flex items-center justify-center rounded-full text-[#242321] hover:bg-[#f5f2ed] cursor-pointer transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-ink hover:bg-canvas cursor-pointer transition-colors"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -207,7 +209,7 @@ export function CustomizeItemModal({
           <div className="flex-1">
             <button
               type="submit"
-              className="w-full min-h-[48px] bg-[#f5c943] hover:bg-[#e8b82b] text-[#242321] font-bold rounded-full py-3 px-4 shadow-xs active:scale-95 transition-all text-xs sm:text-sm flex items-center justify-center cursor-pointer"
+              className={buttonClass('gold', 'lg', 'w-full justify-center')}
             >
               Tambah ({formatRupiah(totalPrice)})
             </button>
