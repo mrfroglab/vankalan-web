@@ -50,7 +50,7 @@ Production secara terpisah (pilih *Environment* di kiri atas).
 
 **WAHA:** satu sesi pengirim, engine WEBJS, dengan **volume tetap** untuk sesi supaya login WhatsApp bertahan setelah restart
 container. Dashboard WAHA tidak boleh dapat diakses publik. **Login/scan QR dari dashboard dapur:** Admin → Pengaturan →
-kartu *Login WhatsApp Notifikasi* (`/admin/pengaturan#whatsapp`; badge "Perlu scan QR ulang" di header menuju ke sana).
+kartu *Login WhatsApp Notifikasi* (`/admin/pengaturan#whatsapp`; status "WhatsApp perlu scan QR" di header menuju ke sana).
 Kartu menampilkan QR (diperbarui tiap 15 dtk), nomor yang sedang login, tombol *Muat Ulang QR / Sesi* dan *Keluar / Ganti
 Nomor*. Buka di perangkat lain dari HP yang discan. Endpoint admin: `GET /api/wa/qr`, `POST /api/wa/session`.
 Di server sudah terpasang sebagai service `waha` (container `vankalan-waha`) di stack vankalan: hanya di jaringan
@@ -103,7 +103,7 @@ Retry otomatis untuk pesan yang gagal tetap menuju penerima awal; pindah ke penj
 
 | Gangguan | Yang terjadi otomatis | Tindakan penjaga/pengelola |
 |---|---|---|
-| **WAHA mati / sesi WA terputus** | Order & pembayaran tetap tersimpan. Sebelum kirim, status sesi dicek: bila tidak `WORKING` (mis. `SCAN_QR_CODE`), pengiriman langsung dianggap gagal-pasti tanpa memanggil `sendText` (diuji dengan WAHA asli, 2026-11-14). Notifikasi di-retry 30 dtk → 2 mnt → 5 mnt, lalu `FAILED`. Header admin menampilkan "WAHA tidak terjangkau" / "Perlu scan QR ulang". | Pantau dashboard sebagai jalur cadangan. Perbaiki WAHA/scan QR; lalu *Kirim Ulang* order yang `FAILED`. **Bila tidak ada yang bisa memantau dashboard, tutup pemesanan online secara manual.** Tombol "WA terputus" di Pengaturan menjeda pengiriman (tugas tetap antre, percobaan tidak terpakai). |
+| **WAHA mati / sesi WA terputus** | Order & pembayaran tetap tersimpan. Sebelum kirim, status sesi dicek: bila tidak `WORKING` (mis. `SCAN_QR_CODE`), pengiriman langsung dianggap gagal-pasti tanpa memanggil `sendText` (diuji dengan WAHA asli, 2026-11-14). Notifikasi di-retry 30 dtk → 2 mnt → 5 mnt, lalu `FAILED`. Header admin menampilkan satu status WhatsApp: "WhatsApp aktif", "WhatsApp perlu scan QR", "WAHA tidak terjangkau", atau "WhatsApp dijeda". | Pantau dashboard sebagai jalur cadangan. Perbaiki WAHA/scan QR; lalu *Kirim Ulang* order yang `FAILED`. **Bila tidak ada yang bisa memantau dashboard, tutup pemesanan online secara manual.** Tombol "WA terputus" di Pengaturan menjeda pengiriman (tugas tetap antre, percobaan tidak terpakai). |
 | **Notifikasi `UNKNOWN`** (timeout, hasil tak jelas) | Tidak di-retry buta. Setelah jeda, riwayat chat WAHA diperiksa untuk nomor order: ada → `SENT`; tidak ada → dikirim ulang. Selama sesi WA tidak aktif, verifikasi ditunda tanpa menghabiskan jatah 3x. | Jika verifikasi otomatis gagal 3x, status tetap `UNKNOWN`: cek WhatsApp penerima, baru *Kirim Ulang* bila belum ada. Duplikasi tidak dijamin nol (tidak ada exactly-once); nomor order di pesan membantu mengenali pesan ganda. |
 | **Webhook Midtrans terlambat/hilang** | Rekonsiliasi: saat pelanggan membuka halaman order (maks 1x/30 dtk), tiap 2 menit oleh pekerja, dan lewat `POST /api/payments/reconcile`. | Tidak perlu tindakan. Jangan minta pelanggan bayar lagi; sistem mengecek status resmi sebelum membuat percobaan bayar baru. |
 | **Midtrans tidak terjangkau saat checkout** | Order `FAILED`, pelanggan melihat pesan gagal memulai pembayaran. | Minta pelanggan mencoba lagi. Tidak ada order palsu di sisi dapur. |
