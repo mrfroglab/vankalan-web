@@ -2,7 +2,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildKitchenOrderWhatsAppMessage } from '@/lib/waha';
 import type { Order } from '@/types';
-import { getSessionState, sendWhatsAppText, toChatId, wasMessageSent, type WahaConfig } from '../wa/waha';
+import {
+  controlSession,
+  fetchLoginQr,
+  getSessionState,
+  sendWhatsAppText,
+  toChatId,
+  wasMessageSent,
+  type WahaConfig,
+} from '../wa/waha';
 
 const cfg: WahaConfig = { baseUrl: 'http://waha.test', session: 'default', apiKey: 'secret', timeoutMs: 2000 };
 const res = (status: number, body: unknown = {}) =>
@@ -161,5 +169,49 @@ describe('buildKitchenOrderWhatsAppMessage', () => {
     const m = buildKitchenOrderWhatsAppMessage({ ...order, needsTimeConfirmation: true }, { name: 'Aa Iis' }, { resend: true });
     expect(m.startsWith('[KIRIM ULANG')).toBe(true);
     expect(m).toContain('PERHATIAN: pembayaran masuk terlambat');
+  });
+});
+
+describe('login WhatsApp dari dashboard', () => {
+  it('fetchLoginQr: PNG saat menunggu scan, null bila bukan gambar / ditolak', async () => {
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+    const f = vi.fn().mockResolvedValue(new Response(png, { status: 200, headers: { 'content-type': 'image/png' } }));
+    vi.stubGlobal('fetch', f);
+    expect(await fetchLoginQr(cfg)).toEqual(png);
+    const [url, init] = f.mock.calls[0];
+    expect(url).toBe('http://waha.test/api/default/auth/qr');
+    expect(init.headers).toMatchObject({ Accept: 'image/png', 'X-Api-Key': 'secret' });
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(res(200, { value: 'x' })));
+    expect(await fetchLoginQr(cfg)).toBeNull();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(res(422, 'already working')));
+    expect(await fetchLoginQr(cfg)).toBeNull();
+  });
+
+  it('controlSession: start membuat sesi bila belum ada; error WAHA diteruskan', async () => {
+    const f = vi.fn().mockResolvedValueOnce(res(404)).mockResolvedValueOnce(res(201));
+    vi.stubGlobal('fetch', f);
+    await controlSession(cfg, 'start');
+    expect(f.mock.calls.map(([u]) => u)).toEqual([
+      'http://waha.test/api/sessions/default/start',
+      'http://waha.test/api/sessions',
+    ]);
+    expect(JSON.parse(f.mock.calls[1][1].body)).toEqual({ name: 'default', start: true });
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(res(500, 'boom')));
+    await expect(controlSession(cfg, 'logout')).rejects.toThrow(/500/);
+  });
+
+  it('getSessionState menyertakan akun yang login', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(res(200, { status: 'WORKING', me: { id: '6281234@c.us', pushName: 'Warmindo' } }))
+    );
+    expect(await getSessionState(cfg)).toEqual({
+      reachable: true,
+      status: 'WORKING',
+      needsQr: false,
+      account: { id: '6281234', name: 'Warmindo' },
+    });
   });
 });

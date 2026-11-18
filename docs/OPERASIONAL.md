@@ -49,7 +49,10 @@ Production secara terpisah (pilih *Environment* di kiri atas).
 2xx berhasil; 5xx dicoba ulang, jadi kesalahan sementara di server tidak membuat notifikasi hilang.
 
 **WAHA:** satu sesi pengirim, engine WEBJS, dengan **volume tetap** untuk sesi supaya login WhatsApp bertahan setelah restart
-container. Dashboard WAHA tidak boleh dapat diakses publik. Pada pemakaian pertama scan QR dari dashboard WAHA.
+container. Dashboard WAHA tidak boleh dapat diakses publik. **Login/scan QR dari dashboard dapur:** Admin → Pengaturan →
+kartu *Login WhatsApp Notifikasi* (`/admin/pengaturan#whatsapp`; badge "Perlu scan QR ulang" di header menuju ke sana).
+Kartu menampilkan QR (diperbarui tiap 15 dtk), nomor yang sedang login, tombol *Muat Ulang QR / Sesi* dan *Keluar / Ganti
+Nomor*. Buka di perangkat lain dari HP yang discan. Endpoint admin: `GET /api/wa/qr`, `POST /api/wa/session`.
 Di server sudah terpasang sebagai service `waha` (container `vankalan-waha`) di stack vankalan: hanya di jaringan
 `vankalan-internal` bersama `app`, dashboard di `http://127.0.0.1:3008/dashboard` (localhost server saja), kredensial
 dashboard dan API key di `/opt/stacks/apps/vankalan/waha.env` (`chmod 600`; `WAHA_API_KEY` di `.env` harus sama),
@@ -132,6 +135,8 @@ Retry otomatis untuk pesan yang gagal tetap menuju penerima awal; pindah ke penj
 | `PATCH /api/orders/:id/status`; `POST /api/orders/:id/cancel`, `/refund`, `/retry-wa` | Proses, batalkan, refund, kirim ulang WA. |
 | `POST /api/payments/reconcile` | Rekonsiliasi pembayaran PENDING sekarang. |
 | `GET /api/wa/status` | Kondisi sesi WhatsApp di WAHA. |
+| `GET /api/wa/qr` | QR login WhatsApp (PNG, admin, tanpa cache). |
+| `POST /api/wa/session` | `{action: start\|restart\|logout}` sesi WAHA (admin). |
 | `POST /api/maintenance/purge` | Jalankan kebijakan retensi sekarang. |
 
 **Hanya non-production:** `PATCH /api/orders/:id/payment` (simulasi, butuh `ALLOW_PAYMENT_SIMULATION=true`),

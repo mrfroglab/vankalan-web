@@ -5,6 +5,7 @@ import { StoreSettings } from '@/types';
 import { settingsService } from '@/services/settings';
 import { orderService } from '@/services/orders';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { WhatsAppLoginCard } from '@/components/admin/WhatsAppLoginCard';
 import {
   Power,
   Clock,
@@ -272,6 +273,9 @@ export default function AdminPengaturanPage() {
 
           {/* Kolom Kanan: Section 3 & Section 4 */}
           <div className="space-y-6">
+            {/* Login WhatsApp (scan QR WAHA) */}
+            <WhatsAppLoginCard />
+
             {/* Section 3: Simulator Koneksi WAHA WhatsApp */}
             <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
