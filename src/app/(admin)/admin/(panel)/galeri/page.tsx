@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { AdminHeader } from '@/components/admin/AdminHeader';
 import { formatDateTimeWIB } from '@/lib/constants';
 import { galleryImageUrl, galleryService } from '@/services/gallery';
 import type { GalleryPhoto, GallerySettings, GalleryStatus } from '@/types';
@@ -100,9 +99,8 @@ export default function AdminGaleriPage() {
   };
 
   return (
-    <div className="bg-[#f5f2ed] min-h-screen py-6 sm:py-8 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <AdminHeader />
+    <div>
+      <div className="space-y-6">
 
         {toast && (
           <div

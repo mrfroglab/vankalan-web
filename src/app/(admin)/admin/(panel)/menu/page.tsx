@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { MenuItem } from '@/types';
 import { menuService } from '@/services/menu';
 import { formatRupiah } from '@/lib/constants';
-import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Modal } from '@/components/ui/Modal';
 import { FoodIllustration } from '@/components/customer/FoodIllustration';
 import {
@@ -235,9 +234,8 @@ export default function AdminMenuPage() {
   }, [menuList, selectedCategory, searchQuery]);
 
   return (
-    <div className="bg-[#f5f2ed] min-h-screen py-6 sm:py-8 px-4 sm:px-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <AdminHeader />
+    <div>
+      <div className="space-y-6">
 
         {toastMessage && (
           <div

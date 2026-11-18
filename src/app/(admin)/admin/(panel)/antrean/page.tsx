@@ -13,7 +13,6 @@ import { settingsService } from '@/services/settings';
 import { useAutoPolling } from '@/hooks/useAutoPolling';
 import { formatTimeWIB, formatDateTimeWIB, formatRupiah } from '@/lib/constants';
 import { buildKitchenOrderWhatsAppMessage } from '@/lib/waha';
-import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -276,10 +275,8 @@ export default function AdminAntreanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f2ed] py-6 sm:py-8 px-4 sm:px-6">
-      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
-        {/* Navigation Bar */}
-        <AdminHeader />
+    <div>
+      <div className="space-y-6 sm:space-y-8">
 
         {/* Floating Feedback Toast */}
         {toastMsg && (

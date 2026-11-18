@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Shift, Order } from '@/types';
 import { settingsService } from '@/services/settings';
 import { orderService } from '@/services/orders';
-import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Modal } from '@/components/ui/Modal';
 import { formatTimeWIB } from '@/lib/constants';
 import { HandoverSummary, needsHandover, openPaidOrders, runHandover } from '@/lib/handover';
@@ -180,9 +179,8 @@ export default function AdminSifPage() {
   };
 
   return (
-    <div className="bg-[#f5f2ed] min-h-screen py-6 sm:py-8 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <AdminHeader />
+    <div>
+      <div className="space-y-6">
 
         {toastMessage && (
           <div
