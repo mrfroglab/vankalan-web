@@ -123,3 +123,35 @@ export interface ApiResponse<T> {
 }
 
 export * from './midtrans';
+
+// ---------------------------------------------------------------------------
+// Galeri kenangan pelanggan
+// ---------------------------------------------------------------------------
+
+/** PENDING = menunggu persetujuan admin, APPROVED = tampil di halaman galeri. */
+export type GalleryStatus = 'PENDING' | 'APPROVED';
+
+export interface GalleryPhoto {
+  id: string;
+  status: GalleryStatus;
+  name: string;
+  caption: string;
+  width: number;
+  height: number;
+  /** Tanda dari filter otomatis untuk admin (mis. foto duplikat). */
+  flags: string[];
+  createdAt: number;
+  reviewedAt: number | null;
+}
+
+/** Bentuk yang dikirim ke publik. */
+export type PublicGalleryPhoto = Pick<GalleryPhoto, 'id' | 'name' | 'caption' | 'width' | 'height' | 'createdAt'>;
+
+export interface GallerySettings {
+  /** false = form kirim foto ditutup. */
+  enabled: boolean;
+  /** true = foto yang lolos filter otomatis langsung tampil. */
+  autoApprove: boolean;
+  /** Kata terlarang tambahan dari admin. */
+  blockedWords: string[];
+}

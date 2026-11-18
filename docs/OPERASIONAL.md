@@ -258,3 +258,38 @@ Midtrans). Tabel keduanya tidak bentrok (PascalCase vs snake_case), tetapi **dat
 
 **Rollback:** kembalikan `Caddyfile.bak` + reload, `docker compose start api`, dan deploy ulang image lama
 (`ghcr.io/mrfroglab/vankalan-web:sha-<commit lama>` sebagai `latest`). Tabel baru boleh dibiarkan; tidak mengganggu backend lama.
+
+## 11. Galeri kenangan pelanggan
+
+Pelanggan mengirim foto + caption di `/galeri`; admin memoderasi di `/admin/galeri`.
+
+**Aturan yang berlaku**
+- **Filter otomatis** (menolak saat kirim, pengirim bisa memperbaiki): kata kasar, istilah judi online, tautan,
+  nomor HP, email, plus *kata terlarang tambahan* yang diisi admin. Kata dicocokkan utuh setelah normalisasi
+  (`pantai` tidak kena `tai`; `4nj1ng`/`anjiiing` tetap kena).
+- **Persetujuan admin**: default semua foto masuk antrean *Menunggu*. Admin bisa merapikan caption sebelum
+  *Setujui*. *Tolak*/*Hapus* menghapus foto dan berkasnya permanen. *Sembunyikan* mengembalikan foto tampil ke antrean.
+- **Setujui otomatis** (opsional, default mati): foto yang lolos filter langsung tampil, kecuali foto duplikat atau
+  pengirim yang sudah ≥3 kali mengirim dalam 24 jam (tetap menunggu admin, diberi tanda).
+- **Tutup kiriman**: matikan *Terima kiriman foto*; galeri tetap tampil.
+- Batas: JPG/PNG/WebP maks 10 MB, min 200 px; 5 kiriman/jam per IP, 60/jam total; antrean maks 300.
+- Privasi: foto di-encode ulang ke WebP (maks 1600 px) dan **metadata EXIF/GPS dibuang**. IP tidak disimpan, hanya
+  hash IP + `SESSION_SECRET` untuk mendeteksi spam. Pengirim wajib mencentang persetujuan tampil publik.
+
+**Penyimpanan (wajib di server)**: berkas foto ada di disk, bukan DB. Default `GALLERY_DIR=/app/data/gallery` di
+container, harus di-mount sebagai volume agar tidak hilang saat deploy, dan bisa ditulis user container (uid 1001):
+
+```yaml
+# /opt/stacks/apps/vankalan/docker-compose.yml, service app
+    volumes:
+      - ./data/gallery:/app/data/gallery
+```
+```bash
+mkdir -p /opt/stacks/apps/vankalan/data/gallery
+docker run --rm -v /opt/stacks/apps/vankalan/data/gallery:/g alpine chown 1001:1001 /g
+```
+
+**Backup**: `db:backup` hanya mencakup DB (data foto dan caption). Cadangkan juga berkasnya, mis.
+`tar czf /opt/stacks/backup/vankalan/galeri-$(date +%Y%m%d).tgz -C /opt/stacks/apps/vankalan/data gallery`.
+
+**Permintaan hapus** dari orang yang ada di foto: hapus lewat `/admin/galeri` → tab *Tampil* → *Hapus*.

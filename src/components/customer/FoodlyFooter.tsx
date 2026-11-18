@@ -24,6 +24,7 @@ export function FoodlyFooter() {
     { label: 'Kelola Menu', href: '/admin/menu' },
     { label: 'Manajemen Sif', href: '/admin/sif' },
     { label: 'Pengaturan Toko', href: '/admin/pengaturan' },
+    { label: 'Moderasi Galeri', href: '/admin/galeri' },
   ];
 
   return (

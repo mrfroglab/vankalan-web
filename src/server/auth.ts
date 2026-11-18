@@ -68,3 +68,13 @@ export function assertDevOnly(): void {
     throw new HttpError(403, 'Endpoint ini dinonaktifkan di production.');
   }
 }
+
+/** true bila permintaan membawa sesi admin yang sah (tanpa melempar error). */
+export function isAdminRequest(request: Request): boolean {
+  try {
+    requireAdmin(request);
+    return true;
+  } catch {
+    return false;
+  }
+}

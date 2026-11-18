@@ -250,9 +250,53 @@ export const orderCounters = pgTable(
   (t) => [primaryKey({ columns: [t.day] })]
 );
 
+/**
+ * Galeri kenangan pelanggan. Foto disimpan di disk (GALLERY_DIR), bukan di DB.
+ * PENDING = menunggu admin, APPROVED = tampil publik. Foto yang ditolak langsung dihapus
+ * (baris dan berkasnya), jadi tidak ada status REJECTED.
+ */
+export const galleryPhotos = pgTable(
+  'gallery_photos',
+  {
+    id: text('id').primaryKey(),
+    status: text('status').notNull().default('PENDING'),
+    name: text('name').notNull().default(''),
+    caption: text('caption').notNull().default(''),
+    width: integer('width').notNull(),
+    height: integer('height').notNull(),
+    bytes: integer('bytes').notNull(),
+    /** SHA-256 berkas hasil proses, untuk menandai foto duplikat. */
+    contentHash: text('content_hash').notNull().default(''),
+    /** Alasan filter otomatis (kata terlarang, tautan, nomor HP); kosong = bersih. */
+    flags: jsonb('flags').$type<string[]>().notNull().default([]),
+    /** SHA-256 IP + SESSION_SECRET, hanya untuk menelusuri spam; bukan IP mentah. */
+    submitterHash: text('submitter_hash').notNull().default(''),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  },
+  (t) => [index('gallery_status_created_idx').on(t.status, t.createdAt)]
+);
+
+/** Pengaturan galeri (satu baris, id selalu 1). */
+export const gallerySettings = pgTable(
+  'gallery_settings',
+  {
+    id: integer('id').primaryKey().default(1),
+    /** false = form kirim foto ditutup (galeri tetap tampil). */
+    enabled: boolean('enabled').notNull().default(true),
+    /** true = foto yang lolos filter otomatis langsung tampil tanpa menunggu admin. */
+    autoApprove: boolean('auto_approve').notNull().default(false),
+    /** Kata terlarang tambahan dari admin (selain daftar bawaan). */
+    blockedWords: jsonb('blocked_words').$type<string[]>().notNull().default([]),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [check('gallery_settings_singleton', sql`${t.id} = 1`)]
+);
+
 export type DbMenuItem = typeof menuItems.$inferSelect;
 export type DbOrder = typeof orders.$inferSelect;
 export type DbOrderItem = typeof orderItems.$inferSelect;
 export type DbRefund = typeof refunds.$inferSelect;
 export type DbPaymentTransaction = typeof paymentTransactions.$inferSelect;
 export type DbNotificationJob = typeof notificationJobs.$inferSelect;
+export type DbGalleryPhoto = typeof galleryPhotos.$inferSelect;
