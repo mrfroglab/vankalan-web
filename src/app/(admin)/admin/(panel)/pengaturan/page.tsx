@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/types';
 import { settingsService } from '@/services/settings';
 import { orderService } from '@/services/orders';
-import { AdminHeader } from '@/components/admin/AdminHeader';
 import { WhatsAppLoginCard } from '@/components/admin/WhatsAppLoginCard';
 import {
   Power,
@@ -116,9 +115,8 @@ export default function AdminPengaturanPage() {
   if (!settings) return null;
 
   return (
-    <div className="bg-[#f5f2ed] min-h-screen py-6 sm:py-8 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <AdminHeader />
+    <div>
+      <div className="space-y-6">
 
         {toastMessage && (
           <div
