@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, History, Clock } from 'lucide-react';
+import { ShoppingBag, History, Clock, Images } from 'lucide-react';
 
 export interface FoodlyHeaderProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ export function FoodlyHeader({
   const navLinks = [
     { label: 'Menu Lengkap', href: '/' },
     { label: 'Riwayat Pesanan', href: '/history' },
+    { label: 'Galeri', href: '/galeri' },
     { label: 'Dapur Admin', href: '/admin/antrean' },
   ];
 
@@ -92,6 +93,16 @@ export function FoodlyHeader({
 
         {/* Sisi Kanan: Aksi & Utilitas */}
         <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+          {/* Tautan Galeri di Mobile */}
+          <Link
+            href="/galeri"
+            aria-label="Galeri Kenangan"
+            className="md:hidden relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#77736d] hover:text-[#242321] hover:bg-[#f5f2ed] transition-colors cursor-pointer"
+            title="Galeri Kenangan"
+          >
+            <Images className="w-4 h-4" aria-hidden="true" />
+          </Link>
+
           {/* Tautan Riwayat di Mobile */}
           <Link
             href="/history"

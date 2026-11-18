@@ -15,6 +15,7 @@ import {
   Wifi,
   WifiOff,
   LogOut,
+  Images,
 } from 'lucide-react';
 
 export function AdminHeader() {
@@ -100,6 +101,7 @@ export function AdminHeader() {
     { href: '/admin/antrean', label: 'Antrean Dapur', icon: Layers },
     { href: '/admin/menu', label: 'Kelola Menu', icon: Utensils },
     { href: '/admin/sif', label: 'Penjaga & Sif', icon: Users },
+    { href: '/admin/galeri', label: 'Galeri', icon: Images },
     { href: '/admin/pengaturan', label: 'Pengaturan & WA', icon: Settings },
   ];
 
