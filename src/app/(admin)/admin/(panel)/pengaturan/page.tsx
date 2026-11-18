@@ -1,5 +1,7 @@
 'use client';
 
+import { demoToolsEnabled } from '@/services/client';
+import { makeSaveGuard } from '@/lib/saveGuard';
 import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/types';
 import { settingsService } from '@/services/settings';
@@ -60,7 +62,9 @@ export default function AdminPengaturanPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleToggleOpen = async () => {
+  const guard = makeSaveGuard(showToast, loadData);
+
+  const handleToggleOpen = guard(async () => {
     if (!settings) return;
     const nextOpen = !isOpen;
     setIsOpen(nextOpen);
@@ -70,9 +74,9 @@ export default function AdminPengaturanPage() {
         ? 'Pemesanan online dibuka. Pelanggan dapat membuat pesanan baru.'
         : 'Pemesanan online ditutup sementara.'
     );
-  };
+  });
 
-  const handleToggleWa = async () => {
+  const handleToggleWa = guard(async () => {
     if (!settings) return;
     const nextWa = !waConnected;
     setWaConnected(nextWa);
@@ -82,9 +86,9 @@ export default function AdminPengaturanPage() {
         ? 'Koneksi WAHA dipulihkan. Notifikasi WhatsApp aktif normal.'
         : 'Koneksi WAHA diputus. Notifikasi pesanan baru masuk ke status Gagal.'
     );
-  };
+  });
 
-  const handleSaveOperational = async (e: React.FormEvent) => {
+  const handleSaveOperational = guard(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
     await settingsService.saveStoreSettings({
@@ -93,14 +97,14 @@ export default function AdminPengaturanPage() {
       eggPrice: Number(eggPrice),
     });
     showToast('Pengaturan operasional berhasil disimpan.');
-  };
+  });
 
-  const handleSeedDemoOrders = async () => {
+  const handleSeedDemoOrders = guard(async () => {
     await orderService.seedDemoOrders();
     showToast('6 contoh pesanan demo berhasil dimuat ulang ke antrean dapur.');
-  };
+  });
 
-  const handleResetDemo = async () => {
+  const handleResetDemo = guard(async () => {
     if (
       confirm(
         'Yakin ingin mereset seluruh data demo? Semua perubahan menu, order lokal, dan sif akan dikembalikan ke setelan pabrik.'
@@ -110,7 +114,7 @@ export default function AdminPengaturanPage() {
       await loadData();
       showToast('Seluruh data demo berhasil direset ke kondisi awal.');
     }
-  };
+  });
 
   if (!settings) return null;
 
@@ -345,7 +349,8 @@ export default function AdminPengaturanPage() {
               </div>
             </section>
 
-            {/* Section 4: Data Demo & Reset */}
+            {/* Section 4: Data Demo & Reset (hanya mode demo / development) */}
+            {demoToolsEnabled() && (
             <section className="bg-white border border-[#e9e5df] rounded-2xl p-5 shadow-card space-y-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-[#f1ede7] flex items-center justify-center text-[#242321]">
@@ -392,6 +397,7 @@ export default function AdminPengaturanPage() {
                 </div>
               </div>
             </section>
+            )}
           </div>
         </div>
       </div>

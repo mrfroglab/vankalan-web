@@ -37,6 +37,7 @@ function OrderTrackingContent() {
   const [order, setOrder] = useState<Order | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<boolean>(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -46,8 +47,10 @@ function OrderTrackingContent() {
       if (found) {
         setOrder(found);
       }
+      setLoadError(false);
     } catch (e) {
       console.warn('Gagal memuat pesanan', e);
+      setLoadError(true);
     } finally {
       setIsLoading(false);
     }
@@ -166,12 +169,28 @@ function OrderTrackingContent() {
               <AlertCircle className="w-8 h-8" />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold font-editorial text-[#242321]">
-              Pesanan Tidak Ditemukan
+              {loadError ? 'Belum Bisa Memuat Pesanan' : 'Pesanan Tidak Ditemukan'}
             </h1>
             <p className="text-xs sm:text-sm text-[#68645e] leading-relaxed">
-              Tautan pesanan ini tidak valid atau belum tersimpan pada browser perangkat ini.
+              {loadError
+                ? 'Koneksi ke warung sedang terganggu. Pesananmu tetap tersimpan; coba muat lagi sebentar.'
+                : 'Tautan pesanan ini tidak valid atau belum tersimpan pada browser perangkat ini.'}
             </p>
             <div className="pt-2 flex flex-col gap-2.5">
+              {loadError && (
+                <Button
+                  variant="gold"
+                  fullWidth
+                  size="md"
+                  className="rounded-full font-bold"
+                  onClick={() => {
+                    setIsLoading(true);
+                    loadCurrentOrder();
+                  }}
+                >
+                  Coba Lagi
+                </Button>
+              )}
               <Link href="/history" className="block">
                 <Button variant="outline" fullWidth size="md" className="rounded-full">
                   Buka Riwayat Pesanan

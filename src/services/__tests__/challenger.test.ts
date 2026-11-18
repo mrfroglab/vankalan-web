@@ -497,7 +497,7 @@ describe('CHALLENGER SUITE 2: apiRequest & Remote API Behavior (NEXT_PUBLIC_API_
   });
 });
 
-describe('CHALLENGER SUITE 3: Network Failure Graceful Fallback', () => {
+describe('CHALLENGER SUITE 3: Backend failures are surfaced (no local/demo fallback)', () => {
   let storage: Record<string, string> = {};
 
   beforeEach(() => {
@@ -536,108 +536,94 @@ describe('CHALLENGER SUITE 3: Network Failure Graceful Fallback', () => {
     vi.restoreAllMocks();
   });
 
-  it('all orderService methods catch network failure and fall back to local store without throwing', async () => {
-    // Mock fetch to simulate complete network drop / connection refused
+  it('backend aktif + jaringan putus: semua aksi gagal terlihat, tidak ada data lokal/demo', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => {
       throw new TypeError('Network connection refused (ECONNREFUSED)');
     }));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const down = { statusCode: 0 };
+    await expect(orderService.getOrders()).rejects.toMatchObject(down);
+    await expect(orderService.getOrderByToken('tok')).rejects.toMatchObject(down);
+    await expect(orderService.getOrderById('id')).rejects.toMatchObject(down);
+    await expect(
+      orderService.createOrder({
+        name: 'Network Down Customer',
+        phone: '081234567890',
+        mode: 'asap',
+        pickup: Date.now() + 600000,
+        estimate: 10,
+        items: [{ name: 'Mie Rebus', qty: 1, unit: 13000 }],
+        total: 13000,
+      })
+    ).rejects.toMatchObject(down);
+    await expect(orderService.updateOrderStatus('id', 'PREPARING')).rejects.toMatchObject(down);
+    await expect(orderService.updateOrderPayment('id', 'PAID')).rejects.toMatchObject(down);
+    await expect(orderService.cancelOrder('id', 'Warung tutup')).rejects.toMatchObject(down);
+    await expect(
+      orderService.recordRefund('id', { status: 'FULL_REFUNDED', amount: 1, reason: 'x' })
+    ).rejects.toMatchObject(down);
+    await expect(orderService.retryWhatsApp('id')).rejects.toMatchObject(down);
+    await expect(orderService.seedDemoOrders()).rejects.toMatchObject(down);
 
-    // 1. getOrders
-    const orders = await orderService.getOrders();
-    expect(orders.length).toBe(6);
-
-    // 2. getOrder / getOrderByToken
-    const token = orders[0].token;
-    const byToken = await orderService.getOrderByToken(token);
-    expect(byToken?.id).toBe(orders[0].id);
-
-    // 3. getOrderById
-    const byId = await orderService.getOrderById(orders[0].id);
-    expect(byId?.token).toBe(token);
-
-    // 4. createOrder
-    const created = await orderService.createOrder({
-      name: 'Network Down Customer',
-      phone: '081234567890',
-      mode: 'asap',
-      pickup: Date.now() + 600000,
-      estimate: 10,
-      items: [{ name: 'Mie Rebus', qty: 1, unit: 13000 }],
-      total: 13000,
-    });
-    expect(created.order).toBeDefined();
-    expect(created.order.name).toBe('Network Down Customer');
-    expect(created.snapToken).toBeUndefined();
-
-    // 5. updateOrderStatus
-    const updatedStatus = await orderService.updateOrderStatus(created.order.id, 'PREPARING');
-    expect(updatedStatus.fulfillment).toBe('PREPARING');
-
-    // 6. updateOrderPayment
-    const updatedPayment = await orderService.updateOrderPayment(created.order.id, 'PAID');
-    expect(updatedPayment.payment).toBe('PAID');
-
-    // 7. cancelOrder
-    const cancelled = await orderService.cancelOrder(created.order.id, 'Warung tutup');
-    expect(cancelled.fulfillment).toBe('CANCELLED');
-
-    // 8. recordRefund
-    const refunded = await orderService.recordRefund(created.order.id, {
-      status: 'FULL_REFUNDED',
-      amount: 13000,
-      reason: 'Refund cash',
-    });
-    expect(refunded.refund?.status).toBe('FULL_REFUNDED');
-
-    // 9. retryWhatsApp
-    const retried = await orderService.retryWhatsApp(created.order.id);
-    expect(retried.attempts).toBeGreaterThan(1);
-
-    // 10. seedDemoOrders
-    const reseeded = await orderService.seedDemoOrders();
-    expect(reseeded.length).toBe(6);
-
-    warnSpy.mockRestore();
+    // Tidak ada order palsu / demo yang ditulis ke browser.
+    expect(storage['pv_orders_v2']).toBeUndefined();
   });
 
-  it('menuService and settingsService fall back to local store during backend HTTP 500 error', async () => {
+  it('backend aktif + HTTP 500: menu & pengaturan gagal terlihat, simpan tidak "berhasil" diam-diam', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => {
       return new Response(JSON.stringify({ error: 'Database connection failed' }), {
         status: 500,
         statusText: 'Internal Server Error',
       });
     }));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const err500 = { statusCode: 500 };
+    await expect(menuService.getMenuItems()).rejects.toMatchObject(err500);
+    await expect(menuService.saveMenuItems([])).rejects.toMatchObject(err500);
+    await expect(menuService.getCategories()).rejects.toMatchObject(err500);
+    await expect(settingsService.getStoreSettings()).rejects.toMatchObject(err500);
+    await expect(settingsService.getShifts()).rejects.toMatchObject(err500);
+    await expect(settingsService.resetAllData()).rejects.toMatchObject(err500);
+    await expect(
+      settingsService.saveStoreSettings({
+        open: false,
+        estimate: 30,
+        eggPrice: 4000,
+        recipientShiftId: 's1',
+        waConnected: true,
+      })
+    ).rejects.toMatchObject(err500);
+    expect(Object.keys(storage)).toEqual([]);
+  });
 
-    const menu = await menuService.getMenuItems();
-    expect(menu.length).toBeGreaterThan(0);
+  it('lookup order: 404 berarti tidak ditemukan (null), bukan error', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'x' }), { status: 404 })));
+    expect(await orderService.getOrderByToken('nope')).toBeNull();
+    expect(await orderService.getOrderById('nope')).toBeNull();
+  });
 
-    const savedMenu = await menuService.saveMenuItems(menu);
-    expect(savedMenu.length).toBe(menu.length);
+  it('riwayat perangkat: status diperbarui dari server, order tak dikenal (demo lama) dibuang, tanpa seed demo', async () => {
+    expect(await orderService.getDeviceOrders()).toEqual([]);
+    expect(storage['pv_orders_v2']).toBeUndefined();
 
-    const categories = await menuService.getCategories();
-    expect(categories.length).toBeGreaterThan(0);
+    const mine = { id: 'o1', token: 'tok-asli', fulfillment: 'NEW' };
+    const demo = { id: 'o2', token: 'tok-demo', fulfillment: 'NEW' };
+    storage['pv_orders_v2'] = JSON.stringify([mine, demo]);
+    vi.stubGlobal('fetch', vi.fn(async (url: string) =>
+      url.includes('tok-asli')
+        ? new Response(JSON.stringify({ ...mine, fulfillment: 'READY' }), { status: 200 })
+        : new Response(JSON.stringify({ error: 'x' }), { status: 404 })
+    ));
+    const list = await orderService.getDeviceOrders();
+    expect(list).toEqual([{ ...mine, fulfillment: 'READY' }]);
+    expect(JSON.parse(storage['pv_orders_v2'])).toEqual(list);
 
-    const settings = await settingsService.getStoreSettings();
-    expect(settings.open).toBe(true);
-
-    const savedSettings = await settingsService.saveStoreSettings({
-      ...settings,
-      estimate: 30,
-    });
-    expect(savedSettings.estimate).toBe(30);
-
-    const shifts = await settingsService.getShifts();
-    expect(shifts.length).toBeGreaterThan(0);
-
-    await settingsService.resetAllData();
-    const resetSettings = await settingsService.getStoreSettings();
-    expect(resetSettings.estimate).toBe(10);
-
-    warnSpy.mockRestore();
+    // Jaringan putus: salinan terakhir tetap tampil.
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(await orderService.getDeviceOrders()).toEqual(list);
   });
 });
 

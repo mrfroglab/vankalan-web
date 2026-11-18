@@ -1,5 +1,7 @@
 'use client';
 
+import { demoToolsEnabled } from '@/services/client';
+import { makeSaveGuard } from '@/lib/saveGuard';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Order } from '@/types';
@@ -35,7 +37,7 @@ export default function CustomerHistoryPage() {
 
   const loadData = async () => {
     try {
-      const data = await orderService.getOrders();
+      const data = await orderService.getDeviceOrders();
       setOrders(data);
     } catch (e) {
       console.warn('Gagal memuat riwayat pesanan', e);
@@ -60,11 +62,13 @@ export default function CustomerHistoryPage() {
     };
   }, []);
 
-  const handleReloadSeeds = async () => {
+  const guard = makeSaveGuard(showToast, loadData);
+
+  const handleReloadSeeds = guard(async () => {
     await orderService.seedDemoOrders();
     await loadData();
     showToast('Contoh riwayat pesanan demo berhasil dimuat ulang!');
-  };
+  });
 
   const paymentBadges: Record<Order['payment'], { text: string; variant: 'success' | 'warning' | 'danger' }> = {
     PAID: { text: 'Lunas', variant: 'success' },
@@ -138,6 +142,7 @@ export default function CustomerHistoryPage() {
             </p>
           </div>
 
+          {demoToolsEnabled() && (
           <button
             type="button"
             onClick={handleReloadSeeds}
@@ -147,6 +152,7 @@ export default function CustomerHistoryPage() {
             <Sparkles className="w-3.5 h-3.5 text-[#f5c943]" />
             <span>Muat Contoh Demo</span>
           </button>
+          )}
         </div>
 
         {/* Segmented Filter Tabs */}
@@ -191,10 +197,11 @@ export default function CustomerHistoryPage() {
                 Belum Ada Pesanan di Kategori Ini
               </h2>
               <p className="text-xs sm:text-sm text-[#68645e] max-w-sm mx-auto leading-relaxed">
-                Kamu bisa membuat pesanan baru dari katalog menu atau memuat contoh data simulasi untuk mencoba tampilan bukti pesanan.
+                Pesanan yang kamu buat dari browser ini akan muncul di sini.
               </p>
             </div>
             <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+              {demoToolsEnabled() && (
               <Button
                 variant="outline"
                 size="sm"
@@ -204,6 +211,7 @@ export default function CustomerHistoryPage() {
                 <Sparkles className="w-4 h-4 mr-1.5 text-[#f5c943]" />
                 <span>Muat Contoh Demo</span>
               </Button>
+              )}
               <Link href="/">
                 <Button
                   variant="gold"

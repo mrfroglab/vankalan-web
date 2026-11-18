@@ -279,6 +279,19 @@ export function getOrders(): Order[] {
   return createSeedOrders();
 }
 
+/** Order yang tersimpan di browser ini apa adanya, TANPA mengisi data demo bila kosong. */
+export function getStoredOrders(): Order[] {
+  if (!isClient()) return [];
+  try {
+    const raw = localStorage.getItem(ORDERS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.warn('Gagal membaca orders', e);
+    return [];
+  }
+}
+
 export function saveOrders(orders: Order[]): void {
   if (!isClient()) return;
   try {

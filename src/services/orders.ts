@@ -3,7 +3,8 @@
  * Handles order querying, creation, payment & fulfillment lifecycle transitions,
  * cancellation, refunds, and WhatsApp dispatch retries.
  * Routes to REST API when NEXT_PUBLIC_API_URL is configured,
- * falling back transparently to src/lib/store.ts (localStorage).
+ * Without a backend (demo mode) data lives in src/lib/store.ts (localStorage).
+ * With a backend, failures are surfaced to the caller; they never fall back to local data.
  */
 
 import {
@@ -15,7 +16,7 @@ import {
   CreateOrderResult,
 } from '@/types';
 import * as localStore from '@/lib/store';
-import { isBackendConfigured, apiRequest, ApiError } from './client';
+import { isBackendConfigured, apiRequest, ApiError, backendFailure, unexpectedResponse } from './client';
 
 export const orderService = {
   async getOrders(): Promise<Order[]> {
@@ -27,10 +28,35 @@ export const orderService = {
           return (result as { data: Order[] }).data;
         }
       } catch (err) {
-        console.warn('[orderService] Backend getOrders failed, using local store:', err);
+        throw backendFailure('orderService.getOrders', err);
       }
+      throw unexpectedResponse('orderService.getOrders');
     }
     return localStore.getOrders();
+  },
+
+  /**
+   * Riwayat pelanggan (tanpa login): order yang dibuat dari browser ini. Dengan backend, status
+   * diperbarui dari server per token; order yang tidak dikenal server (404: data demo lama atau
+   * sudah dihapus retensi) dibuang dari perangkat. Gagal jaringan -> salinan terakhir ditampilkan.
+   */
+  async getDeviceOrders(): Promise<Order[]> {
+    if (!isBackendConfigured()) return localStore.getOrders();
+    const stored = localStore.getStoredOrders();
+    const refreshed = await Promise.all(
+      stored.map(async (o) => {
+        try {
+          return await this.getOrderByToken(o.token);
+        } catch {
+          return o;
+        }
+      })
+    );
+    const kept = refreshed.filter((o): o is Order => o !== null);
+    // Simpan hanya bila berubah: saveOrders memicu pv_storage_update yang membuat halaman
+    // riwayat memuat ulang; tanpa cek ini terjadi loop.
+    if (JSON.stringify(kept) !== JSON.stringify(stored)) localStore.saveOrders(kept);
+    return kept;
   },
 
   async getOrder(token: string): Promise<Order | null> {
@@ -48,8 +74,11 @@ export const orderService = {
           return (result as { data: Order }).data;
         }
       } catch (err) {
-        console.warn('[orderService] Backend lookup failed, falling back to local store:', err);
+        // Order memang tidak ada -> null; error lain (server mati) harus terlihat.
+        if (err instanceof ApiError && err.statusCode === 404) return null;
+        throw backendFailure('orderService.lookup', err);
       }
+      throw unexpectedResponse('orderService.lookup');
     }
     const orders = localStore.getOrders();
     return orders.find((o) => o.token === token) || null;
@@ -66,8 +95,11 @@ export const orderService = {
           return (result as { data: Order }).data;
         }
       } catch (err) {
-        console.warn('[orderService] Backend getOrderById failed, using local store:', err);
+        // Order memang tidak ada -> null; error lain (server mati) harus terlihat.
+        if (err instanceof ApiError && err.statusCode === 404) return null;
+        throw backendFailure('orderService.getOrderById', err);
       }
+      throw unexpectedResponse('orderService.getOrderById');
     }
     const orders = localStore.getOrders();
     return orders.find((o) => o.id === id) || null;
@@ -83,21 +115,16 @@ export const orderService = {
 
         if (response && response.order) {
           // Sync with local storage for immediate offline/history availability
-          const existing = localStore.getOrders();
+          const existing = localStore.getStoredOrders();
           localStore.saveOrders([response.order, ...existing]);
           return response;
         }
       } catch (err) {
-        // Penolakan server (harga berubah, toko tutup, validasi, dst.) harus sampai ke
-        // pelanggan; jangan diam-diam membuat order palsu di localStorage.
-        // Hanya jaringan putus (statusCode 0) yang boleh jatuh ke mode lokal; error HTTP
-        // (termasuk 5xx / gagal memulai pembayaran) harus terlihat, bukan jadi order palsu
-        // yang tidak pernah sampai ke dapur.
-        if (err instanceof ApiError && err.statusCode >= 400) {
-          throw err;
-        }
-        console.warn('[orderService] Backend createOrder failed, using fallback:', err);
+        // Penolakan server dan jaringan putus harus sampai ke pelanggan; jangan pernah
+        // membuat order palsu di localStorage yang tidak pernah sampai ke dapur.
+        throw backendFailure('orderService.createOrder', err);
       }
+      throw unexpectedResponse('orderService.createOrder');
     }
 
     // LocalStorage Fallback Generation
@@ -169,13 +196,14 @@ export const orderService = {
         );
         const updated = 'id' in res ? (res as Order) : (res as { data: Order }).data;
         if (updated) {
-          const orders = localStore.getOrders();
+          const orders = localStore.getStoredOrders();
           localStore.saveOrders(orders.map((o) => (o.id === orderId ? updated : o)));
           return updated;
         }
       } catch (err) {
-        console.warn('[orderService] Backend updateOrderStatus failed, using local store:', err);
+        throw backendFailure('orderService.updateOrderStatus', err);
       }
+      throw unexpectedResponse('orderService.updateOrderStatus');
     }
 
     const orders = localStore.getOrders();
@@ -214,13 +242,14 @@ export const orderService = {
         );
         const updated = 'id' in res ? (res as Order) : (res as { data: Order }).data;
         if (updated) {
-          const orders = localStore.getOrders();
+          const orders = localStore.getStoredOrders();
           localStore.saveOrders(orders.map((o) => (o.id === orderId ? updated : o)));
           return updated;
         }
       } catch (err) {
-        console.warn('[orderService] Backend updateOrderPayment failed, using local store:', err);
+        throw backendFailure('orderService.updateOrderPayment', err);
       }
+      throw unexpectedResponse('orderService.updateOrderPayment');
     }
 
     const settings = localStore.getStoreSettings();
@@ -269,13 +298,14 @@ export const orderService = {
         );
         const updated = 'id' in res ? (res as Order) : (res as { data: Order }).data;
         if (updated) {
-          const orders = localStore.getOrders();
+          const orders = localStore.getStoredOrders();
           localStore.saveOrders(orders.map((o) => (o.id === orderId ? updated : o)));
           return updated;
         }
       } catch (err) {
-        console.warn('[orderService] Backend cancelOrder failed, using local store:', err);
+        throw backendFailure('orderService.cancelOrder', err);
       }
+      throw unexpectedResponse('orderService.cancelOrder');
     }
 
     const orders = localStore.getOrders();
@@ -316,13 +346,14 @@ export const orderService = {
         );
         const updated = 'id' in res ? (res as Order) : (res as { data: Order }).data;
         if (updated) {
-          const orders = localStore.getOrders();
+          const orders = localStore.getStoredOrders();
           localStore.saveOrders(orders.map((o) => (o.id === orderId ? updated : o)));
           return updated;
         }
       } catch (err) {
-        console.warn('[orderService] Backend recordRefund failed, using local store:', err);
+        throw backendFailure('orderService.recordRefund', err);
       }
+      throw unexpectedResponse('orderService.recordRefund');
     }
 
     const orders = localStore.getOrders();
@@ -357,13 +388,14 @@ export const orderService = {
         );
         const updated = 'order' in res ? res.order : res;
         if (updated) {
-          const orders = localStore.getOrders();
+          const orders = localStore.getStoredOrders();
           localStore.saveOrders(orders.map((o) => (o.id === orderId ? updated : o)));
           return updated;
         }
       } catch (err) {
-        console.warn('[orderService] Backend retry WA failed, using local store:', err);
+        throw backendFailure('orderService.retry', err);
       }
+      throw unexpectedResponse('orderService.retry');
     }
 
     const currentSettings = localStore.getStoreSettings();
@@ -400,8 +432,9 @@ export const orderService = {
           return res;
         }
       } catch (err) {
-        console.warn('[orderService] Backend seed failed, using local seed:', err);
+        throw backendFailure('orderService.seed', err);
       }
+      throw unexpectedResponse('orderService.seed');
     }
     return localStore.seedDemoOrders();
   },
