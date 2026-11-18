@@ -181,7 +181,8 @@ export function AdminHeader() {
 
           {/* Kondisi sesi WhatsApp nyata di WAHA */}
           {waSession && (
-            <div
+            <Link
+              href="/admin/pengaturan#whatsapp"
               role={waSession.ok ? undefined : 'alert'}
               className={`min-h-[36px] px-3.5 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border ${
                 waSession.ok
@@ -190,7 +191,7 @@ export function AdminHeader() {
               }`}
             >
               <span>{waSession.label}</span>
-            </div>
+            </Link>
           )}
 
           {/* Button Tampilan Pelanggan */}

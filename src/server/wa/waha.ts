@@ -117,8 +117,48 @@ export async function sendWhatsAppText(
 }
 
 export type SessionState =
-  | { reachable: true; status: string; needsQr: boolean }
+  | { reachable: true; status: string; needsQr: boolean; account?: { id: string; name: string | null } }
   | { reachable: false; error: string; code?: string };
+
+/**
+ * Gambar QR login WhatsApp (PNG) dari WAHA, untuk discan dari dashboard dapur.
+ * null = sesi tidak sedang menunggu scan (sudah login / belum start).
+ */
+export async function fetchLoginQr(cfg: WahaConfig): Promise<Buffer | null> {
+  const res = await fetch(`${cfg.baseUrl}/api/${encodeURIComponent(cfg.session)}/auth/qr`, {
+    headers: { ...headers(cfg), Accept: 'image/png' },
+    signal: AbortSignal.timeout(Math.min(cfg.timeoutMs, 10_000)),
+  });
+  if (!res.ok) return null;
+  if (!(res.headers.get('content-type') ?? '').startsWith('image/')) return null;
+  return Buffer.from(await res.arrayBuffer());
+}
+
+export type SessionAction = 'start' | 'restart' | 'logout';
+
+/**
+ * Kendalikan sesi WAHA dari dashboard: start (membuat sesi bila belum ada), restart (QR macet /
+ * FAILED), logout (ganti nomor WA). Melempar Error berpesan bila WAHA menolak.
+ */
+export async function controlSession(cfg: WahaConfig, action: SessionAction): Promise<void> {
+  const name = encodeURIComponent(cfg.session);
+  const post = (path: string, body?: unknown) =>
+    fetch(`${cfg.baseUrl}${path}`, {
+      method: 'POST',
+      headers: headers(cfg),
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(Math.min(cfg.timeoutMs, 15_000)),
+    });
+  let res = await post(`/api/sessions/${name}/${action}`);
+  if (res.status === 404 && action !== 'logout') {
+    // Sesi belum pernah dibuat di WAHA: buat sekaligus jalankan.
+    res = await post('/api/sessions', { name: cfg.session, start: true });
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`WAHA menjawab HTTP ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ''}`);
+  }
+}
 
 /** Status sesi WA (FR-36): SCAN_QR_CODE / FAILED berarti perlu scan QR ulang di dashboard WAHA. */
 export async function getSessionState(cfg: WahaConfig): Promise<SessionState> {
@@ -128,9 +168,12 @@ export async function getSessionState(cfg: WahaConfig): Promise<SessionState> {
       signal: AbortSignal.timeout(Math.min(cfg.timeoutMs, 5000)),
     });
     if (!res.ok) return { reachable: false, error: `WAHA menjawab HTTP ${res.status}` };
-    const data = (await res.json()) as { status?: string };
+    const data = (await res.json()) as { status?: string; me?: { id?: string; pushName?: string } | null };
     const status = String(data.status ?? 'UNKNOWN');
-    return { reachable: true, status, needsQr: status === 'SCAN_QR_CODE' || status === 'FAILED' };
+    const state: Extract<SessionState, { reachable: true }> = { reachable: true, status, needsQr: status === 'SCAN_QR_CODE' || status === 'FAILED' };
+    // Akun WA yang sedang login (hanya untuk dashboard admin): nomor + nama profil.
+    if (data.me?.id) state.account = { id: String(data.me.id).replace(/@.*$/, ''), name: data.me.pushName ?? null };
+    return state;
   } catch (err) {
     return { reachable: false, error: (err as Error).message ?? 'WAHA tidak dapat dihubungi', code: errorCode(err) };
   }
