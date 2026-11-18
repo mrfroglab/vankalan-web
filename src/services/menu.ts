@@ -1,12 +1,13 @@
 /**
  * Menu & categories service layer for Web Warmindo Putra Vangkalan.
  * Routes to REST API when NEXT_PUBLIC_API_URL is configured,
- * falling back transparently to src/lib/store.ts (localStorage).
+ * Without a backend (demo mode) data lives in src/lib/store.ts (localStorage).
+ * With a backend, failures are surfaced to the caller; they never fall back to local data.
  */
 
 import { MenuItem } from '@/types';
 import * as localStore from '@/lib/store';
-import { isBackendConfigured, apiRequest } from './client';
+import { isBackendConfigured, apiRequest, backendFailure, unexpectedResponse } from './client';
 
 export const menuService = {
   async getMenuItems(): Promise<MenuItem[]> {
@@ -18,8 +19,9 @@ export const menuService = {
           return (result as { data: MenuItem[] }).data;
         }
       } catch (err) {
-        console.warn('[menuService] Backend getMenuItems failed, using local store:', err);
+        throw backendFailure('menuService.getMenuItems', err);
       }
+      throw unexpectedResponse('menuService.getMenuItems');
     }
     return localStore.getMenuItems();
   },
@@ -37,8 +39,9 @@ export const menuService = {
         localStore.saveMenuItems(saved);
         return saved;
       } catch (err) {
-        console.warn('[menuService] Backend saveMenuItems failed, using local store:', err);
+        throw backendFailure('menuService.saveMenuItems', err);
       }
+      throw unexpectedResponse('menuService.saveMenuItems');
     }
     localStore.saveMenuItems(items);
     return items;
@@ -53,8 +56,9 @@ export const menuService = {
           return (result as { data: string[] }).data;
         }
       } catch (err) {
-        console.warn('[menuService] Backend getCategories failed, using local store:', err);
+        throw backendFailure('menuService.getCategories', err);
       }
+      throw unexpectedResponse('menuService.getCategories');
     }
     return localStore.getCategories();
   },
@@ -72,8 +76,9 @@ export const menuService = {
         localStore.saveCategories(saved);
         return saved;
       } catch (err) {
-        console.warn('[menuService] Backend saveCategories failed, using local store:', err);
+        throw backendFailure('menuService.saveCategories', err);
       }
+      throw unexpectedResponse('menuService.saveCategories');
     }
     localStore.saveCategories(categories);
     return categories;

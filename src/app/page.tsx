@@ -24,6 +24,7 @@ import { FloatingCartBar } from '@/components/customer/FloatingCartBar';
 import { CartDrawer } from '@/components/customer/CartDrawer';
 import { CustomizeItemModal } from '@/components/customer/CustomizeItemModal';
 import { menuService } from '@/services/menu';
+import { ServerErrorNotice } from '@/components/ui/ServerErrorNotice';
 import { ChefHat, RotateCcw } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 8;
@@ -40,6 +41,7 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<boolean>(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState<boolean>(false);
   const [activeItemForCustomization, setActiveItemForCustomization] =
@@ -53,8 +55,10 @@ export default function HomePage() {
       ]);
       setMenuList(items);
       setCategories(['Semua', ...cats]);
+      setLoadError(false);
     } catch (err) {
       console.warn('Gagal memuat menu di HomePage:', err);
+      setLoadError(true);
     } finally {
       setIsLoading(false);
     }
@@ -287,6 +291,15 @@ export default function HomePage() {
                   <MenuCardSkeleton key={i} />
                 ))}
               </div>
+            ) : loadError && menuList.length === 0 ? (
+              <ServerErrorNotice
+                title="Menu belum bisa dimuat"
+                message="Koneksi ke warung sedang terganggu. Periksa internetmu lalu coba lagi sebentar."
+                onRetry={() => {
+                  setIsLoading(true);
+                  loadData();
+                }}
+              />
             ) : filteredMenu.length === 0 ? (
               /* Kondisi Hasil Kosong */
               <div className="bg-white rounded-2xl border border-[#e9e5df] p-8 sm:p-12 text-center shadow-card">

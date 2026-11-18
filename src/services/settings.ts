@@ -1,12 +1,13 @@
 /**
  * Store settings & shifts service layer for Web Warmindo Putra Vangkalan.
  * Routes to REST API when NEXT_PUBLIC_API_URL is configured,
- * falling back transparently to src/lib/store.ts (localStorage).
+ * Without a backend (demo mode) data lives in src/lib/store.ts (localStorage).
+ * With a backend, failures are surfaced to the caller; they never fall back to local data.
  */
 
 import { StoreSettings, Shift } from '@/types';
 import * as localStore from '@/lib/store';
-import { isBackendConfigured, apiRequest } from './client';
+import { isBackendConfigured, apiRequest, backendFailure, unexpectedResponse } from './client';
 
 export { DEFAULT_SETTINGS } from '@/lib/store';
 
@@ -22,8 +23,9 @@ export const settingsService = {
           return (result as { data: StoreSettings }).data;
         }
       } catch (err) {
-        console.warn('[settingsService] Backend getStoreSettings failed, using local store:', err);
+        throw backendFailure('settingsService.getStoreSettings', err);
       }
+      throw unexpectedResponse('settingsService.getStoreSettings');
     }
     return localStore.getStoreSettings();
   },
@@ -45,8 +47,9 @@ export const settingsService = {
         localStore.saveStoreSettings(saved);
         return saved;
       } catch (err) {
-        console.warn('[settingsService] Backend saveStoreSettings failed, using local store:', err);
+        throw backendFailure('settingsService.saveStoreSettings', err);
       }
+      throw unexpectedResponse('settingsService.saveStoreSettings');
     }
     localStore.saveStoreSettings(settings);
     return settings;
@@ -61,8 +64,9 @@ export const settingsService = {
           return (result as { data: Shift[] }).data;
         }
       } catch (err) {
-        console.warn('[settingsService] Backend getShifts failed, using local store:', err);
+        throw backendFailure('settingsService.getShifts', err);
       }
+      throw unexpectedResponse('settingsService.getShifts');
     }
     return localStore.getShifts();
   },
@@ -80,8 +84,9 @@ export const settingsService = {
         localStore.saveShifts(saved);
         return saved;
       } catch (err) {
-        console.warn('[settingsService] Backend saveShifts failed, using local store:', err);
+        throw backendFailure('settingsService.saveShifts', err);
       }
+      throw unexpectedResponse('settingsService.saveShifts');
     }
     localStore.saveShifts(shifts);
     return shifts;
@@ -92,7 +97,7 @@ export const settingsService = {
       try {
         await apiRequest<void>('/api/reset', { method: 'POST' });
       } catch (err) {
-        console.warn('[settingsService] Backend reset failed, resetting local store:', err);
+        throw backendFailure('settingsService.reset', err);
       }
     }
     localStore.resetAllData();

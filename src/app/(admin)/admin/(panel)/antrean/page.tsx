@@ -1,5 +1,8 @@
 'use client';
 
+import { demoToolsEnabled } from '@/services/client';
+import { makeSaveGuard, serverErrorMessage } from '@/lib/saveGuard';
+import { ServerErrorNotice } from '@/components/ui/ServerErrorNotice';
 import React, { useState, useCallback } from 'react';
 import {
   Order,
@@ -44,6 +47,7 @@ export default function AdminAntreanPage() {
   >('PERLU_DITANGANI');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Modal Detail Order
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -80,11 +84,13 @@ export default function AdminAntreanPage() {
       setSettings(sett);
       setShifts(shfs);
       setLastUpdated(formatTimeWIB(Date.now()));
+      setLoadError(null);
       setSelectedOrder((prev) =>
         prev ? ords.find((o) => o.id === prev.id) || prev : null
       );
     } catch (err) {
       console.warn('[antrean] Gagal memuat data antrean:', err);
+      setLoadError(serverErrorMessage(err));
     }
   }, []);
 
@@ -255,11 +261,13 @@ export default function AdminAntreanPage() {
       phone: '6281234500001',
     };
 
-  const handleReloadSeeds = async () => {
+  const guard = makeSaveGuard(showToast, loadData);
+
+  const handleReloadSeeds = guard(async () => {
     await orderService.seedDemoOrders();
     await loadData();
     showToast('6 pesanan demo dapur berhasil dimuat ulang.');
-  };
+  });
 
   const countWaFailed = orders.filter(waNeedsAttention).length;
 
@@ -301,6 +309,7 @@ export default function AdminAntreanPage() {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            {demoToolsEnabled() && (
             <Button
               variant="outline"
               size="sm"
@@ -311,6 +320,7 @@ export default function AdminAntreanPage() {
               <Sparkles className="w-3.5 h-3.5 mr-1.5 text-[#f5c943]" />
               <span>Muat Data Demo</span>
             </Button>
+            )}
 
             <Button
               variant="outline"
@@ -324,7 +334,7 @@ export default function AdminAntreanPage() {
                   isPolling ? 'animate-spin' : ''
                 }`}
               />
-              <span>Refresh Cepat ({lastUpdated || 'WIB'})</span>
+              <span>{lastUpdated ? `Refresh Cepat (${lastUpdated})` : 'Refresh Cepat'}</span>
             </Button>
           </div>
         </div>
@@ -384,16 +394,33 @@ export default function AdminAntreanPage() {
           </div>
         </div>
 
+        {loadError && (
+          <ServerErrorNotice
+            title="Antrean gagal dimuat dari server"
+            message={
+              <>
+                {loadError}{' '}
+                {lastUpdated
+                  ? `Daftar di bawah adalah data terakhir pukul ${lastUpdated} WIB dan mungkin sudah berubah.`
+                  : 'Belum ada data yang berhasil dimuat.'}{' '}
+                Jangan memasak berdasarkan daftar lama; muat ulang setelah koneksi pulih.
+              </>
+            }
+            onRetry={refresh}
+          />
+        )}
+
         {/* Queue Order Cards List */}
-        {filteredOrders.length === 0 ? (
+        {loadError && orders.length === 0 ? null : filteredOrders.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl border border-[#e9e5df] text-center space-y-3 shadow-card">
             <Utensils className="w-12 h-12 text-[#918c84] mx-auto opacity-60" />
             <h3 className="text-base font-bold text-[#242321]">
               Tidak Ada Pesanan Dapur
             </h3>
             <p className="text-xs text-[#68645e] max-w-sm mx-auto">
-              Tidak ada pesanan yang sesuai dengan filter atau kata kunci saat ini. Silakan muat contoh order demo untuk melihat simulasi.
+              Tidak ada pesanan yang sesuai dengan filter atau kata kunci saat ini.
             </p>
+            {demoToolsEnabled() && (
             <div className="pt-2">
               <Button
                 variant="gold"
@@ -405,6 +432,7 @@ export default function AdminAntreanPage() {
                 <span>Muat Data Demo Dapur</span>
               </Button>
             </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

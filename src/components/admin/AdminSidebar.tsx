@@ -47,14 +47,17 @@ function useAdminStatus() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [wa, setWa] = useState<WaStatus | null>(null);
   const [galleryPending, setGalleryPending] = useState<number | undefined>();
+  const [offline, setOffline] = useState(false);
 
   const loadSettings = useCallback(async () => {
     try {
       const [sett, shfs] = await Promise.all([settingsService.getStoreSettings(), settingsService.getShifts()]);
       setSettings(sett);
       setShifts(shfs);
+      setOffline(false);
     } catch (e) {
       console.warn('Gagal memuat settings/shifts di sidebar admin', e);
+      setOffline(true);
     }
   }, []);
 
@@ -72,6 +75,7 @@ function useAdminStatus() {
     if (!isBackendConfigured()) return;
     let cancelled = false;
     const check = async () => {
+      loadSettings();
       const [w, g] = await Promise.allSettled([
         apiRequest<WaStatus>('/api/wa/status'),
         apiRequest<{ counts: { PENDING: number } }>('/api/gallery/admin?only=counts'),
@@ -86,16 +90,20 @@ function useAdminStatus() {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [loadSettings]);
 
-  const store: { tone: Tone; value: string } = !settings
+  const store: { tone: Tone; value: string } = offline
+    ? { tone: 'bad', value: 'Offline' }
+    : !settings
     ? { tone: 'muted', value: '…' }
     : settings.open
       ? { tone: 'ok', value: 'Buka' }
       : { tone: 'bad', value: 'Tutup' };
 
   // Satu status WhatsApp: jeda manual dari Pengaturan menang, lalu kondisi sesi WAHA asli.
-  const whatsapp: { tone: Tone; value: string } = !settings
+  const whatsapp: { tone: Tone; value: string } = offline
+    ? { tone: 'bad', value: 'Offline' }
+    : !settings
     ? { tone: 'muted', value: '…' }
     : !settings.waConnected
       ? { tone: 'warn', value: 'Dijeda' }

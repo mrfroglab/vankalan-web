@@ -96,3 +96,26 @@ export async function apiRequest<T>(
   const data = await response.json();
   return data as T;
 }
+
+/**
+ * Mode backend: kegagalan server diteruskan ke pemanggil, TIDAK jatuh ke data localStorage.
+ * Data lokal (demo) yang tampil di dashboard atau aksi yang "berhasil" padahal tidak sampai
+ * ke server bisa membuat penjaga memasak pesanan palsu / mengira toko sudah ditutup.
+ */
+export function backendFailure(scope: string, err: unknown): Error {
+  console.error(`[${scope}] permintaan ke server gagal:`, err);
+  if (err instanceof Error) return err;
+  return new ApiError('Server tidak dapat dihubungi.', 0, scope, err);
+}
+
+export function unexpectedResponse(scope: string): ApiError {
+  return new ApiError('Respons server tidak dikenali.', 502, scope);
+}
+
+/**
+ * Tombol data demo / reset hanya untuk mode demo (tanpa backend) atau development.
+ * Di production endpoint-nya ditolak server (assertDevOnly), jadi tombolnya disembunyikan.
+ */
+export function demoToolsEnabled(): boolean {
+  return !isBackendConfigured() || process.env.NODE_ENV !== 'production';
+}

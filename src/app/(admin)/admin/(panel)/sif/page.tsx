@@ -1,5 +1,6 @@
 'use client';
 
+import { makeSaveGuard } from '@/lib/saveGuard';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Shift, Order } from '@/types';
@@ -20,6 +21,12 @@ import {
   UserCheck,
   Send,
 } from 'lucide-react';
+
+
+/** ID sementara untuk item baru (di luar komponen: dipanggil saat aksi, bukan saat render). */
+function newLocalId(prefix: string): string {
+  return prefix + Date.now();
+}
 
 export default function AdminSifPage() {
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -78,7 +85,9 @@ export default function AdminSifPage() {
     };
   }, []);
 
-  const handleActivateShift = async (shiftId: string) => {
+  const guard = makeSaveGuard(showToast, loadData);
+
+  const handleActivateShift = guard(async (shiftId: string) => {
     const settings = await settingsService.getStoreSettings();
     const shift = shifts.find((s) => s.id === shiftId);
     await settingsService.saveStoreSettings({ ...settings, recipientShiftId: shiftId });
@@ -91,12 +100,12 @@ export default function AdminSifPage() {
         setHandoverPrompt(shift);
       }
     }
-  };
+  });
 
   const ordersToHandOver = pendingOrders.filter((o) => needsHandover(o, activeShiftId));
   const activeShift = shifts.find((s) => s.id === activeShiftId);
 
-  const handleSendHandover = async () => {
+  const handleSendHandover = guard(async () => {
     setIsHandingOver(true);
     try {
       const summary = await runHandover(ordersToHandOver, (id) => orderService.retryWhatsApp(id));
@@ -105,7 +114,7 @@ export default function AdminSifPage() {
     } finally {
       setIsHandingOver(false);
     }
-  };
+  });
 
   const openAddModal = () => {
     setEditingShift(null);
@@ -123,7 +132,7 @@ export default function AdminSifPage() {
     setIsModalOpen(true);
   };
 
-  const handleSaveShift = async (e: React.FormEvent) => {
+  const handleSaveShift = guard(async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -146,7 +155,7 @@ export default function AdminSifPage() {
       showToast(`Data penjaga ${formName.trim()} berhasil diperbarui.`);
     } else {
       const newShift: Shift = {
-        id: 's_' + Date.now(),
+        id: newLocalId('s_'),
         name: formName.trim(),
         phone: cleanPhone,
       };
@@ -157,9 +166,9 @@ export default function AdminSifPage() {
     }
 
     setIsModalOpen(false);
-  };
+  });
 
-  const handleDeleteShift = async (id: string) => {
+  const handleDeleteShift = guard(async (id: string) => {
     if (shifts.length <= 1) {
       alert('Harus ada minimal satu penjaga yang terdaftar.');
       return;
@@ -176,7 +185,7 @@ export default function AdminSifPage() {
       setIsModalOpen(false);
       showToast('Penjaga berhasil dihapus.');
     }
-  };
+  });
 
   return (
     <div>

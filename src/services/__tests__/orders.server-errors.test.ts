@@ -44,10 +44,11 @@ describe('orderService.createOrder dengan backend aktif', () => {
     expect(localStorage.getItem('pv_orders_v2')).toBeNull();
   });
 
-  it('tetap fallback ke localStorage hanya saat jaringan putus', async () => {
+  it('jaringan putus: gagal terlihat, tidak membuat order palsu di localStorage', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')));
-    const res = await orderService.createOrder(payload);
-    expect(res.order.total).toBe(10000);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    await expect(orderService.createOrder(payload)).rejects.toMatchObject({ statusCode: 0 });
+    expect(localStorage.getItem('pv_orders_v2')).toBeNull();
   });
 });
 

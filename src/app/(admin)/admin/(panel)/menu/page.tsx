@@ -1,5 +1,6 @@
 'use client';
 
+import { makeSaveGuard } from '@/lib/saveGuard';
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { MenuItem } from '@/types';
@@ -20,6 +21,12 @@ import {
   Coffee,
   Egg,
 } from 'lucide-react';
+
+
+/** ID sementara untuk item baru (di luar komponen: dipanggil saat aksi, bukan saat render). */
+function newLocalId(prefix: string): string {
+  return prefix + Date.now();
+}
 
 export default function AdminMenuPage() {
   const [menuList, setMenuList] = useState<MenuItem[]>([]);
@@ -82,7 +89,9 @@ export default function AdminMenuPage() {
   }, []);
 
   // Toggle ketersediaan menu secara instan (FR-42)
-  const handleToggleAvailable = async (id: string) => {
+  const guard = makeSaveGuard(showToast, loadData);
+
+  const handleToggleAvailable = guard(async (id: string) => {
     const targetItem = menuList.find((m) => m.id === id);
     const updated = menuList.map((m) =>
       m.id === id ? { ...m, available: !m.available } : m
@@ -96,7 +105,7 @@ export default function AdminMenuPage() {
           : `Status ${targetItem.name} diubah menjadi Habis.`
       );
     }
-  };
+  });
 
   const openAddMenuModal = () => {
     setEditingItem(null);
@@ -130,7 +139,7 @@ export default function AdminMenuPage() {
     setIsMenuModalOpen(true);
   };
 
-  const handleSaveMenu = async (e: React.FormEvent) => {
+  const handleSaveMenu = guard(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) return;
 
@@ -163,7 +172,7 @@ export default function AdminMenuPage() {
     } else {
       // Tambah baru
       const newItem: MenuItem = {
-        id: 'm_' + Date.now(),
+        id: newLocalId('m_'),
         name: formName.trim(),
         description: formDesc.trim(),
         price: Number(formPrice),
@@ -182,9 +191,9 @@ export default function AdminMenuPage() {
     }
 
     setIsMenuModalOpen(false);
-  };
+  });
 
-  const handleDeleteMenu = async (id: string) => {
+  const handleDeleteMenu = guard(async (id: string) => {
     const itemToDelete = menuList.find((m) => m.id === id);
     if (confirm(`Yakin ingin menghapus ${itemToDelete ? `"${itemToDelete.name}"` : 'menu ini'} dari katalog?`)) {
       const updated = menuList.filter((m) => m.id !== id);
@@ -193,9 +202,9 @@ export default function AdminMenuPage() {
       setIsMenuModalOpen(false);
       showToast('Menu berhasil dihapus dari katalog.');
     }
-  };
+  });
 
-  const handleAddCategory = async (e: React.FormEvent) => {
+  const handleAddCategory = guard(async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newCatName.trim();
     if (!trimmed || categories.includes(trimmed)) return;
@@ -205,9 +214,9 @@ export default function AdminMenuPage() {
     setNewCatName('');
     setIsCatModalOpen(false);
     showToast(`Kategori "${trimmed}" berhasil ditambahkan.`);
-  };
+  });
 
-  const handleDeleteCategory = async (cat: string) => {
+  const handleDeleteCategory = guard(async (cat: string) => {
     const hasItems = menuList.some((m) => m.category === cat);
     if (hasItems) {
       alert(`Kategori "${cat}" masih memiliki menu aktif. Pindahkan menu terlebih dahulu sebelum menghapus kategori.`);
@@ -220,7 +229,7 @@ export default function AdminMenuPage() {
       if (selectedCategory === cat) setSelectedCategory('Semua');
       showToast(`Kategori "${cat}" berhasil dihapus.`);
     }
-  };
+  });
 
   const filteredMenu = useMemo(() => {
     return menuList.filter((m) => {
